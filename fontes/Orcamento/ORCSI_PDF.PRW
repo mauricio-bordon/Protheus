@@ -13,7 +13,7 @@ Static nCorCinza := RGB(204, 204, 204)
 Static nCorAz1  := RGB(168, 189, 220)
 Static nCorAz2  := RGB(90, 142, 220)
 USER FUNCTION ORCSIPDF()
-	Local  nLine, nIncline := 40, cFilename := '', i
+	Local  nLine, nIncline := 40, cFilename := ''
 	//Declarando as fontes
 	Private cNomeFont  	:= "Arial"
 	Private nSize1		:= 12, nSize2 := 12, nSize3 := 10, nSize4 := 10
@@ -62,7 +62,7 @@ USER FUNCTION ORCSIPDF()
 	oPrinter:StartPage()
 	nColIni	 :=  25
 	nLine 	:= 200
-	oPrinter:SayBitmap( nLine, nColFim - 350,"/imagens/logoflex.bmp",350,138)
+	oPrinter:SayBitmap( nLine, nColFim - 450,"/imagens/logoind3.bmp",437,212)
 
 
 
@@ -237,17 +237,19 @@ USER FUNCTION ORCSIPDF()
 	nLine += nIncLine
 	nLine := prnTCV(nLine)
 
+/*
 	if ZV0->ZV0_STATUS == '0'
 		for i:= nLine + nIncLIne to 2400
 			oPrinter:Say( i, 1250, 'ORÇAMENTO NÃO LIBERADO', oFont1b)
 			I+=nIncLIne
 		next
 	ENDIF
+*/
 	//Rodapé
 	nLine := 2400
 	oPrinter:Line( nLine, nColIni, nLine,nColFim )
 	nLine += nIncLine
-	oPrinter:Say( nLine, 1250, 'http://www.flexcoat.com.br (19) 3141-4040', oFont1b)
+	oPrinter:Say( nLine, 1250, 'http://www.inducoat.com.br (19) 3167-0700', oFont1b)
 
 	oPrinter:EndPage()
 	FreeObj(oTpImpr)
@@ -281,7 +283,7 @@ static function prnTCV(nLinAtu)
 	aAdd(aInfo,{"Tolerância de Variação:"		,"Considerar variação de 10% para mais ou para menos entre a quantidade "})
 	aAdd(aInfo,{""								, "solicitada e a quantidade produzida."})
 	aAdd(aInfo,{"Entrega e Armazenagem:"		, "O despacho acontecera na data de entrega estipulada no pedido."})
-	aAdd(aInfo,{""								, "A quantidade produzida poderá ficar armazenada na Flexcoat por até 180 dias."})
+	aAdd(aInfo,{""                                , "A quantidade produzida poderá ficar armazenada na Inducoat por até 180 dias."})
 	aAdd(aInfo,{"Formato de Entrega:"			, "Bobina."})
 	_cRepNome :=  ALLTRIM(POSICIONE('SA3', 1, XFILIAL('SA3')+ZV0->ZV0_REPRES,"A3_NOME"))
 	_cRepmail :=  ALLTRIM(POSICIONE('SA3', 1, XFILIAL('SA3')+ZV0->ZV0_REPRES,"A3_EMAIL"))
@@ -289,14 +291,13 @@ static function prnTCV(nLinAtu)
 	_cUserName := alltrim(ZV0->ZV0_USER)
 	psworder(2)
 
-	if pswseek(_cUserName,.t.)
-		_daduser:=pswret(1)
-		_cNome :=alltrim(_daduser[1,4] )
-		_cEmail := alltrim(_daduser[1,14] )
-		aAdd(aInfo,{"Orçamento elaborado por:"		, _cNome + " - "+_cEmail})
-	else
-		aAdd(aInfo,{"Orçamento elaborado por:"		, _cUserName + " - "+'e-mail'})
-	endif
+	   pswseek(_cUserName,.t.)
+        _daduser:=pswret(1)
+        _cNome :=alltrim(_daduser[1,4] )
+        _cEmail := alltrim(_daduser[1,14] )
+    //aAdd(aInfo,{"Orçamento elaborado por:"      , _cNome + " - "+_cEmail})
+    aAdd(aInfo,{"Orçamento elaborado por:"        , _cNome})
+
 
 	oPrinter:Fillrect( {nLinAtu, nColIni, nLinAtu + 40, nColFim }, oBruAz2)
 	oPrinter:Line( nLinAtu + 40, nColIni, nLinAtu + 40, nColFim )
@@ -325,7 +326,7 @@ Static Function fSayBox(oPrn,oFnt,nY,nX,nH,nW,cTxt)
 	Local aTexto2
 	Local cTexto := lower(AllTrim(cTxt))
 	Local nLin := nY, nA, nB
-	Local nAltLin := oPrn:GetTextHeight("MMMM",oFnt)
+	Local nAltLin := 40 // oPrn:GetTextHeight("MMMM",oFnt)
 	Local Nlinhas := 1
 	nW := nW * 1.4
 	aTexto := StrTokArr(cTexto,Chr(13)+Chr(10))
@@ -338,7 +339,8 @@ Static Function fSayBox(oPrn,oFnt,nY,nX,nH,nW,cTxt)
 
 		For nB := 1 to Len(aTexto2)
 
-			If oPrn:GetTextWidth(cLinha+" "+aTexto2[nB],oFnt) > nW .And. !Empty(cLinha)
+			//If oPrn:GetTextWidth(cLinha+" "+aTexto2[nB],oFnt) > nW .And. !Empty(cLinha)
+			if len(cLinha+" "+aTexto2[nB]) > 60 .And. !Empty(cLinha)
 				oPrinter:SayAlign(nLin, nX, AllTrim(cLinha), oFnt, nW, nAltLin, , 3, 0)
 				//oPrn:Say( nLin, nX ,AllTrim(cLinha),oFnt,,,,0)
 				cLinha := ""

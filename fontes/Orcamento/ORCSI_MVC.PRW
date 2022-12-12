@@ -122,16 +122,17 @@ Static Function ModelDef()
 
 	oStruZV1:SetProperty('ZV1_STATUS', MODEL_FIELD_INIT 	, FwBuildFeature(STRUCT_FEATURE_INIPAD  , '0'))         //Ini Padrão
 	oStruZV1:SetProperty('ZV1_STATUS', MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , 'IIF(__lAProva,.T.,.F.)'))
-	oStruZV1:SetProperty('ZV1_DESC'	 , MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , "EMPTY(FWFldGet('ZV1_FAM'))"))
+	oStruZV1:SetProperty('ZV1_DESC'	 , MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , "EMPTY(FWFldGet('ZV1_GRUPO'))"))
 	oStruZV1:SetProperty('ZV1_MOTRPV', MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , '.F.'))
 	oStruZV1:SetProperty('ZV1_LARGPI', MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , '.F.'))
 	oStruZV1:SetProperty('ZV1_MTTOT' , MODEL_FIELD_VALID	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD01()'))   //Validação de Campo
 	oStruZV1:SetProperty('ZV1_LARGCR', MODEL_FIELD_VALID	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD02()'))   //Validação de Campo
-	oStruZV1:SetProperty('ZV1_FAM'	 , MODEL_FIELD_VALID	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD03()'))   //Validação de Campo
+//	oStruZV1:SetProperty('ZV1_FAM'	 , MODEL_FIELD_VALID	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD03()'))   //Validação de Campo
+	oStruZV1:SetProperty('ZV1_GRUPO' , MODEL_FIELD_VALID	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD03()'))   //Validação de Campo
 	oStruZV1:SetProperty('ZV1_PRCPI' , MODEL_FIELD_VALID	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD04()'))   //Validação de Campo
 	oStruZV1:SetProperty('ZV1_CORES' , MODEL_FIELD_VALID 	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD05()'))
 	oStruZV1:SetProperty('ZV1_MTLIN' , MODEL_FIELD_VALID 	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD06()'))
-	oStruZV1:SetProperty('ZV1_PRCPI2', MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , '.F.'))
+	//oStruZV1:SetProperty('ZV1_PRCPI2', MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , '.F.'))
 	oStruZV1:SetProperty('ZV1_DESC'  , MODEL_FIELD_OBRIGAT	, .T. ) //Campo Obrigatório
 	oStruZV1:SetProperty('ZV1_LARGPI', MODEL_FIELD_OBRIGAT	, .T. ) //Campo Obrigatório
 	oStruZV1:SetProperty('ZV1_LARGCR', MODEL_FIELD_OBRIGAT	, .T. ) //Campo Obrigatório
@@ -212,14 +213,14 @@ user function ZV0CODINI()
 				AND ZV0_CODIGO LIKE %EXP:cAnoMesLike%
 			ENdSql
 			if (calias)->(!eof())
-				nCod := getmv('FX_ORCSISQ')
+				nCod := getmv('IC_ORCSISQ')
 			else
 				nCod := 0
 			endif
 			(calias)->(DBCLOSEAREA(  ))
 			nCod++
 			cCod := cAnoMes + strzero(nCod,4)
-			putmv('FX_ORCSISQ', nCod)
+			putmv('IC_ORCSISQ', nCod)
 		ENDIF
 	End transaction
 return cCod
@@ -296,13 +297,13 @@ STATIC FUNCTION TRG_ZV1()
 	Local aGatilhos := {}
 	//Adicionando um gatilho, do BM_GRUPO para o BM_DESC
 
-	aAdd(aGatilhos, FWStruTriggger(    "ZV1_FAM",;                                //Campo Origem
+	aAdd(aGatilhos, FWStruTriggger(    "ZV1_GRUPO",;                                //Campo Origem
 	"ZV1_DESC",;                                 //Campo Destino
-	"ZC7->ZC7_DESC",;                           //Regra de Preenchimento
+	"SBM->BM_DESC",;                           //Regra de Preenchimento
 	.T.,;                                       //Irá Posicionar?
-	"ZC7",;                                     //Alias de Posicionamento
+	"SBM",;                                     //Alias de Posicionamento
 	1,;                                         //Índice de Posicionamento
-	"XFILIAL('ZC7')+ZV1_FAM",;               //Chave de Posicionamento
+	"XFILIAL('SBM')+ZV1_GRUPO",;               //Chave de Posicionamento
 	NIL,;                                       //Condição para execução do gatilho
 	"001");                                      //Sequência do gatilho
 	)
@@ -409,34 +410,31 @@ return lRet
 VALIDA FAMILIA PREENCHENDO CAMPOS 
 */
 User Function ZV1VLD03()
-	Local cFamilia := FWFldGet("ZV1_FAM")
-	Local nLarg, nMtRolo, cImp, cProdBase, nPrcM2, nPrcMt
+	//Local cFamilia := FWFldGet("ZV1_FAM")
+	Local cGrupo	:= FWFldGet("ZV1_GRUPO")
+	Local nLarg, nMtRolo, cImp, cProdBase, nPrcMt
 	Local lRet := .T.
 	Local oModelPad  := FWModelActive()
 
-	if empty(cFamilia)
+	if empty(cGrupo)
 		return .T.
 	endif
 
-	dbSelectArea('ZC7')
-	ZC7->(DbSetOrder(1))
-	ZC7->(DBSEEK(XFILIAL('ZC7')+cFamilia))
+	dbSelectArea('SBM')
+	SBM->(DbSetOrder(1))
+	SBM->(DBSEEK(XFILIAL('SBM')+cGrupo))
 
-	IF ZC7->(!FOUND())
-		Help( ,, 'Help',, 'Familia não encontrada' , 1, 0 )
+	IF SBM->(!FOUND())
+		Help( ,, 'Help',, 'Grupo não encontrado' , 1, 0 )
 		return .F.
 	ENDIF
 
-	nLarg   := ZC7->ZC7_LARG
-	nMtRolo := ZC7->ZC7_MAXBOB
-	cImp    := ZC7->ZC7_IMPRES
+	nLarg   := getmv('IC_PIFXCRT')
+	nMtRolo := getmv('IC_MTRLMX')
+	cImp    := '0' // TODO, VERIFICAR SOBRE IMPRESSAO
 
-	if empty(cImp) .or. !cImp$"0_1"
-		Help( ,, 'Help',, 'Campo "Impressão" da Família informada é inválido. ('+cImp+')' , 1, 0, NIL, NIL, NIL, NIL, NIL, {"Verifique a Família"} )
-		return .F.
-	endif
 
-	cProdBase := 'PA'+cFamilia+cImp+'1'+STRZERO(nLarg,4)
+	cProdBase := 'PI'+cGrupo+STRZERO(nLarg,4)
 
 	dbSelectArea('DA1')
 	DA1->(DbSetOrder(1))
@@ -447,8 +445,7 @@ User Function ZV1VLD03()
 		return .F.
 	ENDIF
 
-	nPrcM2 := DA1->DA1_PRCVEN
-	nPrcMt := nPrcM2 * (nLarg / 1000)
+	nPrcMt := DA1->DA1_PRCVEN
 
 	FWFldPut('ZV1_PRCPIO', nPrcMt)
 	FWFldPut('ZV1_PRCPI', nPrcMt)
@@ -456,8 +453,7 @@ User Function ZV1VLD03()
 	//FWFldPut('ZV1_LARGPI', nLarg)
 	oModelPad:loadvalue( 'ZV1DETAIL','ZV1_LARGPI', nLarg)
 	FWFldPut('ZV1_IPI', POSICIONE("SB1",1,XFILIAL("SB1")+CPRODBASE,"B1_IPI"))
-	cGrupo := POSICIONE("SB1",1,XFILIAL("SB1")+CPRODBASE,"B1_GRUPO")
-	IF CGRUPO == alltrim(getmv('FX_ORCSICP'))	
+	IF cGrupo == alltrim(supergetmv('FX_ORCSICP', .F.,'9999'))	
 		FWFldPut('ZV1_TPIMPR', 'ID')
 	ELSEif cImp == '0'
 		FWFldPut('ZV1_TPIMPR', 'SI')
@@ -672,7 +668,7 @@ STATIC Function ORCSIPos()
 					cQryUpd += "     SET ZV1_STATUS = 'I' "
 					cQryUpd += " WHERE "
 					cQryUpd += "     ZV1_FILIAL = '" + FWxFilial('ZV1') + "' "
-					cQryUpd += "     AND ZV1_STATUS = 'A' AND ZV1_FAM = '" + (CALIAS)->ZV1_FAM + "' "
+					cQryUpd += "     AND ZV1_STATUS = 'A' AND ZV1_GRUPO = '" + (CALIAS)->ZV1_GRUPO + "' "
 					cQryUpd += "     AND ZV1_LARGCR = '" + alltrim(str((CALIAS)->ZV1_LARGCR)) + "' AND ZV1_CLI = '" + (CALIAS)->ZV1_CLI + "' "
 					cQryUpd += "     AND D_E_L_E_T_ = ' ' "
 
@@ -756,7 +752,8 @@ Return lRet
 Static Function linePostGrid(oGridModel, nLine)
 	Local lRet := .T.
 	Local cAlias := getNextAlias()
-	Local cFamilIa := FwFLdGet('ZV1_FAM')
+	//Local cFamilIa := FwFLdGet('ZV1_FAM')
+	Local cGrupo   := FwFLdGet('ZV1_GRUPO')
 	Local cCliente := FwFLdGet('ZV1_CLI')
 	Local nLargCrt := FwFLdGet('ZV1_LARGCR')
 	Local cCodigo  := FwFLdGet('ZV1_CODIGO')
@@ -767,7 +764,7 @@ Static Function linePostGrid(oGridModel, nLine)
 		SELECT *
 		FROM %TABLE:ZV1%
 		WHERE ZV1_FILIAL = %XFILIAL:ZV1% AND %NOTDEL%
-		AND ZV1_FAM = %EXP:cFamilia% 
+		AND ZV1_GRUPO = %EXP:cGrupo% 
 		AND ZV1_CLI = %EXP:cCliente% AND ZV1_LARGCR = %exp:nLargCrt%
 		AND ZV1_CODIGO <> %EXP:cCodigo%
 	ENDSQL
@@ -994,11 +991,11 @@ Static Function INCOK()
 		//Setando a linha atual
 		oModelGrid:SetLine(nLin)
 
-		cIndex := Fwfldget('ZV1_FAM')+Fwfldget('ZV1_CLI')+transform(Fwfldget('ZV1_LARGCR'),"@E 999.999")
+		cIndex := Fwfldget('ZV1_GRUPO')+Fwfldget('ZV1_CLI')+transform(Fwfldget('ZV1_LARGCR'),"@E 999.999")
 		if ascan(aindex, cindex) == 0
 			aAdd(aindex, cindex)
 		else
-			Help( ,, 'Help',, 'Item repetido no orçamento: Cliente '+Fwfldget('ZV1_CLI')+', família '+ Fwfldget('ZV1_FAM')+' e largura '+transform(Fwfldget('ZV1_LARGCR'), "@E 999.999")+'. ' , 1, 0 )	
+			Help( ,, 'Help',, 'Item repetido no orçamento: Cliente '+Fwfldget('ZV1_CLI')+', família '+ Fwfldget('ZV1_GRUPO')+' e largura '+transform(Fwfldget('ZV1_LARGCR'), "@E 999.999")+'. ' , 1, 0 )	
 			lOk := .F.
 		endif
 
@@ -1085,17 +1082,17 @@ return lOk
 static function calcpreco()
 	Local nROlos 	:= FWFldGet('ZV1_NROLOS')
 	Local nPrcPi 	:= FWFldGet("ZV1_PRCPI")
-	Local nLargCrt  := FWFldGet("ZV1_LARGCR")
-	Local nPrcImp := 0, nPrcImpM2 := 0, cEstCli, nFatIcms, nPrcLiq
+	//Local nLargCrt  := FWFldGet("ZV1_LARGCR")
+	Local nPrcImp := 0, cEstCli, nFatIcms, nPrcLiq
 	//obtendo o preco de venda em MT
 	nPrcImp := nPrcpi / nRolos
 	FWFldPut('ZV1_PRCIMP', nPrcImp)
 
-
+/*
 //obtendo o preco de venda em M2
 	nPrcImpM2 := nPrcImp / ( nLargCrt / 1000 )
 	FWFldPut( 'ZV1_PRIMP2', nPrcImpM2)
-
+*/
 //obtendo o preço liquido EM mt
 	cEstCli := POSICIONE('SA1', 1, XFILIAL('SA1')+ZV0_CODCLI,"A1_EST")
 	if cEstCli$'RS,RJ,PR,MG,SC'
