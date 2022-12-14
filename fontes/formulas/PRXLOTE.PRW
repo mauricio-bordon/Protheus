@@ -25,7 +25,7 @@ USER FUNCTION PRXLOTE()
         nSeqDia++
         cLotectl := dtos(ddatabase)+'M'+strzero(nSeqDia,3)
         putmv("IC_LOTSEQM", nSeqDia)
-    elseif FWISINCALLSTACK('mata250') // producao
+    elseif FWISINCALLSTACK('mata250') .or. FWISINCALLSTACK('mata681')// producao
         IF M->D3_TIPO == 'PA'
             cLotectl := left(M->D3_OP,8)
         ELSEIF M->D3_TIPO == 'PI'
