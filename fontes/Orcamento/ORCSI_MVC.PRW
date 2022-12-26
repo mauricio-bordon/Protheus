@@ -132,7 +132,8 @@ Static Function ModelDef()
 	oStruZV1:SetProperty('ZV1_PRCPI' , MODEL_FIELD_VALID	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD04()'))   //Validação de Campo
 	oStruZV1:SetProperty('ZV1_CORES' , MODEL_FIELD_VALID 	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD05()'))
 	oStruZV1:SetProperty('ZV1_MTLIN' , MODEL_FIELD_VALID 	, FwBuildFeature(STRUCT_FEATURE_VALID   , 'U_ZV1VLD06()'))
-	//oStruZV1:SetProperty('ZV1_PRCPI2', MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , '.F.'))
+//	oStruZV1:SetProperty('ZV1_PRCIMP', MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , '.F.'))
+//	oStruZV1:SetProperty('ZV1_PRCLIQ', MODEL_FIELD_WHEN 	, FwBuildFeature(STRUCT_FEATURE_WHEN    , '.F.'))
 	oStruZV1:SetProperty('ZV1_DESC'  , MODEL_FIELD_OBRIGAT	, .T. ) //Campo Obrigatório
 	oStruZV1:SetProperty('ZV1_LARGPI', MODEL_FIELD_OBRIGAT	, .T. ) //Campo Obrigatório
 	oStruZV1:SetProperty('ZV1_LARGCR', MODEL_FIELD_OBRIGAT	, .T. ) //Campo Obrigatório
