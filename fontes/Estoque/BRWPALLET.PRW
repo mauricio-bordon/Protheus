@@ -22,7 +22,7 @@ User Function BRWPALLET()
 	oMark:SetIgnoreARotina(.T.)
 	oMark:SetMenuDef('')
 	cLotectl := PAD( SC2->C2_NUM + SC2->C2_ITEM, 20)
-	cQuery := " ZD3_LOTEL == '" + cLotectl+ "' "
+	cQuery := " ZD3_LOTE == '" + cLotectl+ "' "
 	if msgyesno('Exibir Apenas Rolos sem Pallet?', 'Pergunta')
 		cQuery +=  " .AND. alltrim(ZD3_PALLET) == '' "
 	ENDIF
@@ -61,7 +61,7 @@ STATIC FUNCTION PRINTETQ(cPallet)
 	nTotalMt := 0
 	nRolos := 0
 	while (calias)->(!eof())
-		cLotectl := (calias)->ZD3_LOTEL
+		cLotectl := (calias)->ZD3_LOTE
 		cStr += " Faixa: "+(CALIAS)->ZD3_COD + " MT Linear: "+TRANSFORM((CALIAS)->METROS,"@E 999,999.999") ;
 			+ " Total MT "+TRANSFORM((CALIAS)->totalMt,"@E 999,999.999") ;
 			+ " Rolos: "+TRANSFORM((CALIAS)->ROLOS,"@E 999,999.999") + CHR(13) + CHR(10)

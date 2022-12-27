@@ -41,9 +41,9 @@ User Function SD3250I()
                 ZD3->ZD3_OP     := SD3->D3_OP
                 ZD3->ZD3_PALLET := SPACE(10)
                 ZD3->ZD3_COD    := SD3->D3_COD   
-                ZD3->ZD3_LOTECT := SD3->D3_LOTECTL
+                ZD3->ZD3_LOTE := SD3->D3_LOTECTL
                 ZD3->ZD3_TIRADA := nTirada
-                ZD3->ZD3_LARGUR := POSICIONE("SB1",1, XFILIAL('SB1')+SD3->D3_COD,'B1_LARGURA')
+                ZD3->ZD3_LARG := POSICIONE("SB1",1, XFILIAL('SB1')+SD3->D3_COD,'B1_LARGURA')
                 ZD3->ZD3_MTROLO := SD3->D3_MTROLO
                 ZD3->ZD3_UM     := SD3->D3_UM
                 ZD3->ZD3_NUMSEQ := SD3->D3_NUMSEQ
