@@ -262,17 +262,17 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 
 	MSGINFO( cSaida, 'ZPL' )
 
- /*
-    cPort := 'LPT1' // prnLPTPort()
-    FERASE("c:\windows\temp\zpl_etiqueta_pallet_si.prn" )
-    MemoWrite("c:\windows\temp\zpl_etiqueta_pallet_si.prn", cSaida)
+ 
+    cPort := 'LPT2' // prnLPTPort()
+    FERASE("c:\windows\temp\etq_pallet.prn" )
+    MemoWrite("c:\windows\temp\etq_pallet.prn", cSaida)
 
  
     if cPort == 'LPT1'
-        Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT1
+        Copy File "c:\windows\temp\etq_pallet.prn" To LPT1
     elseif cPort == 'LPT2'
-        Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT2
+        Copy File "c:\windows\temp\etq_pallet.prn" To LPT2
     endif
-*/
+
 
 Return
