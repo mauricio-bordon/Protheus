@@ -24,7 +24,7 @@ USER FUNCTION MT250GREST()
         (calias)->(dbclosearea())
 
         if nROlos > 0
-            SC2->(DBSSEK(XFILIAL('SC2')+SD3->D3_OP))
+            SC2->(DBSEEK(XFILIAL('SC2')+SD3->D3_OP))
             SC2->(RecLock('SC2', .F.))
                 SC2->C2_ROLOSTT := SC2->C2_ROLOSTT - nRolos
             SC2->(MsUnlock())
