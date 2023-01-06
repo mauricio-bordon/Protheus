@@ -189,8 +189,8 @@ Return NIL
 
 static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, ntotalM2, nRolos)
 
-	Local cStr := "", CALIAS, cLotesb8, i
-	Local  cPedCli := '', cDtFabr, cDtValid, cDESC := ''
+	Local cStr := "", CALIAS, i//, cLotesb8, cDtFabr, cDtValid
+	Local  cPedCli := '', cDESC := ''
 	Private aPort, cPort, nIni := 0, nFim := 0, NQtdRolo := 0
 
 	cAlias := getNextalias()
