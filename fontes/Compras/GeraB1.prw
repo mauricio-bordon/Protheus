@@ -42,6 +42,11 @@ User Function GeraB1()
 		 ENDIF
 
 
+		//se PI OU PA CONTROLA LOTE
+		M->B1_RASTRO 	:= 'L'    
+		//M->B1_TIPOCQ	:= 'M'
+		M->B1_PRVALID:=365
+
 		endif
 
 
