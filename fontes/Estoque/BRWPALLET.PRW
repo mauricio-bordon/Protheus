@@ -72,14 +72,14 @@ STATIC FUNCTION PRINTETQ(cPallet)
 		(calias)->(DBSKIP())
 	enddo
 	(calias)->(DBCLOSEAREA())
- 
+
 	if len(aItens) > 0
-		//U_ETQSIPLT(SC2->C2_NUM, SC2->C2_PRODUTO, cLotectl, SC2->C2_CLIENTE, aItens, ntotalMt, 0, nRolos)
+		ETQSIPLT(SC2->C2_NUM, SC2->C2_PRODUTO, cLotectl, '', aItens, ntotalMt, 0, nRolos)
 		MsgInfo(cStr, 'info')
 	else
-		MsgAlert("Linha selecionada não está associada a Pallet", 'Aviso')	
+		MsgAlert("Linha selecionada não está associada a Pallet", 'Aviso')
 	endif
-	
+
 RETURN
 
 static FUNCTION selrolos()
@@ -148,7 +148,7 @@ STATIC Function MNTPLTSI()
 		Enddo
 
 		SC2->(RECLOCK('SC2',.F.))
-			SC2->C2_NPLTPRX := NPLTNEXT
+		SC2->C2_NPLTPRX := NPLTNEXT
 		SC2->(MsUnlock())
 	END TRANSACTION
 	nPltAtual := nPltNext
@@ -187,32 +187,92 @@ STATIC Function DMNTPLTSI()
 	oMark:refresh()
 Return NIL
 
-static function etqplt()
+static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, ntotalM2, nRolos)
 
+	Local cStr := "", CALIAS, cLotesb8, i
+	Local  cPedCli := '', cDtFabr, cDtValid, cDESC := ''
+	Private aPort, cPort, nIni := 0, nFim := 0, NQtdRolo := 0
 
-return
+	cAlias := getNextalias()
+	BeginSql alias CALIAS
+        SELECT TOP 1 COALESCE(LTRIM(A1_NOME), ' ') AS A1_NOME, COALESCE(C6_PEDCLI, ' '), COALESCE(C6_ITEMPC, ' '), B1_DESC, A1_COD
+        FROM %TABLE:SC2% C2 LEFT JOIN %TABLE:SC6% C6 ON (C6_NUM = C2_NUM AND C6_ITEM = C2_ITEM AND C2_SEQUEN = '001')
+            INNER JOIN %TABLE:SA1% A1 ON (A1_COD = C6_CLI)
+            INNER JOIN %TABLE:SB1% B1 ON (B1_COD = C2_PRODUTO)
+        WHERE C2_FILIAL = %xfilial:SC2% AND C2.D_E_L_E_T_ <> '*'
+        AND C6_FILIAL = %xfilial:SC6% AND C6.D_E_L_E_T_ <> '*'
+        AND A1_FILIAL = %xfilial:SA1% AND A1.D_E_L_E_T_ <> '*'
+        AND C2_NUM = %EXP:SC2->C2_NUM% AND C2_ITEM = %EXP:SC2->C2_ITEM% AND C2_SEQUEN = %EXP:SC2->C2_SEQUEN%
+        AND C2_PRODUTO = %EXP:CCOD%
+        order by C2.R_E_C_N_O_
+	EndSQL
+
+	IF (calias)->(!eof())
+		cPedCli     := alltrim((CALIAS)->C6_PEDCLI)+"-"+alltrim((CALIAS)->C6_ITEMPC)
+		cCliente    := alltrim((CALIAS)->A1_NOME)
+		cDESC       := alltrim((CALIAS)->B1_DESC)
+		cCodCli     := (CALIAS)->A1_COD
+	endif
+
+	(calias)->(dbclosearea())
+
 /*
-//-------------------------------------------------------------------
-Static Function MenuDef()
+	cLotesb8 := 'OC'+cOrdem
+	cAlias := getNextalias()
+	BeginSql alias CALIAS
+        SELECT TOP 1 B8_DFABRIC, B8_DTVALID
+        FROM %TABLE:SB8% B8
+        WHERE B8_FILIAL = '00' AND D_E_L_E_T_ <> '*'
+        AND B8_LOTECTL = %EXP:cLotesb8% 
+        order by R_E_C_N_O_
+	EndSQL
 
-Local aRotina := {}
-
-ADD OPTION aRotina TITLE 'Visualizar' ACTION 'VIEWDEF.COMP025_MVC' OPERATION 2 ACCESS 0
-ADD OPTION aRotina TITLE 'Processar' ACTION 'U_COMP25PROC()' OPERATION 2 ACCESS 0
-
-Return aRotina
-
-//-------------------------------------------------------------------
-Static Function ModelDef()
-
-// Utilizo um model que ja existe
-
-Return FWLoadModel( 'COMP011_MVC' )
-
-//-------------------------------------------------------------------
-Static Function ViewDef()
-
-// Utilizo uma View que ja existe
-Return FWLoadView( 'COMP011_MVC' )
+	IF (calias)->(!eof())
+		cDtFabr     := DTOC(StoD((CALIAS)->B8_DFABRIC))
+		IF cCodCli == '003815'
+			cDtValid    := DTOC(StoD((CALIAS)->B8_DFABRIC) + ( 365*2 ) )
+		ELSE
+			cDtValid    := DTOC(StoD((CALIAS)->B8_DFABRIC) + 365 )
+		ENDIF
+	endif
 */
-//-------------------------------------------------------------------
+	//carrega etiqueta
+	CURDIR( 'etq' )
+	cStrEtq := ''
+	cStrEtq := MemoRead( "etq_pallet.txt" )
+
+	cSaida := ''
+
+	cStr := cStrEtq
+
+	cStr := STRTRAN(cStr, "%DESC%", alltrim(cDESC) )
+	cStr := STRTRAN(cStr, "%COD%", alltrim(cCOD) )
+	cStr := STRTRAN(cStr, "%LOTE%", alltrim(cLOTECTL) )
+	cStr := STRTRAN(cStr, "%CLIENTE%", cCliente)
+	cStr := STRTRAN(cStr, "%TOTAL%", transform(ntotalMT, "@E 999,999.999"))
+	cStr := STRTRAN(cStr, "%NROLOS%", transform(nRolos,"@E 999"))
+	for i:=1 to len(aItens)
+		cStr := STRTRAN(cStr, "%ITEM_"+(STRZERO(i,2))+"%", aItens[i])
+	next
+	for i:=len(aItens)+1 to 6
+		cStr := STRTRAN(cStr, "%ITEM_"+(STRZERO(i,2))+"%", ' ')
+	next
+	cSaida += cStr +chr(10)+chr(13)
+
+
+	MSGINFO( cSaida, 'ZPL' )
+
+ /*
+    cPort := 'LPT1' // prnLPTPort()
+    FERASE("c:\windows\temp\zpl_etiqueta_pallet_si.prn" )
+    MemoWrite("c:\windows\temp\zpl_etiqueta_pallet_si.prn", cSaida)
+
+ 
+    if cPort == 'LPT1'
+        Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT1
+    elseif cPort == 'LPT2'
+        Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT2
+    endif
+*/
+
+Return
