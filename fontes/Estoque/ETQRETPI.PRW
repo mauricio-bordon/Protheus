@@ -67,10 +67,9 @@ USER FUNCTION ETQRETPI()
 	ENDDO
 	(CALIAS)->(DBCLOSEAREA())
 
-	MSGINFO( cSaida, 'ZPL' )
 
-    /*
-     cPort := 'LPT2' // prnLPTPort()
+
+     cPort := 'LPT1' // prnLPTPort()
     FERASE("c:\windows\temp\etq_rolo_pi.prn" )
     MemoWrite("c:\windows\temp\etq_rolo_pi.prn", cSaida)
 
