@@ -7,7 +7,6 @@ User Function BRWPALLET()
 	Private oMark, cQueryBase, cLotectl
 	//Private aRotina := {} //MenuDef()
 	ZD3->( dbsetorder(2) )
-
 	oMark := FWMarkBrowse():New()
 	oMark:SetAlias('ZD3')
 //oMark:SetSemaphore(.T.)
@@ -189,8 +188,6 @@ Return NIL
 
 static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, ntotalM2, nRolos)
 
-	Local cStr := "", CALIAS, i//, cLotesb8, cDtFabr, cDtValid
-	Local  cPedCli := '', cDESC := ''
 	Local cStr := "", CALIAS, cLotesb8, i
 	Local  cPedCli := '', cDtFabr, cDtValid, cDESC := ''
 	Private aPort, cPort, nIni := 0, nFim := 0, NQtdRolo := 0
@@ -264,10 +261,6 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 
 	MSGINFO( cSaida, 'ZPL' )
 
- 
-    cPort := 'LPT2' // prnLPTPort()
-    FERASE("c:\windows\temp\etq_pallet.prn" )
-    MemoWrite("c:\windows\temp\etq_pallet.prn", cSaida)
  /*
     cPort := 'LPT1' // prnLPTPort()
     FERASE("c:\windows\temp\zpl_etiqueta_pallet_si.prn" )
@@ -275,13 +268,10 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 
  
     if cPort == 'LPT1'
-        Copy File "c:\windows\temp\etq_pallet.prn" To LPT1
         Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT1
     elseif cPort == 'LPT2'
-        Copy File "c:\windows\temp\etq_pallet.prn" To LPT2
         Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT2
     endif
-
 */
 
 Return
