@@ -194,7 +194,7 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 
 	cAlias := getNextalias()
 	BeginSql alias CALIAS
-        SELECT TOP 1 COALESCE(LTRIM(A1_NOME), ' ') AS A1_NOME, COALESCE(C6_PEDCLI, ' '), COALESCE(C6_ITEMPC, ' '), B1_DESC, A1_COD
+        SELECT TOP 1 COALESCE(LTRIM(A1_NOME), ' ') AS A1_NOME, COALESCE(C6_PEDCLI, ' ') AS C6_PEDCLI, COALESCE(C6_ITEMPC, ' ') AS C6_ITEMPC, B1_DESC, A1_COD
         FROM %TABLE:SC2% C2 LEFT JOIN %TABLE:SC6% C6 ON (C6_NUM = C2_NUM AND C6_ITEM = C2_ITEM AND C2_SEQUEN = '001')
             INNER JOIN %TABLE:SA1% A1 ON (A1_COD = C6_CLI)
             INNER JOIN %TABLE:SB1% B1 ON (B1_COD = C2_PRODUTO)
@@ -265,13 +265,13 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
     cPort := 'LPT1' // prnLPTPort()
     FERASE("c:\windows\temp\zpl_etiqueta_pallet_si.prn" )
     MemoWrite("c:\windows\temp\zpl_etiqueta_pallet_si.prn", cSaida)
-
- 
+*/
+cPort:='LPT2'
     if cPort == 'LPT1'
         Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT1
     elseif cPort == 'LPT2'
         Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT2
     endif
-*/
+
 
 Return

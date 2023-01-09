@@ -6,7 +6,7 @@
 User Function GeraB1()
 	Local cAlias := getNextalias()
 	aArea:=GetArea()
-	
+
 
 	lRet:=.T.
 	//Gera B1_COD
@@ -23,7 +23,7 @@ User Function GeraB1()
 			ENDSQL
 
 			while (calias)->(!eof())
-				
+
 				M->B1_COD:=M->B1_TIPO+M->B1_GRUPO+STRZERO((CALIAS)->NOVOCOD,6)
 				(calias)->(DBSKIP())
 			enddo
@@ -31,25 +31,28 @@ User Function GeraB1()
 		endif
 
 		if M->B1_TIPO$"PI_PA" .AND. ALLTRIM(M->B1_GRUPO) != ''
-		 
-		 IF M->B1_LARGURA==0
-			Alert("Para PI e PA preecha a largura do produto antes do grupo!")
-			lRet:=.F.	
-			
-		 ELSE
-			
-			M->B1_COD:=M->B1_TIPO+M->B1_GRUPO+cValToChar(PADL(M->B1_LARGURA,4,"0"))
-		 ENDIF
+
+			IF M->B1_LARGURA==0
+				Alert("Para PI e PA preecha a largura do produto antes do grupo!")
+				lRet:=.F.
+
+			ELSE
+
+				M->B1_COD:=M->B1_TIPO+M->B1_GRUPO+cValToChar(PADL(M->B1_LARGURA,4,"0"))
+			ENDIF
 
 
-		//se PI OU PA CONTROLA LOTE
-		M->B1_RASTRO 	:= 'L'    
-		//M->B1_TIPOCQ	:= 'M'
-		M->B1_PRVALID:=365
+			//se PI OU PA CONTROLA LOTE
+			M->B1_RASTRO 	:= 'L'
+			//M->B1_TIPOCQ	:= 'M'
+			M->B1_PRVALID:=365
 
 		endif
 
 
+		if M->B1_TIPO$"EM_PM"
+			M->B1_LOCALIZ 	:= 'S'
+		ENDIF
 
 	endif
 
