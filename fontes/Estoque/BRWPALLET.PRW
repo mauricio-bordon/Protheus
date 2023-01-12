@@ -195,7 +195,7 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 	cAlias := getNextalias()
 	BeginSql alias CALIAS
         SELECT TOP 1 COALESCE(LTRIM(A1_NOME), ' ') AS A1_NOME, COALESCE(C6_PEDCLI, ' ') AS C6_PEDCLI, COALESCE(C6_ITEMPC, ' ') AS C6_ITEMPC, B1_DESC, A1_COD
-        FROM %TABLE:SC2% C2 LEFT JOIN %TABLE:SC6% C6 ON (C6_NUM = C2_NUM AND C6_ITEM = C2_ITEM AND C2_SEQUEN = '001')
+        FROM %TABLE:SC2% C2 LEFT JOIN %TABLE:SC6% C6 ON (C6_NUMOP = C2_NUM AND C6_ITEMOP = C2_ITEM AND C2_SEQUEN = '001')
             INNER JOIN %TABLE:SA1% A1 ON (A1_COD = C6_CLI)
             INNER JOIN %TABLE:SB1% B1 ON (B1_COD = C2_PRODUTO)
         WHERE C2_FILIAL = %xfilial:SC2% AND C2.D_E_L_E_T_ <> '*'
@@ -204,13 +204,17 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
         AND C2_NUM = %EXP:SC2->C2_NUM% AND C2_ITEM = %EXP:SC2->C2_ITEM% AND C2_SEQUEN = %EXP:SC2->C2_SEQUEN%
         AND C2_PRODUTO = %EXP:CCOD%
         order by C2.R_E_C_N_O_
+
+		
+
+
 	EndSQL
 
 	IF (calias)->(!eof())
-		cPedCli     := alltrim((CALIAS)->C6_PEDCLI)+"-"+alltrim((CALIAS)->C6_ITEMPC)
+		//cPedCli     := alltrim((CALIAS)->C6_PEDCLI)+"-"+alltrim((CALIAS)->C6_ITEMPC)
 		cCliente    := alltrim((CALIAS)->A1_NOME)
 		cDESC       := alltrim((CALIAS)->B1_DESC)
-		cCodCli     := (CALIAS)->A1_COD
+		//cCodCli     := (CALIAS)->A1_COD
 	endif
 
 	(calias)->(dbclosearea())
@@ -258,15 +262,14 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 	next
 	cSaida += cStr +chr(10)+chr(13)
 
+		//debug zpl
+	//MSGINFO( cSaida, 'ZPL' )
 
-	MSGINFO( cSaida, 'ZPL' )
-
- /*
+ 
     cPort := 'LPT1' // prnLPTPort()
     FERASE("c:\windows\temp\zpl_etiqueta_pallet_si.prn" )
     MemoWrite("c:\windows\temp\zpl_etiqueta_pallet_si.prn", cSaida)
-*/
-cPort:='LPT2'
+
     if cPort == 'LPT1'
         Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT1
     elseif cPort == 'LPT2'
