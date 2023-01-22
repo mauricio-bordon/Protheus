@@ -1,9 +1,10 @@
 #INCLUDE 'totvs.ch'
 #INCLUDE 'FWMVCDEF.CH'
+#include "RWMAKE.ch"
 
 User Function BRWPALLET()
 
-	Private nPltAtual := SC2->C2_NPLTPRX
+	Private  SC2->C2_NPLTPRX := SC2->C2_NPLTPRX
 	Private oMark, cQueryBase, cLotectl
 	//Private aRotina := {} //MenuDef()
 	ZD3->( dbsetorder(2) )
@@ -28,8 +29,8 @@ User Function BRWPALLET()
 
 	oMark:SetFilterDefault( cQuery )
 
-	oMark:AddButton( "Montar Pallet", {|| MNTPLTSI(), printetq(), Self:End()} )
-	oMark:AddButton( "Imprimir Etiqueta", {|| printetq(ZD3->ZD3_PALLET)} )
+	oMark:AddButton( "Montar Pallet", {|| MNTPLTSI()} ) //, Self:End()
+	oMark:AddButton( "Imprimir Etiqueta", {|| printetq(ZD3->ZD3_OP, ZD3->ZD3_PALLET)} )
 	oMark:AddButton( "Selecionar Registros", {|| selrolos()} )
 	oMark:AddButton( "Limpar Seleção", {|| limrolos()} )
 	oMark:AddButton( "Desmontar Pallet", {|| DMNTPLTSI()} )
@@ -39,19 +40,20 @@ User Function BRWPALLET()
 
 Return NIL
 
-STATIC FUNCTION PRINTETQ(cPallet)
+STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	Local cAlias := getNextalias()
 	// Local cOpLike := SC2->C2_NUM+'%'
 	Local cLotectl := '', aItens := {}, nTotalMT := 0, nRolos := 0, cstr
 
-	if empty(cPallet)
-		cPallet := strzero(nPltAtual,3)
-	endif
+	DbSelectArea('ZD2')
+	ZD2->(DBSETORDER(1))
+	ZD2->(DBSEEK(XFILIAL('ZD2')+cOp+cPallet))
+
 	BeginSql alias CALIAS
 		SELECT  ZD3_COD, ZD3_LOTE, ZD3_MTROLO AS METROS, SUM(ZD3_MTROLO) AS totalMT, COUNT(*) as rolos
 				FROM  %TABLE:ZD3% D3 
 				WHERE ZD3_FILIAL = %XFILIAL:ZD3% AND D3.%NOTDEL% 
-				AND ZD3_OP = %EXP:SC2->C2_NUM+SC2->C2_ITEM+SC2->C2_SEQUEN+SC2->C2_ITEMGRD%
+				AND ZD3_OP = %EXP:cOp%
                 AND ZD3_PALLET =  %EXP:cPallet%
             GROUP BY ZD3_COD, ZD3_MTROLO, ZD3_LOTE
 	ENDSQL
@@ -73,7 +75,7 @@ STATIC FUNCTION PRINTETQ(cPallet)
 	(calias)->(DBCLOSEAREA())
 
 	if len(aItens) > 0
-		ETQSIPLT(SC2->C2_NUM, SC2->C2_PRODUTO, cLotectl, '', aItens, ntotalMt, 0, nRolos)
+		ETQSIPLT(SC2->C2_NUM, SC2->C2_PRODUTO, cLotectl, ZD2->ZD2_CODCLI, aItens, ntotalMt, 0, nRolos, ZD2->ZD2_PESOLI, ZD2->ZD2_PESOBR)
 		MsgInfo(cStr, 'info')
 	else
 		MsgAlert("Linha selecionada não está associada a Pallet", 'Aviso')
@@ -128,8 +130,28 @@ STATIC Function MNTPLTSI()
 	Local aArea := GetArea()
 	Local cMarca := oMark:Mark()
 //Local lInverte := oMark:IsInvert()
-	Local nPltNext := nPltAtual + 1
-	Local nCt := 0
+	Local nPltNext :=  SC2->C2_NPLTPRX + 1
+	Local nCt := 0 , lOk := .F., cOP := SC2->C2_NUM+SC2->C2_ITEM+SC2->C2_SEQUEN+SC2->C2_ITEMGRD
+	Local cCliente := space(6), cLojacli:= space(2), nPesoLiq := 0, nPesoBruto := 0
+
+	DEFINE MSDIALOG _oPT00005 FROM  50, 050 TO 250,500 TITLE OemToAnsi('Novo Pallet') PIXEL
+
+	@ 010,005 Say OemToAnsi("Cliente: ") Size 040,030
+	@ 020,005 Say OemToAnsi("Peso Liquido:") Size 070,030
+	@ 030,005 Say OemToAnsi("Peso Bruto:") Size 070,030
+
+	@ 010,060 Get cCliente F3 "SA1" Valid .t. Size 80,030
+	@ 020,060 Get nPesoLiq PICT "@E 9,999.999"  Valid .t. Size 80,030
+	@ 030,060 Get nPesoBruto PICT "@E 9,999.999"  Valid .t. Size 80,030
+
+	@ 060,040 Button OemToAnsi("Montar Pallet") Size 036,016 Action (lOk := .T.,_oPT00005:End())
+	@ 060,095 Button OemToAnsi("Cancelar")  Size 036,016 Action (_oPT00005:End())
+
+	Activate Dialog _oPT00005 CENTERED
+
+	if !lOK
+		RETURN .F.
+	endif
 
 	BEGIN TRANSACTION
 		ZD3->( dbsetorder(2) )
@@ -149,13 +171,27 @@ STATIC Function MNTPLTSI()
 		SC2->(RECLOCK('SC2',.F.))
 		SC2->C2_NPLTPRX := NPLTNEXT
 		SC2->(MsUnlock())
+
+		DbSelectArea('ZD2')
+		ZD2->(RECLOCK('ZD2',.T.))
+			ZD2->ZD2_FILIAL := XFILIAL('ZD2')
+			ZD2->ZD2_OP 	:= cOP
+			ZD2->ZD2_PALLET := strzero(nPltNext,3)
+			ZD2->ZD2_CODCLI := cCliente //TODO INFORMAR CLIENTE
+			ZD2->ZD2_LOJCLI	:= cLojacli // TODO INFORMAR LOJA CLIENTE
+			ZD2->ZD2_PESOLI := nPesoLiq	//todo informar peso liquido
+			ZD2->ZD2_PESOBR := nPesoBruto	//todo informar peso bruto
+		ZD2->(MsUnlock())
+
 	END TRANSACTION
-	nPltAtual := nPltNext
+
 	ApMsgInfo( 'Foram associados ' + AllTrim( Str( nCt ) ) + ' rolos no pallet.' )
 	RestArea( aArea )
 	ZD3->( dbGoTop() )
 	oMark:refresh()
-Return NIL
+
+	printetq(cOP, strzero( SC2->C2_NPLTPRX,3))
+Return .T.
 
 STATIC Function DMNTPLTSI()
 
@@ -163,9 +199,19 @@ STATIC Function DMNTPLTSI()
 	Local nCt := 0
 	Local cPlt := ZD3->ZD3_PALLET
 
+	if SC2->C2_NPLTPRX <> val(cPlt)
+		MsgStop('Pallet devem ser desmontados na ordem contrária que foram criados. Último pallet: '+CValToChar(SC2->C2_NPLTPRX ), 'Erro')
+		return
+	endif
+
 	if !MsgYesNo('Deseja desfazer a montagem do pallet '+cPlt+'?', 'Pergunta')
 		RETURN
 	endif
+
+//POSICIONA NO CABEÇALHO
+	DbSelectArea('ZD2')
+	ZD2->(DBSETORDER(1))
+	ZD2->(DBSEEK(XFILIAL('ZD2')+ZD3->ZD3_OP+ZD3->ZD3_PALLET))
 
 	BEGIN TRANSACTION
 		ZD3->( dbGoTop() )
@@ -180,18 +226,26 @@ STATIC Function DMNTPLTSI()
 			ZD3->( dbSkip() )
 		Enddo
 
+		ZD2->(RECLOCK("ZD2", .F.))
+		ZD2->(dbdelete())
+		ZD2->(MsUnlock())
+
+		SC2->(RECLOCK('SC2',.F.))
+		SC2->C2_NPLTPRX := SC2->C2_NPLTPRX - 1
+		SC2->(MsUnlock())
 	END TRANSACTION
 	ApMsgInfo( 'Pallet Removido' )
 	RestArea( aArea )
 	oMark:refresh()
 Return NIL
 
-static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, ntotalM2, nRolos)
+static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, ntotalM2, nRolos, nPesoLiq, nPesoBruto)
 
-	Local cStr := "", CALIAS, cLotesb8, i
-	Local  cPedCli := '', cDtFabr, cDtValid, cDESC := ''
+	Local cStr := "", i//, CALIAS
+	//Local  cDESC := ''
 	Private aPort, cPort, nIni := 0, nFim := 0, NQtdRolo := 0
 
+/*
 	cAlias := getNextalias()
 	BeginSql alias CALIAS
         SELECT TOP 1 COALESCE(LTRIM(A1_NOME), ' ') AS A1_NOME, COALESCE(C6_PEDCLI, ' ') AS C6_PEDCLI, COALESCE(C6_ITEMPC, ' ') AS C6_ITEMPC, B1_DESC, A1_COD
@@ -204,10 +258,6 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
         AND C2_NUM = %EXP:SC2->C2_NUM% AND C2_ITEM = %EXP:SC2->C2_ITEM% AND C2_SEQUEN = %EXP:SC2->C2_SEQUEN%
         AND C2_PRODUTO = %EXP:CCOD%
         order by C2.R_E_C_N_O_
-
-		
-
-
 	EndSQL
 
 	IF (calias)->(!eof())
@@ -218,26 +268,6 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 	endif
 
 	(calias)->(dbclosearea())
-
-/*
-	cLotesb8 := 'OC'+cOrdem
-	cAlias := getNextalias()
-	BeginSql alias CALIAS
-        SELECT TOP 1 B8_DFABRIC, B8_DTVALID
-        FROM %TABLE:SB8% B8
-        WHERE B8_FILIAL = '00' AND D_E_L_E_T_ <> '*'
-        AND B8_LOTECTL = %EXP:cLotesb8% 
-        order by R_E_C_N_O_
-	EndSQL
-
-	IF (calias)->(!eof())
-		cDtFabr     := DTOC(StoD((CALIAS)->B8_DFABRIC))
-		IF cCodCli == '003815'
-			cDtValid    := DTOC(StoD((CALIAS)->B8_DFABRIC) + ( 365*2 ) )
-		ELSE
-			cDtValid    := DTOC(StoD((CALIAS)->B8_DFABRIC) + 365 )
-		ENDIF
-	endif
 */
 	//carrega etiqueta
 	CURDIR( 'etq' )
@@ -248,10 +278,13 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 
 	cStr := cStrEtq
 
-	cStr := STRTRAN(cStr, "%DESC%", alltrim(cDESC) )
+	cStr := STRTRAN(cStr, "%DESC%", alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+cCod,"B1_DESC")) )
 	cStr := STRTRAN(cStr, "%COD%", alltrim(cCOD) )
 	cStr := STRTRAN(cStr, "%LOTE%", alltrim(cLOTECTL) )
-	cStr := STRTRAN(cStr, "%CLIENTE%", cCliente)
+	cStr := STRTRAN(cStr, "%BARCODE%", alltrim(cLOTECTL) )
+	cStr := STRTRAN(cStr, "%CLIENTE%", alltrim(POSICIONE('SA1',1,XFILIAL('SA1')+cCliente,"A1_NOME")) )
+	cStr := STRTRAN(cStr, "%PESOLIQ%", transform(nPesoLiq, "@E 9,999.999"))
+	cStr := STRTRAN(cStr, "%PESOBRUTO%", transform(nPesoBruto, "@E 9,999.999"))
 	cStr := STRTRAN(cStr, "%TOTAL%", transform(ntotalMT, "@E 999,999.999"))
 	cStr := STRTRAN(cStr, "%NROLOS%", transform(nRolos,"@E 999"))
 	for i:=1 to len(aItens)
@@ -262,19 +295,19 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 	next
 	cSaida += cStr +chr(10)+chr(13)
 
-		//debug zpl
+	//debug zpl
 	//MSGINFO( cSaida, 'ZPL' )
 
- 
-    cPort := 'LPT1' // prnLPTPort()
-    FERASE("c:\windows\temp\zpl_etiqueta_pallet_si.prn" )
-    MemoWrite("c:\windows\temp\zpl_etiqueta_pallet_si.prn", cSaida)
 
-    if cPort == 'LPT1'
-        Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT1
-    elseif cPort == 'LPT2'
-        Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT2
-    endif
+	cPort := 'LPT1' // prnLPTPort()
+	FERASE("c:\windows\temp\zpl_etiqueta_pallet_si.prn" )
+	MemoWrite("c:\windows\temp\zpl_etiqueta_pallet_si.prn", cSaida)
+
+	if cPort == 'LPT1'
+		Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT1
+	elseif cPort == 'LPT2'
+		Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT2
+	endif
 
 
 Return
