@@ -5,7 +5,7 @@
 //VALIDAR LINHA DA ZV1
 // CORES
 //
- 
+
 // FUNÇÃO PRINCIPAL
 User Function ORCSI_MVC()
 	Local oBrowse
@@ -408,13 +408,12 @@ User Function ZV1VLD02()
 return lRet
 
 /*
-VALIDA FAMILIA PREENCHENDO CAMPOS 
+VALIDA GRUPO PREENCHENDO CAMPOS 
 */
 User Function ZV1VLD03()
-	//Local cFamilia := FWFldGet("ZV1_FAM")
 	Local cGrupo	:= FWFldGet("ZV1_GRUPO")
 	Local nLarg, nMtRolo, cImp, cProdBase, nPrcMt
-	Local lRet := .T.
+	Local lRet := .T. , lGrupo := .T.
 	Local oModelPad  := FWModelActive()
 
 	if empty(cGrupo)
@@ -432,18 +431,24 @@ User Function ZV1VLD03()
 
 	nLarg   := getmv('IC_PIFXCRT')
 	nMtRolo := getmv('IC_MTRLMX')
-	cImp    := '0' // TODO, VERIFICAR SOBRE IMPRESSAO
-
-
-	cProdBase := 'PI'+cGrupo+STRZERO(nLarg,4)
+	cImp    := '0' 	// TODO, VERIFICAR SOBRE IMPRESSAO
 
 	dbSelectArea('DA1')
-	DA1->(DbSetOrder(1))
-	DA1->(DBSEEK(XFILIAL('DA1')+'SI '+cProdBase))
+	DA1->(DbSetOrder(4))
+	DA1->(DBSEEK(XFILIAL('DA1')+'SI '+cGrupo))
 
 	IF DA1->(!FOUND())
-		Help( ,, 'Help',, 'Produto SI não encontrado.' , 1, 0, NIL, NIL, NIL, NIL, NIL, {"Verifique a Tabela de Preço"} )
-		return .F.
+		lGrupo := .F.
+		cProdBase := 'PI'+cGrupo+STRZERO(nLarg,4)
+
+		dbSelectArea('DA1')
+		DA1->(DbSetOrder(1))
+		DA1->(DBSEEK(XFILIAL('DA1')+'SI '+cProdBase))
+
+		IF DA1->(!FOUND())
+			Help( ,, 'Help',, ' Grupo / Produto SI não encontrado.' , 1, 0, NIL, NIL, NIL, NIL, NIL, {"Verifique a Tabela de Preço"} )
+			return .F.
+		ENDIF
 	ENDIF
 
 	nPrcMt := DA1->DA1_PRCVEN
@@ -453,20 +458,30 @@ User Function ZV1VLD03()
 	FWFldPut('ZV1_MTLIN', nMtRolo)
 	//FWFldPut('ZV1_LARGPI', nLarg)
 	oModelPad:loadvalue( 'ZV1DETAIL','ZV1_LARGPI', nLarg)
-	FWFldPut('ZV1_IPI', POSICIONE("SB1",1,XFILIAL("SB1")+CPRODBASE,"B1_IPI"))
-	IF cGrupo == alltrim(supergetmv('FX_ORCSICP', .F.,'9999'))	
+
+	if lGrupo
+		// Quando obtenho o preço a partir do grupo (nova inclusao, sem o produto base).
+		// Deixo o ipi zerado e aviso que deverá ser informado manualmente.
+		FWFldPut('ZV1_IPI', 0)
+		MsgAlert('Preço Obtido a partir do Grupo. IPI deverá ser informado no orçamento', 'Aviso')
+	else
+		FWFldPut('ZV1_IPI', POSICIONE("SB1",1,XFILIAL("SB1")+CPRODBASE,"B1_IPI"))
+	ENDIF
+
+	IF cGrupo == alltrim(supergetmv('FX_ORCSICP', .F.,'9999'))
 		FWFldPut('ZV1_TPIMPR', 'ID')
 	ELSEif cImp == '0'
 		FWFldPut('ZV1_TPIMPR', 'SI')
 	ELSEif cImp == '1'
 		FWFldPut('ZV1_TPIMPR', 'IS')
 	ENDIF
+
 return lRet
 
 User Function ZV1VLD04()
-	Local nPrcPi 	:= FWFldGet("ZV1_PRCPI")
-	Local nPrcPiOrig:= FWFldGet("ZV1_PRCPIO")
-	Local nPrcPiUltimo:= FWFldGet("ZV1_PRCPIu")
+	Local nPrcPi 		:= FWFldGet("ZV1_PRCPI")
+	Local nPrcPiOrig	:= FWFldGet("ZV1_PRCPIO")
+	Local nPrcPiUltimo	:= FWFldGet("ZV1_PRCPIU")
 	Local lRet := .T.//, cAlias
 
 	IF nPrcPI <> nPrcPiOrig
@@ -631,7 +646,7 @@ Função chamada no clique do botão Ok do Modelo de Dados (pós-validação)
 STATIC Function ORCSIPos()
 	Local oModelPad  := FWModelActive()
 	Local nOpc       := oModelPad:GetOperation()
-	Local lRet       := .T.
+	Local lRet       := .T.//, lOk := .T.
 
 	ZV0->(DbSetOrder(1))
 	ZV0->(DBSEEK(XFILIAL('ZV0')+ZV1->ZV1_CODIGO+ZV1->ZV1_REVI))
@@ -682,6 +697,17 @@ STATIC Function ORCSIPos()
 						DisarmTransaction()
 						lRet := .F.
 						exit
+					else
+					/* todo - erro ao criar produto , grupo invalido
+						// criar produto
+						lOk := CRIASB1((CALIAS)->ZV1_GRUPO, (CALIAS)->ZV1_LARGCR)
+
+						if !lOK
+							Help( ,, 'Help',, "Erro ao criar produto. Grupo "+(CALIAS)->ZV1_GRUPO+", Largura: "+ CValToChar((CALIAS)->ZV1_LARGCR) , 1, 0 )
+							DisarmTransaction()
+							lRet := .F.
+						endif
+					*/
 					EndIf
 
 					(CALIAS)->(DBSKIP())
@@ -691,8 +717,10 @@ STATIC Function ORCSIPos()
 		endif
 	endif
 
-	lRet := INCOK()
-	if nopc == MODEL_OPERATION_UPDATE .and. lRet
+
+	//lRet := INCOK() //todo
+	//if nopc == MODEL_OPERATION_UPDATE .and. 
+	if lRet
 		//Log Operação
 		LOGZV0(oModelPad)
 	endif
@@ -1106,3 +1134,50 @@ static function calcpreco()
 	nPrcLiq := ( nPrcImp * nFatIcms ) *  0.9075
 	FWFldPut('ZV1_PRCLIQ', nPrcLiq)
 return
+
+
+static function CRIASB1(cGrupo, cLARGCR)
+	Local lOK := .T., aVetor, cB1_DESC
+	Local cB1_COD := 'PA'+cGrupo+strzero(cLARGCR,4)
+
+	dbSelectArea('SB1')
+	SB1->(DbSetOrder(1))
+	SB1->(DBSEEK(XFILIAL('SB1')+cB1_COD  ))
+	IF SB1->(FOUND())
+		return lOK
+	ENDIF
+
+	// Produto não existe , criar novo
+	//----------------------------------
+	// Dados do Produto
+	//----------------------------------
+
+	//Obter descricao do produto
+	dbSelectArea('SBM')
+	SBM->(DbSetOrder(1))
+	SBM->(DBSEEK(XFILIAL('SBM')+cGrupo))
+	cB1_DESC := SBM->BM_DESC + CValToChar(cLargCr) + ' MM'
+	
+	aVetor:= {		 {"B1_COD"     	,cB1_COD	    	,Nil},;
+		{"B1_DESC"    	,cB1_DESC 			,Nil},;
+		{"B1_TIPO"    	,'PA'   		,Nil},;
+		{"B1_UM"      	,'MT'       		,Nil},;
+		{"B1_LOCPAD"  	,'01'        	,Nil},;
+		{"B1_GRUPO"   	,ALLTRIM(cGrupo)       	,Nil},;
+		{"B1_RASTRO"  	,'L'		   	,Nil},;
+		{"B1_LOCALIZ"  	,'S'		   	,Nil},;
+		{"B1_LARGURA" 	,cLARGCR	   	,Nil}}
+
+	conout("Antes Execauto mata010")
+	lMsErroAuto := .F.
+	MSExecAuto({|x,y| Mata010(x,y)},aVetor,3) //Inclusao
+
+	If lMsErroAuto
+		conout("ERRO Cadastro produto "+cB1_COD)
+		lOk := .F.
+		ctitulo:="Erro na execucao do AUTO010."
+		cmsg:="Verificar no SIGAADV o log "+NomeAutoLog()+CHR(13)
+		conout(cMsg)
+	Endif
+
+return lOk
