@@ -50,7 +50,7 @@ User Function GeraB1()
 		endif
 
 
-		if M->B1_TIPO$"EM_PM"
+		if M->B1_TIPO$"EM_PM_MC"
 			M->B1_LOCALIZ 	:= 'S'
 		ENDIF
 
