@@ -3,9 +3,22 @@
 #include "RWMAKE.ch"
 
 User Function BRWPALLET()
-
+	
+	Local cOP
 	Private  SC2->C2_NPLTPRX := SC2->C2_NPLTPRX
 	Private oMark, cQueryBase, cLotectl
+
+	//verifica se existe lancamento da qualidade 
+	cOP:=alltrim(SC2->C2_NUM+SC2->C2_ITEM+SC2->C2_SEQUEN)
+	dbselectarea('ZQ0')
+	ZQ0->(dbsetorder(1))
+	ZQ0->(dbseek(xfilial("ZQ0")+cOP))
+	
+	IF ZQ0->(!FOUND())
+		MsgBox ("Apontamento da qualidade nao encontrado. Aponte em Mais acoes ->Qualidade apontamento","Erro!!!","STOP")
+		Return
+	endif
+
 	//Private aRotina := {} //MenuDef()
 	ZD3->( dbsetorder(2) )
 	oMark := FWMarkBrowse():New()

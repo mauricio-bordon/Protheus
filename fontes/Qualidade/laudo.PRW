@@ -240,7 +240,7 @@ Static Function getensaios(cLote)
 			cLargura+=' - '+alltrim((CALIAS)->ZQ0_RESULT)+' máx'
 
 			nLarg:=POSICIONE('SB1', 1, XFILIAL('SB1')+SD2->D2_COD, 'B1_LARGURA')
-			cEpecif:=alltrim(str(nLarg))+' ± '+' 0,5'
+			cEpecif:=alltrim(transform(nLarg,"@E 999.9"))+' ± '+' 0,5'
 			aAdd(aEnsaios,{'Largura Final','mm',cLargura,cEpecif})
 
 		elseif alltrim((CALIAS)->ZQ0_ENSAIO)=='DiametroInt'

@@ -106,7 +106,7 @@ user function apontlaud()
 		ZQ0_FILIAL := xFilial('ZQ0')
 		ZQ0_OP:= cOP
 		ZQ0_ENSAIO:= 'Espessura'
-		ZQ0_RESULT:= str(nesp)
+		ZQ0_RESULT:= transform(nesp,"@E 999.9")
 		ZQ0_ESPCIF:= cEspespc
 		ZQ0->(MSUNLOCK())
 
@@ -115,14 +115,14 @@ user function apontlaud()
 		ZQ0_FILIAL := xFilial('ZQ0')
 		ZQ0_OP:= cOP
 		ZQ0_ENSAIO:= 'LarguraMin'
-		ZQ0_RESULT:= str(nlargmin)
+		ZQ0_RESULT:= transform(nlargmin,"@E 999.9")
 		ZQ0->(MSUNLOCK())
 
 		ZQ0->(RecLock('ZQ0', .T.))
 		ZQ0_FILIAL := xFilial('ZQ0')
 		ZQ0_OP:= cOP
 		ZQ0_ENSAIO:= 'LarguraMax'
-		ZQ0_RESULT:= str(nlargmax)
+		ZQ0_RESULT:= transform(nlargmax,"@E 999.9")
 		ZQ0->(MSUNLOCK())
 
 
@@ -130,7 +130,7 @@ user function apontlaud()
 		ZQ0_FILIAL := xFilial('ZQ0')
 		ZQ0_OP:= cOP
 		ZQ0_ENSAIO:= 'DiametroInt'
-		ZQ0_RESULT:= str(ndiamI)
+		ZQ0_RESULT:= transform(ndiamI,"@E 999.9")
 		ZQ0->(MSUNLOCK())
 
 
@@ -138,7 +138,7 @@ user function apontlaud()
 		ZQ0_FILIAL := xFilial('ZQ0')
 		ZQ0_OP:= cOP
 		ZQ0_ENSAIO:= 'DiametroExt'
-		ZQ0_RESULT:= str(ndiamE)
+		ZQ0_RESULT:= transform(ndiamE,"@E 999.9")
 		ZQ0->(MSUNLOCK())
 
 		ZQ0->(RecLock('ZQ0', .T.))
@@ -210,7 +210,7 @@ static function valida(c2Produto)
 				nmax:=Val(UPSTRTRAN(aEnsaios[i,4],",","."))
 				IF nesp>=nmin .and. nesp<=nmax
 					lRet:=.T.
-					cEspespc:=alltrim(str(nmin))+' - '+alltrim(str(nmax))
+					cEspespc:=alltrim(aEnsaios[i,3])+' - '+alltrim(aEnsaios[i,4])
 				ELSE
 					lErro:=.T.
 					cMsg:="Espessura total fora dos limites. Contacte a Qualidade "
