@@ -59,9 +59,9 @@ USER FUNCTION laudo(cOrigem)
 	lAdjustToLegacy := .t.
 	lDisableSetup  := .T.
 
-	if cOrigem=='NF'
-		Alert('NF')
-	endif
+	//if cOrigem=='NF'
+	//	Alert('NF')
+	//endif
 	//
 	cFileName := 'laudo_'+DTOS(DDATABASE)+'_'+alltrim(SF2->F2_DOC)+'_'+SF2->F2_CLIENTE
 	oPrinter := FWMSPrinter():New(cFileName+".rel", IMP_PDF, lAdjustToLegacy, , lDisableSetup, , , , , , .F., .T. )// Ordem obrigátoria de configuração do relatório
@@ -84,7 +84,7 @@ USER FUNCTION laudo(cOrigem)
 		oPrinter:StartPage()
 		nColIni	 :=  20
 		nLine 	:= 350
-		oPrinter:SayBitmap( 80, 20,"/imagens/logoind3.bmp",437,212)
+		oPrinter:SayBitmap( 80, 20,"/imagens/logoind3.bmp",437,225)
 
 
 
@@ -126,18 +126,18 @@ USER FUNCTION laudo(cOrigem)
 		endif
 
 		nLine += nIncLine * 2
-		oPrinter:Say( nLine, nColIni+400,'Parâmetro', oFont1B)
-		oPrinter:Say( nLine, nColIni+900,'Unidade', oFont1B)
-		oPrinter:Say( nLine, nColIni+1100,'Especificado', oFont1B)
-		oPrinter:Say( nLine, nColIni+1400,'Encontrado', oFont1B)
+		oPrinter:Say( nLine, nColIni+370,'Parâmetro', oFont1B)
+		oPrinter:Say( nLine, nColIni+940,'Unidade', oFont1B)
+		oPrinter:Say( nLine, nColIni+1140,'Especificado', oFont1B)
+		oPrinter:Say( nLine, nColIni+1580,'Encontrado', oFont1B)
 
 		for i:=1 to len(aResult)
 			nLine += nIncLine
 
-			oPrinter:Say( nLine, nColIni+400,aResult[i,1], oFont1)
-			oPrinter:Say( nLine, nColIni+900,aResult[i,2], oFont1)
-			oPrinter:Say( nLine, nColIni+1100,aResult[i,4], oFont1)
-			oPrinter:Say( nLine, nColIni+1400,aResult[i,3], oFont1)
+			oPrinter:Say( nLine, nColIni+370,aResult[i,1], oFont1)
+			oPrinter:Say( nLine, nColIni+940,aResult[i,2], oFont1)
+			oPrinter:Say( nLine, nColIni+1140,aResult[i,4], oFont1)
+			oPrinter:Say( nLine, nColIni+1580,aResult[i,3], oFont1)
 
 
 
@@ -174,7 +174,7 @@ oPrinter:Say( nLine, nColIni,'Certificado emitido via sistema integrado com apro
 		nLine := 2950
 		oPrinter:Line( nLine, nColIni, nLine,nColFim )
 		nLine += nIncLine
-		oPrinter:Say( nLine, 900, 'http://www.inducoat.com.br (19) 3167-0700', oFont1b)
+		oPrinter:Say( nLine, 600, 'Rua Pedro Bassi, 576 - Louveira - SP - 13294-008 (19) 3167-0700', oFont1b)
 
 		oPrinter:EndPage()
 
@@ -249,8 +249,9 @@ Static Function getensaios(cLote)
 		elseif alltrim((CALIAS)->ZQ0_ENSAIO)=='DiametroExt'
 			aAdd(aEnsaios,{'Diâmetro Externo','mm',alltrim((CALIAS)->ZQ0_RESULT),'N/A'})
 
-		elseif alltrim((CALIAS)->ZQ0_ENSAIO)=='DiametroExt'
+		elseif alltrim((CALIAS)->ZQ0_ENSAIO)=='Aspecto'
 			aAdd(aEnsaios,{'Aspecto visual do rolo e do corte','n/a',alltrim((CALIAS)->ZQ0_RESULT),'alinhado e sem rebarbas'})
+
 
 		ENDIF
 
