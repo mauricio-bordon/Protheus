@@ -147,6 +147,15 @@ STATIC Function MNTPLTSI()
 	Local nCt := 0 , lOk := .F., cOP := SC2->C2_NUM+SC2->C2_ITEM+SC2->C2_SEQUEN+SC2->C2_ITEMGRD
 	Local cCliente := space(6), cLojacli:= space(2), nPesoLiq := 0, nPesoBruto := 0
 
+	dbSelectArea("SC5")
+	SC5->(dbSetorder(1))
+	SC5->(DBSEEK(XFILIAL('SC5')+SC2->C2_PEDIDO))
+		IF SC5->(FOUND())
+		cCliente:= SC5->C5_CLIENTE
+	ENDIF
+	
+
+
 	DEFINE MSDIALOG _oPT00005 FROM  50, 050 TO 250,500 TITLE OemToAnsi('Novo Pallet') PIXEL
 
 	@ 010,005 Say OemToAnsi("Cliente: ") Size 040,030
@@ -312,7 +321,7 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 	//MSGINFO( cSaida, 'ZPL' )
 
 
-	cPort := 'LPT1' // prnLPTPort()
+	cPort := 'LPT2' // prnLPTPort()
 	FERASE("c:\windows\temp\zpl_etiqueta_pallet_si.prn" )
 	MemoWrite("c:\windows\temp\zpl_etiqueta_pallet_si.prn", cSaida)
 

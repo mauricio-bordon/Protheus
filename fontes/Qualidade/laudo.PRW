@@ -79,12 +79,12 @@ USER FUNCTION laudo(cOrigem)
 	SD2->(dbSeek(SF2->F2_FILIAL+SF2->F2_DOC+SF2->F2_SERIE))
 	cNota := SF2->F2_DOC+SF2->F2_SERIE
 
-	While SF2->F2_FILIAL=SD2->D2_FILIAL .And. !Eof() .And. SD2->D2_DOC+SD2->D2_SERIE == cNota
+	While SF2->F2_FILIAL=SD2->D2_FILIAL .And. SD2->D2_DOC+SD2->D2_SERIE == cNota
 
 		oPrinter:StartPage()
 		nColIni	 :=  20
 		nLine 	:= 350
-		oPrinter:SayBitmap( 80, 20,"/imagens/logoind3.bmp",437,225)
+		oPrinter:SayBitmap( 80, 20,"/imagens/logoind3.bmp",437,212)
 
 
 
@@ -105,7 +105,7 @@ USER FUNCTION laudo(cOrigem)
 		oPrinter:Say( nLine, nColIni+1700,'Quantidade: ', oFont1B)
 		oPrinter:Say( nLine, nColIni+1920,TRANSFORM(SD2->D2_QUANT,"@E 999,999.99")  , oFont1)
 		oPrinter:Say( nLine, nColIni+2100,SD2->D2_UM  , oFont1)
-		
+
 		nLine += nIncLine * 2
 		oPrinter:Say( nLine, nColIni,'Lote: ', oFont1B)
 		oPrinter:Say( nLine, nColIni+210, alltrim(SD2->D2_LOTECTL) , oFont1)
@@ -145,30 +145,30 @@ USER FUNCTION laudo(cOrigem)
 		next
 
 		nLine += nIncLine * 3
- 
-oPrinter:Say( nLine, nColIni,'Validade:', oFont1B)
-oPrinter:Say( nLine, nColIni+150,' 12 meses a partir da data de fabricação.', oFont1)
 
-nLine += nIncLine
-oPrinter:Say( nLine, nColIni,'Tolerância de variação de metros por rolo:', oFont1B)
-oPrinter:Say( nLine, nColIni+750,' ± 1%', oFont1)
+		oPrinter:Say( nLine, nColIni,'Validade:', oFont1B)
+		oPrinter:Say( nLine, nColIni+150,' 12 meses a partir da data de fabricação.', oFont1)
 
-nLine += nIncLine*2
-oPrinter:Say( nLine, nColIni,'Condições de armazenamento:', oFont1B)
-oPrinter:Say( nLine, nColIni+530,' Recomendável armazenar em local seco, protegido de raios solares e em temperatura máxima de 35°C e', oFont1)
-nLine += nIncLine
-oPrinter:Say( nLine, nColIni,'afastado de tetos e paredes.', oFont1)
+		nLine += nIncLine
+		oPrinter:Say( nLine, nColIni,'Tolerância de variação de metros por rolo:', oFont1B)
+		oPrinter:Say( nLine, nColIni+750,' ± 1%', oFont1)
 
-nLine += nIncLine*2
+		nLine += nIncLine*2
+		oPrinter:Say( nLine, nColIni,'Condições de armazenamento:', oFont1B)
+		oPrinter:Say( nLine, nColIni+530,' Recomendável armazenar em local seco, protegido de raios solares e em temperatura máxima de 35°C e', oFont1)
+		nLine += nIncLine
+		oPrinter:Say( nLine, nColIni,'afastado de tetos e paredes.', oFont1)
+
+		nLine += nIncLine*2
 
 
-oPrinter:Say( nLine, nColIni,'Este material foi inspecionado durante o processo produtivo e foi aprovado pela garantia da qualidade, segundo', oFont1)
-nLine += nIncLine
-oPrinter:Say( nLine, nColIni,'especificações internas Inducoat.', oFont1)
+		oPrinter:Say( nLine, nColIni,'Este material foi inspecionado durante o processo produtivo e foi aprovado pela garantia da qualidade, segundo', oFont1)
+		nLine += nIncLine
+		oPrinter:Say( nLine, nColIni,'especificações internas Inducoat.', oFont1)
 
-nLine += nIncLine*6
+		nLine += nIncLine*6
 
-oPrinter:Say( nLine, nColIni,'Certificado emitido via sistema integrado com aprovação pela Garantia da Qualidade - Responsável : 00002', oFont1I)
+		oPrinter:Say( nLine, nColIni,'Certificado emitido via sistema integrado com aprovação pela Garantia da Qualidade - Responsável : 000003', oFont1I)
 
 		//Rodapé
 		nLine := 2950
@@ -178,8 +178,8 @@ oPrinter:Say( nLine, nColIni,'Certificado emitido via sistema integrado com apro
 
 		oPrinter:EndPage()
 
-		dbSkip()
-	End
+		SD2->(dbSkip())
+	Enddo
 
 
 

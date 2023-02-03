@@ -8,6 +8,7 @@ User Function Mta410i()        // incluido pelo assistente de conversao do AP5 I
 //³ identificando as variaveis publicas do sistema utilizadas no codigo ³
 //³ Incluido pelo assistente de conversao do AP5 IDE                    ³
 //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	dbselectarea("SC6")
 
 
 	if type("l410auto") == 'U' .or. !l410auto
