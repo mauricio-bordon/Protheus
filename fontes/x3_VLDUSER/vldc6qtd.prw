@@ -6,9 +6,12 @@ X3_VLDUSER --> C6_QTDVEN
 sE PRODUTO PA (Selo de Indução), VALIDA SE QUANTIDADE DIGITADA É PROPPORCIONAL AO QUE SERÁ CORTADO
 */
 user function vldc6qtd()
- 
+
 	local nPosMtRolo:= ascan(aHeader, {|aH| alltrim(aH[2]) == "C6_MTROLO"})
 	local nMtRolo   := aCols[N, nPosMtRolo]
+
+	local nC6_TES:= ascan(aHeader, {|aH| alltrim(aH[2]) == "C6_TES"})
+	local cC6_TES:= aCols[N, nC6_TES]
 
 	local nPosProd  := ascan(aHeader, {|aH| alltrim(aH[2]) == "C6_PRODUTO"})
 	local cProduto  := aCols[N, nPosProd]
@@ -35,9 +38,11 @@ user function vldc6qtd()
 
 	nRolosCrt:= int(nLargPI / nLargProd)
 	nMtTirada := nRolosCrt * nMtRolo
-	if mod(nQtdVen, nMtTirada) <> 0 //Se Rolos digitados não for multiplo avisa
-		MsgStop('Quantidade em Metros Lineares digitada não é múltiplo dos metros lineares da tirada. ('+CValToChar(nMtTirada)+')', 'Aviso')
-		return .F.
-	endif
+	if INCLUI .and. cC6_TES != '504'
+		if mod(nQtdVen, nMtTirada) <> 0 //Se Rolos digitados não for multiplo avisa
+			MsgStop('Quantidade em Metros Lineares digitada não é múltiplo dos metros lineares da tirada. ('+CValToChar(nMtTirada)+')', 'Aviso')
+			return .F.
+		endif
+	ENDIF
 
 return .T.

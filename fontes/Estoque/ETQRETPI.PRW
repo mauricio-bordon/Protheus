@@ -79,5 +79,5 @@ USER FUNCTION ETQRETPI()
     elseif cPort == 'LPT2'
         Copy File "c:\windows\temp\etq_rolo_pi.prn" To LPT2
     endif
-*/
+
 RETURN
