@@ -17,12 +17,12 @@ Local lEnv        := .f.
 Local lFim        := .f.   
 //Local cMailFrom   := cMailFrom 
 //sempre o email de autenticaçao
-
+conout("------------ Enviando email --------------")
 If Empty(cMailFrom) 
 	cMailFrom := cMailContX
 Endif         
  cMailFrom   := cMailContX
-If Upper(substr(GetEnvServer(),1,4))$ 'dev'
+If Upper(GetEnvServer())$ 'DEV'
 	cMailDest:= "ti@inducoat.com.br"  
 	cAssunto := "[ TESTE ] "+Alltrim(cAssunto)
 Endif
@@ -33,12 +33,15 @@ IF GetMv("MV_RELAUTH")
 	MailAuth( cMailContX, cMailSenha )
 EndIF
 
+conout("Para"+cMailDest+"  --------------")
 If (lConnect)  // testa se a conexão foi feita com sucesso
 	SEND MAIL FROM cMailFrom TO cMailDest SUBJECT cAssunto BODY cMensagem RESULT lEnv
 Endif
 
 If ! lEnv
 	GET MAIL ERROR cErro
+	conout("Erro"+cErro+"  --------------")
+
 EndIf
 
 DISCONNECT SMTP SERVER RESULT lFim

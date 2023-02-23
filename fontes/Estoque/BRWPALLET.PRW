@@ -78,7 +78,7 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 		cLotectl := (calias)->ZD3_LOTE
 		cStr += " Faixa: "+(CALIAS)->ZD3_COD + " MT Linear: "+TRANSFORM((CALIAS)->METROS,"@E 999,999.999") ;
 			+ " Total MT "+TRANSFORM((CALIAS)->totalMt,"@E 999,999.999") ;
-			+ " Rolos: "+TRANSFORM((CALIAS)->ROLOS,"@E 999,999.999") + CHR(13) + CHR(10)
+			+ " Rolos: "+((CALIAS)->ROLOS,"@E 999,999.999") + CHR(13) + CHR(10)
 
 		aAdd(aItens, TRANSFORM((CALIAS)->ROLOS,"@E 99") + ' Rolos de '+TRANSFORM((CALIAS)->METROS,"@E 9,999.999") + " metros. " )
 		nTotalMT += (CALIAS)->totalmt

@@ -1,7 +1,7 @@
 #Include "Protheus.ch"
 //Busca dados do pedido para paresentar na ordem.
 user function getPedido(cCampo)
-	local cDados:=" "
+	local cDados:=""
 
 	if !Empty(SC2->C2_PEDIDO)
 		dbSelectArea("SC6")
@@ -22,10 +22,11 @@ user function getPedido(cCampo)
 		ENDIF
 		if cCampo=='CLIENTE'
 			cDados:=SA1->A1_NOME
-
-
 		endif
 
+		if cCampo=='TIRADAS' .and. SC2->C2_TIRADAS==0
+			cDados:=SC6->C6_TIRADAS
+		endif
 
 
 
