@@ -14,7 +14,8 @@ Local cMailSenha  := GETMV("MV_RELAPSW")
 Local cMailDest   := Alltrim(cDestino)
 Local lConnect    := .f.
 Local lEnv        := .f.
-Local lFim        := .f.   
+Local lFim        := .f.
+lOCAL cAmbiente:=GetEnvServer()
 //Local cMailFrom   := cMailFrom 
 //sempre o email de autenticaçao
 conout("------------ Enviando email --------------")
@@ -22,10 +23,12 @@ If Empty(cMailFrom)
 	cMailFrom := cMailContX
 Endif         
  cMailFrom   := cMailContX
-If Upper(GetEnvServer())$ 'DEV'
+ 
+If "DEV"$cAmbiente
 	cMailDest:= "ti@inducoat.com.br"  
 	cAssunto := "[ TESTE ] "+Alltrim(cAssunto)
 Endif
+
 
 CONNECT SMTP SERVER cMailServer ACCOUNT cMailContX PASSWORD cMailSenha RESULT lConnect
 

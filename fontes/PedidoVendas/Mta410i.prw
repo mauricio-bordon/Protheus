@@ -1,4 +1,3 @@
-#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 14/11/00
 
 User Function Mta410i()        // incluido pelo assistente de conversao do AP5 IDE em 14/11/00
 
@@ -18,8 +17,12 @@ User Function Mta410i()        // incluido pelo assistente de conversao do AP5 I
 				SC6->C6_QTDORIG := C6_QTDVEN
 				SC6->(msunlock())
 			endif
-		ENDIF
-	endif
+			if !EMPTY( SA1->A1_OBSERV )
 
+				MSGALERT( SA1->A1_OBSERV, "Atenção" )
+
+			endif
+		endif
+	endif
 // Substituido pelo assistente de conversao do AP5 IDE em 14/11/00 ==> __Return(.t.)
-Return(.t.)        // incluido pelo assistente de conversao do AP5 IDE em 14/11/00
+		Return(.t.)        // incluido pelo assistente de conversao do AP5 IDE em 14/11/00
