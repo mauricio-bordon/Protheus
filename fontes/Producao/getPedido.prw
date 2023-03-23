@@ -18,6 +18,11 @@ user function getPedido(cCampo)
 		if cCampo=='EMBOBIN'
 //1=Aluminio Externo;2=Aluminio Interno                                                                                           
 			cDados:=SC6->C6_EMBOBIN
+					ENDIF
+
+		if cCampo=='EMBALA'
+//1=Pallet;2=Caixa
+			cDados:=SC6->C6_EMBALA
 
 		ENDIF
 		if cCampo=='CLIENTE'

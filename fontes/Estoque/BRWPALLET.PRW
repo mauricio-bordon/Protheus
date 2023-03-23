@@ -3,17 +3,17 @@
 #include "RWMAKE.ch"
 
 User Function BRWPALLET()
-	
-	Local cOP
+
+	Local cOP,lTodosRolos:=.T.
 	Private  SC2->C2_NPLTPRX := SC2->C2_NPLTPRX
 	Private oMark, cQueryBase, cLotectl
 
-	//verifica se existe lancamento da qualidade 
+	//verifica se existe lancamento da qualidade
 	cOP:=alltrim(SC2->C2_NUM+SC2->C2_ITEM+SC2->C2_SEQUEN)
 	dbselectarea('ZQ0')
 	ZQ0->(dbsetorder(1))
 	ZQ0->(dbseek(xfilial("ZQ0")+cOP))
-	
+
 	IF ZQ0->(!FOUND())
 		MsgBox ("Apontamento da qualidade nao encontrado. Aponte em Mais acoes ->Qualidade apontamento","Erro!!!","STOP")
 		Return
@@ -31,19 +31,24 @@ User Function BRWPALLET()
 //oMark:SetMark( cMark, "ZD3", "ZD3_OK" )
 //oMark:AddLegend( "ZA0_TIPO=='1'", "YELLOW", "Autor" )
 //oMark:AddLegend( "ZA0_TIPO=='2'", "BLUE" , "Interprete" )
-	oMark:SetOnlyFields( { 'ZD3_PALLET', 'ZD3_COD', 'ZD3_LOTE', 'ZD3_TIRADA', 'ZD3_ROLO','ZD3_LARG' , 'ZD3_MTROLO' , 'ZD3_UM', 'ZD3_OK', 'ZD3_NUMSEQ' } )
+	oMark:SetOnlyFields( { 'ZD3_PALLET','ZD3_CAIXA', 'ZD3_COD', 'ZD3_LOTE', 'ZD3_TIRADA', 'ZD3_ROLO','ZD3_LARG' , 'ZD3_MTROLO' , 'ZD3_UM', 'ZD3_OK', 'ZD3_NUMSEQ' } )
 	oMark:SetIgnoreARotina(.T.)
 	oMark:SetMenuDef('')
 	cLotectl := PAD( SC2->C2_NUM + SC2->C2_ITEM, 20)
 	cQuery := " ZD3_LOTE == '" + cLotectl+ "' "
 	if msgyesno('Exibir Apenas Rolos sem Pallet?', 'Pergunta')
+		lTodosRolos:=.F.
 		cQuery +=  " .AND. alltrim(ZD3_PALLET) == '' "
 	ENDIF
 
 	oMark:SetFilterDefault( cQuery )
 
 	oMark:AddButton( "Montar Pallet", {|| MNTPLTSI()} ) //, Self:End()
-	oMark:AddButton( "Imprimir Etiqueta", {|| printetq(ZD3->ZD3_OP, ZD3->ZD3_PALLET)} )
+	oMark:AddButton( "Imprime Etiq Pallet", {|| printetq(ZD3->ZD3_OP, ZD3->ZD3_PALLET)} )
+	oMark:AddButton( "Imprime Etiq Caixa", {|| printcaix(ZD3->ZD3_OP)} )
+	if lTodosRolos
+		oMark:AddButton( "Monta Caixas", {|| MNTCAIXA()} )
+	endif
 	oMark:AddButton( "Selecionar Registros", {|| selrolos()} )
 	oMark:AddButton( "Limpar Seleção", {|| limrolos()} )
 	oMark:AddButton( "Desmontar Pallet", {|| DMNTPLTSI()} )
@@ -52,6 +57,65 @@ User Function BRWPALLET()
 	oMark:Activate()
 
 Return NIL
+
+STATIC FUNCTION PRINTCAIX(cOP)
+	Local cAlias := getNextalias()
+	Local nCaixa:=0
+	//carrega etiqueta
+	CURDIR( 'etq' )
+	cStrEtq := ''
+	cStrEtq := MemoRead( "etq_caixa.txt" )
+
+	cSaida := ''
+
+	cStr := cStrEtq
+
+
+	BeginSql alias CALIAS
+		SELECT ZD3_OP,ZD3_COD,ZD3_LOTE,ZD3_CAIXA,COUNT(ZD3_MTROLO) AS QTDROLO,SUM(ZD3_MTROLO) AS TOTAL
+		FROM %TABLE:ZD3% D3 
+		WHERE ZD3_FILIAL = %XFILIAL:ZD3% 
+		AND D3.%NOTDEL% 
+		AND ZD3_OP=%EXP:cOP%
+		AND D_E_L_E_T_<>'*'
+		GROUP BY ZD3_OP,ZD3_COD,ZD3_LOTE,ZD3_CAIXA
+	ENDSQL
+
+	while (calias)->(!eof())
+		nCaixa++
+		(calias)->(DBSKIP())
+	enddo
+
+	(calias)->(DBgoTOP())
+
+	while (calias)->(!eof())
+	cStr := cStrEtq
+	cStr := STRTRAN(cStr, "%B1_COD%", alltrim((CALIAS)->ZD3_COD) )	
+	cStr := STRTRAN(cStr, "%B1_DESC%", alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+(CALIAS)->ZD3_COD,"B1_DESC")) )
+	cStr := STRTRAN(cStr, "%ZD3_LOTE%", alltrim((CALIAS)->ZD3_LOTE) )	
+	
+	cPrint1:=alltrim(transform((CALIAS)->QTDROLO,"@E 999"))+" Rolo(s) na caixa"
+	cStr := STRTRAN(cStr, "%PRINT1%", cPrint1)
+	
+	cPrint2:="Quantidade "+alltrim(transform((CALIAS)->TOTAL,"@E 99999"))+" "+alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+(CALIAS)->ZD3_COD,"B1_UM"))
+	cStr := STRTRAN(cStr, "%PRINT2%", cPrint2)
+	
+	cStr :=STRTRAN(cStr, "%CAIXA%", alltrim(transform((CALIAS)->ZD3_CAIXA,"@E 999"))+' / '+alltrim(transform(nCaixa,"@E 999")) )	
+	sCodbar:=alltrim((CALIAS)->ZD3_LOTE)+";"+alltrim(transform((CALIAS)->ZD3_CAIXA,"@E 999"))+";"+alltrim(transform((CALIAS)->TOTAL,"@E 99999"))
+	cStr :=STRTRAN(cStr, "%CODBAR%", sCodbar )	
+
+	cSaida += cStr +chr(10)+chr(13)
+
+		(calias)->(DBSKIP())
+	enddo
+	(calias)->(DBCLOSEAREA())
+
+	FERASE("c:\windows\temp\zpl_etq_caixa.prn" )
+	MemoWrite("c:\windows\temp\zpl_etq_caixa.prn", cSaida)
+	Copy File "c:\windows\temp\zpl_etq_caixa.prn" To LPT1
+
+
+return
 
 STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	Local cAlias := getNextalias()
@@ -138,6 +202,55 @@ static FUNCTION limrolos()
 	oMark:refresh()
 return
 
+STATIC Function MNTCAIXA()
+//para montagem de caixas deve ser aviso para não filtrar apenas rolos no pallet.
+	local nPorcaixa:=0,nQuant:=1,nCaixa:=1,lOk:=.F.
+	Local aArea := GetArea()
+
+	DEFINE MSDIALOG _oPT00005 FROM  50, 050 TO 250,250 TITLE OemToAnsi('Monta Caixa') PIXEL
+
+	@ 010,005 Say OemToAnsi("Digite quantidade de rolos por caixa: ") Size 100,030
+
+	@ 030,005 Get nPorcaixa PICT "@E 99"  Valid .t. Size 20,030
+
+	@ 050,005 Button OemToAnsi("Montar Caixas") Size 036,016 Action (lOk := .T.,_oPT00005:End())
+	@ 070,005 Button OemToAnsi("Cancelar")  Size 036,016 Action (_oPT00005:End())
+
+	Activate Dialog _oPT00005 CENTERED
+
+	if !lOK
+		RETURN .F.
+	endif
+
+	if lOk
+
+		BEGIN TRANSACTION
+			ZD3->( dbGoTop() )
+			While !ZD3->( EOF() )
+				if nQuant<=nPorcaixa
+					nQuant++
+
+				else
+					nCaixa++
+					nQuant:=2
+				endif
+
+				ZD3->(RECLOCK("ZD3", .F.))
+				ZD3->ZD3_CAIXA := nCaixa
+				ZD3->(MSUNLOCK())
+
+				ZD3->( dbSkip() )
+			Enddo
+
+		END TRANSACTION
+		RestArea( aArea )
+		oMark:refresh()
+
+	endif
+Return
+
+
+
 STATIC Function MNTPLTSI()
 
 	Local aArea := GetArea()
@@ -150,10 +263,10 @@ STATIC Function MNTPLTSI()
 	dbSelectArea("SC5")
 	SC5->(dbSetorder(1))
 	SC5->(DBSEEK(XFILIAL('SC5')+SC2->C2_PEDIDO))
-		IF SC5->(FOUND())
+	IF SC5->(FOUND())
 		cCliente:= SC5->C5_CLIENTE
 	ENDIF
-	
+
 
 
 	DEFINE MSDIALOG _oPT00005 FROM  50, 050 TO 250,500 TITLE OemToAnsi('Novo Pallet') PIXEL
@@ -196,13 +309,13 @@ STATIC Function MNTPLTSI()
 
 		DbSelectArea('ZD2')
 		ZD2->(RECLOCK('ZD2',.T.))
-			ZD2->ZD2_FILIAL := XFILIAL('ZD2')
-			ZD2->ZD2_OP 	:= cOP
-			ZD2->ZD2_PALLET := strzero(nPltNext,3)
-			ZD2->ZD2_CODCLI := cCliente //TODO INFORMAR CLIENTE
-			ZD2->ZD2_LOJCLI	:= cLojacli // TODO INFORMAR LOJA CLIENTE
-			ZD2->ZD2_PESOLI := nPesoLiq	//todo informar peso liquido
-			ZD2->ZD2_PESOBR := nPesoBruto	//todo informar peso bruto
+		ZD2->ZD2_FILIAL := XFILIAL('ZD2')
+		ZD2->ZD2_OP 	:= cOP
+		ZD2->ZD2_PALLET := strzero(nPltNext,3)
+		ZD2->ZD2_CODCLI := cCliente //TODO INFORMAR CLIENTE
+		ZD2->ZD2_LOJCLI	:= cLojacli // TODO INFORMAR LOJA CLIENTE
+		ZD2->ZD2_PESOLI := nPesoLiq	//todo informar peso liquido
+		ZD2->ZD2_PESOBR := nPesoBruto	//todo informar peso bruto
 		ZD2->(MsUnlock())
 
 	END TRANSACTION
