@@ -39,9 +39,18 @@ Função para tratamento da requisição GET
 Static Function getUserId( oWS )
    Local lRet  as logical
    Local oJson := JsonObject():new()
-   lRet        := .T.
-
-    oJson['userid'] = __CUSERID 
+   local oRestClient as object
+ 
+oRestClient := FWRest():New("https://inducoat148182.protheus.cloudtotvs.com.br:1406")
+oRestClient:setPath("/rest/api/framework/v1/users/"+__CUSERID)
+ 
+if oRestClient:Get()
+   oJson['userid'] = oRestClient:GetResult()
+else
+   ConOut(oRestClient:GetLastError())
+endif
+   
+   // oJson['userid'] = __CUSERID 
     oWS:SetResponse(oJson:toJson())
 
 Return lRet

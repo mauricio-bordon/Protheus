@@ -71,6 +71,7 @@ Função para geração do mapa de campos
 Static Function AddMapFields( oSelf )
 	
 	oSelf:AddMapFields( 'ID'             	, 'B1_COD'  	, .T., .T., { 'B1_COD'		, 'C', TamSX3( 'B1_COD' )[1]	, 0 } )
+	oSelf:AddMapFields( 'TIPO'	    		, 'B1_TIPO' 	, .T., .F., { 'B1_TIPO'		, 'C', TamSX3( 'B1_TIPO' )[1]	, 0 } )	
 	oSelf:AddMapFields( 'DESCRIPTION'	    , 'B1_DESC' 	, .T., .F., { 'B1_DESC'		, 'C', TamSX3( 'B1_DESC' )[1]	, 0 } )	
 	oSelf:AddMapFields( 'LOTE'		        , 'BF_LOTECTL'	, .T., .F., { 'BF_LOTECTL'	, 'C', TamSX3( 'BF_LOTECTL' )[1], 0 } )
 	oSelf:AddMapFields( 'LOCAL'				, 'BF_LOCAL' 	, .T., .F., { 'BF_LOCAL'	, 'C', TamSX3( 'BF_LOCAL' )[1]	, 0 } )
