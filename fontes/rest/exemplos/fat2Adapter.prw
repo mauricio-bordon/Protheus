@@ -3,14 +3,14 @@
 
 
 //-------------------------------------------------------------------
-/*/{Protheus.doc} FatAdapter
+/*/{Protheus.doc} Fat2Adapter
 Classe Adapter para o serviço
 @author  Anderson Toledo
 @since   25/04/2019
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-CLASS FatAdapter FROM FWAdapterBaseV2
+CLASS Fat2Adapter FROM FWAdapterBaseV2
 	METHOD New()
 	METHOD GetList()
 EndClass
@@ -23,7 +23,7 @@ Método construtor
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Method New( cVerb ) CLASS FatAdapter
+Method New( cVerb ) CLASS Fat2Adapter
 	_Super:New( cVerb, .T. )
 return
 //-------------------------------------------------------------------
@@ -34,7 +34,7 @@ Método que retorna uma lista de produtos
 @version 1.0
 /*/
 //-------------------------------------------------------------------
-Method GetList( ) CLASS FatAdapter
+Method GetList( ) CLASS Fat2Adapter
 	Local aArea 	AS ARRAY
 	Local cWhere	AS CHAR
 	aArea   := FwGetArea()
@@ -113,7 +113,7 @@ Static Function GetQuery()
 	//Obtem a ordem informada na requisição, a query exterior SEMPRE deve ter o id #QueryFields# ao invés dos campos fixos
 	//necessáriamente não precisa ser uma subquery, desde que não contenha agregadores no retorno ( SUM, MAX... )
 	//o id #QueryWhere# é onde será inserido o clausula Where informado no método SetWhere()
-	cQuery := " SELECT #QueryFields#"
+	cQuery := " with abc as ( select * "
     cQuery +=   " FROM " + RetSqlName( 'SB1' ) + " SB1 "
     cQuery +=   " INNER JOIN " + RetSqlName( 'SD2' ) + " SD2"
 	cQuery +=       " ON B1_COD = D2_COD "
@@ -122,7 +122,7 @@ Static Function GetQuery()
 	cQuery +=   " INNER JOIN " + RetSqlName( 'SA1' ) + " SA1"
 	cQuery +=       " ON A1_COD = F2_CLIENTE "
 	cQuery +=   " INNER JOIN " + RetSqlName( 'SBM' ) + " SBM"
-	cQuery +=       " ON B1_GRUPO = BM_GRUPO "
-	cQuery += " WHERE #QueryWhere#"
+	cQuery +=       " ON B1_GRUPO = BM_GRUPO )"
+	cQuery += " SELECT #QueryFields# from abc WHERE #QueryWhere#"
 	
 Return cQuery
