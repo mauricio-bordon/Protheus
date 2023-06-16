@@ -224,7 +224,7 @@ static function valida(c2Produto)
 			SB1->(dBSETORDER(1))
 			SB1->(DBSEEK(XFILIAL('SB1')+SC2->C2_PRODUTO))
 			nLargura:=SB1->B1_LARGURA
-			nLarglimite:=0.5 //limite 0,= %
+			nLarglimite:=0.7 //limite 0,= %
 			nlargMax2:=nLargura+nLarglimite
 			nlargMin2:=nLargura-nLarglimite
 			if  nlargmin>=nlargMin2 .and. nlargmax<=nlargMax2
