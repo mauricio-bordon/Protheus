@@ -178,8 +178,8 @@ static function consultEstru(codprod)
 
 	cAlias := getNextAlias()
 	BeginSQL alias cAlias
-		SELECT TOP 1 G1_COD FROM SG1070 G1
-		inner join SB1070 B1
+		SELECT TOP 1 G1_COD FROM %TABLE:SG1% G1
+		inner join %TABLE:SB1% B1
 		ON B1_COD=G1_COD
 		WHERE B1.D_E_L_E_T_<>'*' 
 		AND B1_FILIAL = %XFILIAL:SB1%
@@ -220,7 +220,7 @@ static function consultaValida(codprod,slocal,sLocaliz)
 
 		SELECT TOP 1 BF_PRODUTO,B1_DESC,BF_QUANT,B1_UM,BF_LOCAL,BF_LOCALIZ,BF_LOTECTL
 		FROM SBF070 BF
-		INNER JOIN SB1070 B1
+		INNER JOIN %TABLE:SB1% B1
 		ON B1_COD=BF_PRODUTO
 		WHERE BF.D_E_L_E_T_<>'*' and BF_FILIAL = %XFILIAL:SBF%
 		AND B1.D_E_L_E_T_<>'*' AND B1_FILIAL = %XFILIAL:SB1%
@@ -256,5 +256,5 @@ static function consultaValida(codprod,slocal,sLocaliz)
 		(cAlias)->(dbSkip())
 	enddo
 	(cAlias)->(DbClosearea())
-	u_json_dbg(aRProduto)
+//	u_json_dbg(aRProduto)
 return aRProduto
