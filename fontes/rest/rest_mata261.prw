@@ -46,9 +46,9 @@ wsmethod post ws1 wsservice Material_mov
 	//valida destino
 
 	cLocal_O 	:= oJson['LOCAL_ORIGEM'] //2 primeiras posicoes para local
-	cLoclz_O 	:= oJson['LOCALIZACAO_ORIGEM'] //restante para localização~
+	cLoclz_O 	:= oJson['LOCALIZACAO_ORIGEM'] //restante para localizaÃ§Ã£o~
 	cLocal_D 	:= oJson['LOCAL_DESTINO'] //2 primeiras posicoes para local
-	cLoclz_D 	:= oJson['LOCALIZACAO_DESTINO'] //restante para localização~
+	cLoclz_D 	:= oJson['LOCALIZACAO_DESTINO'] //restante para localizaÃ§Ã£o~
 	cLote		:= oJson['LOTE']
 	cproduto 	:= oJson['PRODUTO']
 	nQuant		:= oJson['QUANTIDADE']
@@ -62,8 +62,8 @@ wsmethod post ws1 wsservice Material_mov
 
 	IF 	(cAlias)->(EOF())
 		cMsg := '{ '
-		cMsg += '"message": "Localização não existe", '
-		cMsg += '"detailedMessage": "Localização informada não existe." '
+		cMsg += '"message": "LocalizaÃ§Ã£o nÃ£o existe", '
+		cMsg += '"detailedMessage": "LocalizaÃ§Ã£o informada nÃ£o existe." '
 		cMsg += ' }'
 		::SetResponse(cMsg)
 
@@ -90,7 +90,7 @@ wsmethod post ws1 wsservice Material_mov
 			if stod((calias)->B8_DTVALID) < DDATABASE
 				cMsg := '{ '
 				cMsg += '"message": "Material Vencido", '
-				cMsg += '"detailedMessage": "Material Vencido. Solicite revalidação pela qualidade." '
+				cMsg += '"detailedMessage": "Material Vencido. Solicite revalidaÃ§Ã£o pela qualidade." '
 				cMsg += ' }'
 				::SetResponse(cMsg)
 
@@ -163,14 +163,14 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 		aadd(aLinha,{"D3_DESCRI", SB1->B1_DESC, Nil}) //descr produto origem
 		aadd(aLinha,{"D3_UM", SB1->B1_UM, Nil}) //unidade medida origem
 		aadd(aLinha,{"D3_LOCAL", PadR(cLocalOrig, tamsx3('D3_LOCAL') [1]), Nil}) //armazem origem
-		aadd(aLinha,{"D3_LOCALIZ",  PadR(cLoczOrigem, tamsx3('D3_LOCALIZ') [1]), Nil}) //endereço origem
+		aadd(aLinha,{"D3_LOCALIZ",  PadR(cLoczOrigem, tamsx3('D3_LOCALIZ') [1]), Nil}) //endereÃ§o origem
 
 //Destino 
 		aadd(aLinha,{"D3_COD", SB1->B1_COD, Nil}) //cod produto destino
 		aadd(aLinha,{"D3_DESCRI", SB1->B1_DESC, Nil}) //descr produto destino
 		aadd(aLinha,{"D3_UM", SB1->B1_UM, Nil}) //unidade medida destino
 		aadd(aLinha,{"D3_LOCAL", PadR(cLocalDest, tamsx3('D3_LOCAL') [1]) , Nil}) //armazem destino
-		aadd(aLinha,{"D3_LOCALIZ", PadR(cLoclzDest, tamsx3('D3_LOCALIZ') [1]), Nil}) //endereço destino
+		aadd(aLinha,{"D3_LOCALIZ", PadR(cLoclzDest, tamsx3('D3_LOCALIZ') [1]), Nil}) //endereÃ§o destino
 
 		aadd(aLinha,{"D3_NUMSERI", "", Nil}) //Numero serie
 		aadd(aLinha,{"D3_LOTECTL", PadR(cLote, tamsx3('D3_LOTECTL') [1]), Nil}) //Lote Origem
@@ -211,7 +211,7 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 		endif
 
 		if !lret
-			conout('erro na execução')
+			conout('erro na execuÃ§Ã£o')
 			DisarmTransaction()
 		endif
 	End Transaction
@@ -244,7 +244,7 @@ wsmethod get ws2 wsservice Material_mov
 
 	If Len(aRmaterial) == 0
 
-		::SetResponse('{ "message": "Lote Informado não possui saldo.","detailedMessage": "Não existe lote em estoque disponível"}')
+		::SetResponse('{ "message": "Lote Informado nÃ£o possui saldo.","detailedMessage": "NÃ£o existe lote em estoque disponÃ­vel"}')
 
 		self:setStatus(400)
 
@@ -271,6 +271,12 @@ wsmethod get ws2 wsservice Material_mov
 		CONOUT("ENTROU 200")
 
 		oJson:set(aLotes[1])
+		oJson2 := JsonObject():new()
+		oJson2['type']:='success'
+		oJson2['code']:='200'
+		oJson2['message']:='Lote VÃ¡lido'
+		//oJson2['detailedMessage']:='Lote VÃ¡lido'
+		oJson['_messages'] = oJson2
 		self:setStatus(200)
 		::SetResponse(oJson)
 
@@ -290,7 +296,7 @@ static function getLote(cLote, cProduto, nQuant)
 
 	cWhere := " BF_LOTECTL = '"+cLote+"' "
 	if !empty(cProduto)
-		cWhere := " AND BF_PRODUTO = '"+cProduto+"' "
+		cWhere += " AND BF_PRODUTO = '"+cProduto+"' "
 	ENDIF
 	cWhere := '%'+cWhere+'%'
 	cAlias := getNextAlias()
@@ -302,12 +308,11 @@ static function getLote(cLote, cProduto, nQuant)
 	FROM %TABLE:SBF% BF INNER JOIN %TABLE:SB1%  B1 ON B1.B1_COD=BF.BF_PRODUTO
 	WHERE BF.%NOTDEL% AND BF_FILIAL = %XFILIAL:SBF%
         AND B1.%NOTDEL% AND B1_FILIAL = %XFILIAL:SB1%
-		%EXP:cWhere%
+		AND %EXP:cWhere%
 	ORDER BY 1, BF_LOCAL, BF_LOCALIZ
 	EndSQL
-	//and BF_LOCAL = %Exp:cLocal% AND BF_LOCALIZ = %Exp:cLoclz%
 
-	//u_dbg_qry()
+	u_dbg_qry()
 
 	While !(cAlias)->(Eof())
 		aAdd(aRmaterial, {})

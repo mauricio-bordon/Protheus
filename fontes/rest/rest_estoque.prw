@@ -30,13 +30,13 @@ wsmethod get ws1 wsservice ws_estoque
 	//::SetResponse('{"CODBAR":' + ::codBAR + ', "name":"sample"}')
 // MP001009000011 ;20230329M027        ;2.750,000
     cLocal := left(::cBarcode,2)
-	cLoclz := right(alltrim(::cBarcode),9)
+	cLoclz := SUBSTR(alltrim(::cBarcode),3)
 	lOk:= valida_sbe(cLocal, cLoclz)
 	oJson := JsonObject():new()
 
 
 	If !lOk
-		::SetResponse('{ "message": "Local informado não existe.","detailedMessage": "Não existe a localização informada"}')
+		::SetResponse('{ "code": "400", "message": "Local informado não existe.","detailedMessage": "Não existe a localização informada"}')
 
 		self:setStatus(400)
 
@@ -59,6 +59,7 @@ static function valida_sbe(cLocal, cLoclz)
 	Local cAlias
 	Local cWhere := ''
 	Local lOk := .F.
+
 	cWhere := " AND BE_LOCAL = '"+cLocal+"' AND BE_LOCALIZ = '"+cLoclz+"' "
 	
 	cWhere := '%'+cWhere+'%'
