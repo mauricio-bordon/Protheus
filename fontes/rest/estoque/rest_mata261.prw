@@ -41,7 +41,7 @@ wsmethod post ws1 wsservice Material_mov
 	oJson := JsonObject():new()
 	oJson:fromJSON(cBody)
 
-	u_json_dbg(cBody)
+	//u_json_dbg(cBody)
 
 	//valida destino
 
@@ -227,7 +227,7 @@ wsmethod get ws2 wsservice Material_mov
 // MP001009000011 ;20230329M027        ;2.750,000
 	aDados := StrTokArr( ::cBarcode, ';' )
 	conout('cBarcode '+ ::cBarcode)
-	u_json_dbg(aDados)
+	//u_json_dbg(aDados)
 	if len(aDados) == 1
 		cLote := aDados[1]
 	elseif len(aDados) == 2
@@ -244,7 +244,7 @@ wsmethod get ws2 wsservice Material_mov
 
 	If Len(aRmaterial) == 0
 
-		::SetResponse('{ "message": "Lote Informado não possui saldo.","detailedMessage": "Não existe lote em estoque disponível"}')
+		::SetResponse('{ "message": "Lote Informado nao possui saldo ou nao existe.","detailedMessage": "Nao existe lote em estoque disponivel"}')
 
 		self:setStatus(400)
 
@@ -294,7 +294,7 @@ static function getLote(cLote, cProduto, nQuant)
 	Local aRmaterial := {}
 	Local cWhere := ''
 
-	cWhere := " BF_LOTECTL = '"+cLote+"' "
+	cWhere := " AND BF_LOTECTL = '"+cLote+"' "
 	if !empty(cProduto)
 		cWhere += " AND BF_PRODUTO = '"+cProduto+"' "
 	ENDIF
