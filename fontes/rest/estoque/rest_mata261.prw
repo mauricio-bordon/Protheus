@@ -107,13 +107,13 @@ wsmethod post ws1 wsservice Material_mov
 
 		CONOUT('FINALIZA TRANSFI')
 		if !Lok
-			cMsg := '{ '
-			cMsg += '"message": "Erro.", '
-			cMsg += '"detailedMessage": "'+cErrRest+'" '
-			cMsg += ' }'
-			::SetResponse(cMsg)
 
+			oJson2 := JsonObject():new()
+			oJson2['code']:='400'
+			oJson2['message']:='Erro ao executar transferencia'
+			oJson2['detailedMessage']:=cErrRest
 			self:setStatus(400)
+			::SetResponse(oJson2)
 		else
 			self:setStatus(200)
 			oJson['LOTE']:=::cBarcode
@@ -232,7 +232,7 @@ wsmethod get ws2 wsservice Material_mov
 		cLote := aDados[1]
 	elseif len(aDados) == 2
 		cLote := aDados[1]
-		nQuant := val(aDados[2])
+		nQuant := val(strtran(strtran(aDados[2],'.',''),',','.'))
 	elseif len(aDados) == 3
 		cProduto := aDados[1]
 		cLote := aDados[2]
@@ -294,7 +294,7 @@ static function getLote(cLote, cProduto, nQuant)
 	Local aRmaterial := {}
 	Local cWhere := ''
 
-	cWhere := " AND BF_LOTECTL = '"+cLote+"' "
+	cWhere := " BF_LOTECTL = '"+cLote+"' "
 	if !empty(cProduto)
 		cWhere += " AND BF_PRODUTO = '"+cProduto+"' "
 	ENDIF
