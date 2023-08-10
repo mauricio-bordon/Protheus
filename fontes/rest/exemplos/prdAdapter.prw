@@ -70,8 +70,9 @@ Função para geração do mapa de campos
 //-------------------------------------------------------------------
 Static Function AddMapFields( oSelf )
 	
-	oSelf:AddMapFields( 'ID'              , 'B1_COD'  	, .T., .T., { 'B1_COD', 'C', TamSX3( 'B1_COD' )[1], 0 } )
+	oSelf:AddMapFields( 'PRODUTO'           , 'B1_COD'  	, .T., .T., { 'B1_COD', 'C', TamSX3( 'B1_COD' )[1], 0 } )
 	oSelf:AddMapFields( 'DESCRIPTION'	    , 'B1_DESC' 	, .T., .F., { 'B1_DESC', 'C', TamSX3( 'B1_DESC' )[1], 0 } )	
+	oSelf:AddMapFields( 'UM'	    		, 'B1_UM' 		, .T., .F., { 'B1_UM', 'C', TamSX3( 'B1_UM' )[1], 0 } )	
 	oSelf:AddMapFields( 'GROUP'		        , 'B1_GRUPO'	, .T., .F., { 'B1_GRUPO', 'C', TamSX3( 'B1_GRUPO' )[1], 0 } )
 	oSelf:AddMapFields( 'GROUPDESCRIPTION'	, 'BM_DESC' 	, .T., .F., { 'BM_DESC', 'C', TamSX3( 'BM_DESC' )[1], 0 } )
 Return 

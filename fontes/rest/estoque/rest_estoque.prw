@@ -29,11 +29,12 @@ wsmethod get ws1 wsservice ws_estoque
 	self:SetContentType("application/json")
 	//::SetResponse('{"CODBAR":' + ::codBAR + ', "name":"sample"}')
 // MP001009000011 ;20230329M027        ;2.750,000
+	CONOUT(::cBarcode)
     cLocal := left(::cBarcode,2)
-	cLoclz := SUBSTR(alltrim(::cBarcode),3)
+	cLoclz := SUBSTR(alltrim(::cBarcode),3,10)
 	lOk:= valida_sbe(cLocal, cLoclz)
 	oJson := JsonObject():new()
-
+ 	CONOUT(cLocal + " / " + cLoclz)
 
 	If !lOk
 		::SetResponse('{ "code": "400", "message": "Local informado não existe.","detailedMessage": "Não existe a localização informada"}')
