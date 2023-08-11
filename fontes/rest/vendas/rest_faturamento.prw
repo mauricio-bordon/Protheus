@@ -63,11 +63,13 @@ wsmethod get ws1 wsservice faturamento
 			Aadd(aJson,JsonObject():new())
 			nPos := Len(aJson)
 			aJson[nPos]['cliente']:=aItem[nL][1]
-			aJson[nPos]['produto']:=aItem[nL][2]
-			aJson[nPos]['um']:=aItem[nL][3]
-			aJson[nPos]['quantidade']:=aItem[nL][4]
-			aJson[nPos]['valor_total']:=aItem[nL][5]
-			aJson[nPos]['valor_liquido']:=aItem[nL][6]
+			aJson[nPos]['nome_cliente']:=aItem[nL][2]
+			aJson[nPos]['produto']:=aItem[nL][3]
+			aJson[nPos]['desc_produto']:=aItem[nL][4]
+			aJson[nPos]['um']:=aItem[nL][5]
+			aJson[nPos]['quantidade']:=aItem[nL][6]
+			aJson[nPos]['valor_total']:=aItem[nL][7]
+			aJson[nPos]['valor_liquido']:=aItem[nL][8]
 		//	aJson[nPos]['LOCALIZACAO']:=aItem[nL][7]
 		//	aJson[nPos]['POSICAO']:=right(aItem[nL][7],1)
 		//	aJson[nPos]['UM']:=aItem[nL][8]
@@ -100,19 +102,21 @@ static function getFaturamento(sInicio,sFim)
 
 
 	BeginSQL alias cAlias
-	SELECT D2_CLIENTE, D2_COD, B1_UM, 
+	SELECT D2_CLIENTE, RTRIM(A1_NOME) AS A1_NOME, D2_COD, RTRIM(B1_DESC) AS B1_DESC, B1_UM, 
 		SUM(D2_QUANT) AS D2_QUANT, SUM(D2_TOTAL) AS D2_TOTAL, 
 		SUM(D2_TOTAL-D2_VALICM-D2_VALIMP5-D2_VALIMP6) AS FAT_LIQUIDO
 	FROM %TABLE:SD2% D2 INNER JOIN %TABLE:SB1% B1 ON B1.B1_COD=D2.D2_COD
+		INNER JOIN %TABLE:SA1% A1 ON A1.A1_COD=D2.D2_CLIENTE
 	WHERE D2_EMISSAO BETWEEN %EXP:sInicio% AND %EXP:sFim% 
         AND D2.D_E_L_E_T_<>'*' AND D2_FILIAL = %XFILIAL:SBF%
         AND B1.D_E_L_E_T_<>'*' AND B1_FILIAL = %XFILIAL:SB1%
+		AND A1.D_E_L_E_T_<>'*' AND A1_FILIAL = %XFILIAL:SA1%
 		AND D2_TES IN (
 			SELECT F4_CODIGO FROM %TABLE:SF4% 
 			WHERE F4_DUPLIC = 'S' 
 			AND D_E_L_E_T_<>'*' AND F4_FILIAL = %XFILIAL:SF4%
 		)
-	GROUP BY D2_CLIENTE, D2_COD, B1_UM
+	GROUP BY D2_CLIENTE, D2_COD, B1_UM, RTRIM(A1_NOME), RTRIM(B1_DESC)
 	ORDER BY 1, 2
 	EndSQL
 	//u_dbg_qry()
@@ -120,7 +124,9 @@ static function getFaturamento(sInicio,sFim)
 	While !(cAlias)->(Eof())
 		aAdd(aItem, {})
 		aAdd(aItem[len(aItem)], alltrim((cAlias)->D2_CLIENTE) )
+		aAdd(aItem[len(aItem)], alltrim((cAlias)->A1_NOME) )
 		aAdd(aItem[len(aItem)], alltrim((cAlias)->D2_COD) )
+		aAdd(aItem[len(aItem)], alltrim((cAlias)->B1_DESC) )
 		aAdd(aItem[len(aItem)], alltrim((cAlias)->B1_UM) )
 		aAdd(aItem[len(aItem)], (cAlias)->D2_QUANT )
 		aAdd(aItem[len(aItem)], (cAlias)->D2_TOTAL )
