@@ -137,7 +137,7 @@ static function getFatProd(sInicio,sFim)
 			WHERE F4_DUPLIC = 'S' 
 			AND D_E_L_E_T_<>'*' AND F4_FILIAL = %XFILIAL:SF4%
 		)
-	GROUP BY D2_COD, B1_UM, RTRIM(B1_DESC)
+	GROUP BY D2_COD, B1_UM, RTRIM(BM_DESC)
 	ORDER BY 1, 2
 	EndSQL
 	u_dbg_qry()
