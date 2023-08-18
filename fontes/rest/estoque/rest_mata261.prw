@@ -284,10 +284,10 @@ wsmethod get ws2 wsservice Material_mov
 		oJson2['code']:='200'
 		oJson2['message']:='Lote Válido'
 		//oJson2['detailedMessage']:='Lote Válido'
-		oJson['_messages'] = oJson2
+		//oJson['_messages'] = oJson2
 		self:setStatus(200)
 		::SetResponse(oJson)
-
+		FREEOBJ( oJson2 )
 	endif
 
 	FreeObj(oJson)
