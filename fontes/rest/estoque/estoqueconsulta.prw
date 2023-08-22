@@ -88,13 +88,13 @@ static function consultarack(clocal,cLocaliz)
 	Local cAlias
 	Local aRmaterial := {}
 	cAlias := getNextAlias()
-
+	cLocaliz:=alltrim(cLocaliz)+"%"
 
 	BeginSQL alias cAlias
 	SELECT BF_PRODUTO, B1_UM, B1_TIPO, BF_QUANT,BF_LOCAL, BF_LOCALIZ,BF_LOTECTL, BF_EMPENHO, RTRIM(REPLACE(B1_DESC,'"','''')) as  B1_DESC
 	FROM %TABLE:SBF% BF INNER JOIN %TABLE:SB1% B1 ON B1.B1_COD=BF.BF_PRODUTO
 	WHERE BF_LOCAL=%Exp:cLocal% 
-		AND BF_LOCALIZ=%Exp:cLocaliz% 
+		AND BF_LOCALIZ like %Exp:cLocaliz% 
         AND BF.D_E_L_E_T_<>'*' AND BF_FILIAL = %XFILIAL:SBF%
         AND B1.D_E_L_E_T_<>'*' AND B1_FILIAL = %XFILIAL:SB1%
 		AND BF_EMPENHO = 0
