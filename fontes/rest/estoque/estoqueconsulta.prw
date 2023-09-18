@@ -97,7 +97,7 @@ static function consultarack(clocal,cLocaliz)
 		AND BF_LOCALIZ like %Exp:cLocaliz% 
         AND BF.D_E_L_E_T_<>'*' AND BF_FILIAL = %XFILIAL:SBF%
         AND B1.D_E_L_E_T_<>'*' AND B1_FILIAL = %XFILIAL:SB1%
-		AND BF_EMPENHO = 0
+		
 	ORDER BY 1, BF_LOCAL, BF_LOCALIZ
 	EndSQL
 	//u_dbg_qry()

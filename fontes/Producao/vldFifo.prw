@@ -7,8 +7,8 @@ user function vldFifo()
 		cLoteFifo:=getFifo(M->D4_LOTECTL)
 
 		IF M->D4_LOTECTL!=cLoteFifo
-			Alert("Lote escolhido fora do FIFO. Lote do FIFO é "+cLoteFifo)
-			lRet:=.F.
+			//Alert("Lote escolhido fora do FIFO. Lote do FIFO é "+cLoteFifo)
+			//lRet:=.F.
 		ENDIF
 
 	ENDIF

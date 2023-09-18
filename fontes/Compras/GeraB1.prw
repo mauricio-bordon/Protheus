@@ -53,6 +53,13 @@ User Function GeraB1()
 		if M->B1_TIPO$"EM_PM_MC"
 			M->B1_LOCALIZ 	:= 'S'
 		ENDIF
+		
+		if M->B1_TIPO$"MP"
+			//se PI OU PA CONTROLA LOTE
+			M->B1_RASTRO 	:= 'L'
+			M->B1_TIPOCQ:='Q'
+			
+		ENDIF
 
 	endif
 

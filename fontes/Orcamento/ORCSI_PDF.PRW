@@ -9,15 +9,23 @@
 #Define PAD_RIGHT   1
 #Define PAD_CENTER  2
 
+
+//Cores
+#Define COR_RED   RGB(204, 10, 10)
+
 Static nCorCinza := RGB(204, 204, 204)
 Static nCorAz1  := RGB(168, 189, 220)
 Static nCorAz2  := RGB(90, 142, 220)
+
+
 USER FUNCTION ORCSIPDF()
 	Local  nLine, nIncline := 40, cFilename := ''
 	//Declarando as fontes
 	Private cNomeFont  	:= "Arial"
 	Private nSize1		:= 12, nSize2 := 12, nSize3 := 10, nSize4 := 10
 	Private oFont1   	:= TFont():New(cNomeFont, 9, nSize1, .T., .F., 5, .T., 5, .T., .F., .F.)
+	Private oFont1v   	:= TFont():New(cNomeFont, 9, nSize1, .T., .F., 5, .T., 5, .T., .F., .F.)
+	
 	Private oFont1B   	:= TFont():New(cNomeFont, 9, nSize1, .T., .T., 5, .T., 5, .T., .F., .F.)
 	Private oFont1U   	:= TFont():New(cNomeFont, 9, nSize1, .T., .F., 5, .T., 5, .T., .T., .F.)
 	Private oFont1I   	:= TFont():New(cNomeFont, 9, nSize1, .T., .F., 5, .T., 5, .T., .F., .T.)
@@ -77,19 +85,13 @@ USER FUNCTION ORCSIPDF()
 	oPrinter:Say( nLine, nColIni, 'Att. Sr(a). '+ ZV0->ZV0_CONTAT + '.' , oFont1B)
 	nLine += nIncLine
 	oPrinter:Say( nLine, nColIni,  alltrim(ZV0->ZV0_EMAIL)  , oFont1U)
-	nLine += nIncLine * 2
-	oPrinter:Say( nLine, nColIni, 'Prezados, segue proposta.' , oFont1)
+	//oPrinter:Fillrect( {nLine, nColIni, nLine + nIncline, nColFim }, oBruAz1)
 	nLine += nIncLine
-	oPrinter:Say( nLine, nColIni, 'Desde já agradecemos a oportunidade à nós concedida, e nos colocamos a disposição para quaisquer esclarecimentos.' , oFont1)
-	nLine += nIncLine
-
-	oPrinter:Fillrect( {nLine, nColIni, nLine + nIncline, nColFim }, oBruAz1)
-	nLine += nIncLine
-	oPrinter:Say(nLine, nColIni,   "Carta Proposta "+ZV0->ZV0_CODIGO, oFont1B)
-	oPrinter:Line( nLine, nColIni, nLine, nColFim )
+	oPrinter:Say(nLine, nColFim - 450,   "Carta Proposta "+ZV0->ZV0_CODIGO, oFont1B)
+	//oPrinter:Line( nLine, nColIni, nLine, nColFim )
 	nLine += nIncLine
 
-	oPrinter:Say( nLine, nColIni, 'Selo de Indução' , oFont1)
+//	oPrinter:Say( nLine, nColIni, 'Selo de Indução' , oFont1)
 	nLine += nIncLine
 
 	//tabela
@@ -116,7 +118,8 @@ USER FUNCTION ORCSIPDF()
 	nColObs		:= 750
 	nColPrcLiq	:= 270
 	nColPrcImp 	:= 270
-	nColIPI		:= 140
+	nColIPI		:= 280
+	nColValvolume:= 750
 
 	nColPos 	:=  nColIni
 	oPrinter:Fillrect( {nLine, nColPOs, nLine + nIncLine * 2, nColFim }, oBruAz1)
@@ -135,17 +138,17 @@ USER FUNCTION ORCSIPDF()
 	oPrinter:SayAlign(nLine, nColPos, 'Material/Descrição', oFont3b, nColMatDesc, nIncLine * 2, , PAD_CENTER, 0)
 	nColPos += nColMatDesc
 
-	oPrinter:SayAlign(nLine, nColPos, 'Tipo de Selo', oFont3b, nColTpSelo, nIncLine * 2, , PAD_CENTER, 0)
-	nColPos += nColTpSelo
+	//oPrinter:SayAlign(nLine, nColPos, 'Tipo de Selo', oFont3b, nColTpSelo, nIncLine * 2, , PAD_CENTER, 0)
+	//nColPos += nColTpSelo
 
-	oPrinter:SayAlign(nLine, nColPos, 'Nº Cores', oFont3b, nColCores, nIncLine * 2, , PAD_CENTER, 0)
-	nColPos += nColCores
+	//oPrinter:SayAlign(nLine, nColPos, 'Nº Cores', oFont3b, nColCores, nIncLine * 2, , PAD_CENTER, 0)
+	//nColPos += nColCores
 
 	oPrinter:SayAlign(nLine, nColPos, 'Largura/Faixa (mm)', oFont3b, nColLargFx, nIncLine * 2, , PAD_CENTER, 0)
 	nColPos += nColLargFx
 
-	oPrinter:SayAlign(nLine, nColPos, 'Observação', oFont3b, nColObs, nIncLine * 2, , PAD_CENTER, 0)
-	nColPos += nColObs
+	//oPrinter:SayAlign(nLine, nColPos, 'Observação', oFont3b, nColObs, nIncLine * 2, , PAD_CENTER, 0)
+	//nColPos += nColObs
 
 	oPrinter:SayAlign(nLine, nColPos, 'Preço Líquido', oFont3b, nColPrcLiq, nIncLine, , PAD_CENTER, 0)
 	oPrinter:SayAlign(nLine + nIncLine, nColPos, '(MT)', oFont3b, nColPrcLiq, nIncLine, , PAD_CENTER, 0)
@@ -158,6 +161,9 @@ USER FUNCTION ORCSIPDF()
 	oPrinter:SayAlign(nLine, nColPos, 'IPI', oFont3b, nColIPI, nIncLine * 2, , PAD_CENTER, 0)
 	nColPos += nColIPI
 
+	oPrinter:SayAlign(nLine, nColPos, 'Valor por volume com impostos (MT)', oFont3b, nColObs, nIncLine * 2, , PAD_LEFT, 0)
+	nColPos += nColObs
+
 	/*
 
 	oPrinter:SayAlign(nLine , 1800,   "Preço com Impostos", oFont1B, 500, 35, , PAD_CENTER, 0)
@@ -167,14 +173,16 @@ USER FUNCTION ORCSIPDF()
 
 	WHILE (CALIAS)->(!EOF())
 		nColPos 	:=  nColIni
+		nMultLine := 2
 		//nFxSobra := (calias)->ZV1_LARGPI - (calias)->ZV1_LARGCR * (CALIAS)->ZV1_NROLOS
+		/*
 		cObs2 := ''
 		nMtTirada := (CALIAS)->ZV1_NROLOS * (CALIAS)->ZV1_MTLIN
 		cObs2 := 'Pedido mínimo/múltiplo são: '+CValToChar((CALIAS)->ZV1_NROLOS)+ " faixas de "+CValToChar((calias)->ZV1_LARGCR)+ " mm com "+alltrim(transform((calias)->ZV1_MTLIN, "@E 99,999"))+" mt,"+Chr(13)+Chr(10)
 		cObs2 += " totalizando: "+alltrim(transform(nMtTirada, "@E 999,999.999"))+" mt "+Chr(13)+Chr(10)
 		nMultLine := 2
 		cObsSobra := ''
-		/*
+		
 		if nFxSobra > 0
 			cObsSobra := CValToChar((CALIAS)->ZV1_NROLOS)+ " faixas de "+CValToChar((calias)->ZV1_LARGCR)+ " mm e 1 faixa de "+ CValToChar(nFxSobra) +"mm"
 			cObs2 += cObsSobra+Chr(13)+Chr(10)
@@ -199,11 +207,11 @@ USER FUNCTION ORCSIPDF()
 		oPrinter:SayAlign(nLine, nColPos, (calias)->ZV1_DESC, oFont1, nColMatDesc, nIncLine * nMultLine, , PAD_LEFT, 0)
 		nColPos += nColMatDesc
 
-		oPrinter:SayAlign(nLine, nColPos, oTpImpr[(calias)->ZV1_TPIMPR], oFont1, nColTpSelo, nIncLine * nMultLine, , PAD_CENTER, 0)
-		nColPos += nColTpSelo
+		//oPrinter:SayAlign(nLine, nColPos, oTpImpr[(calias)->ZV1_TPIMPR], oFont1, nColTpSelo, nIncLine * nMultLine, , PAD_CENTER, 0)
+		//nColPos += nColTpSelo
 
-		oPrinter:SayAlign(nLine, nColPos,  cvaltochar((calias)->ZV1_CORES) , oFont1, nColCores, nIncLine * nMultLine, , PAD_CENTER, 0)
-		nColPos += nColCores
+		////oPrinter:SayAlign(nLine, nColPos,  cvaltochar((calias)->ZV1_CORES) , oFont1, nColCores, nIncLine * nMultLine, , PAD_CENTER, 0)
+		//nColPos += nColCores
 
 		oPrinter:SayAlign(nLine, nColPos,  transform((calias)->ZV1_LARGCR, "@E 999.99"), oFont1, nColLargFx, nIncLine * nMultLine, , PAD_CENTER, 0)
 		nColPos += nColLargFx
@@ -218,9 +226,9 @@ USER FUNCTION ORCSIPDF()
 			oPrinter:SayAlign(nLine + nIncLine*2, nColPos, cZV1Obs, oFont4, nColObs, nIncLine, , PAD_LEFT, 0)
 		endif
 */
-		nMultLine := fSayBox(oPrinter,oFont4,nLine,nColPos,nIncLine,nColObs,cObs2)
+		//nMultLine := fSayBox(oPrinter,oFont4,nLine,nColPos,nIncLine,nColObs,cObs2)
 
-		nColPos += nColObs
+		//nColPos += nColObs
 
 		oPrinter:SayAlign(nLine, nColPos,  'R$ '+transform((calias)->ZV1_PRCLIQ, "@E 999.99999"), oFont1, nColPrcLiq, nIncLine * nMultLine, , PAD_CENTER, 0)
 		nColPos += nColPrcLiq
@@ -230,6 +238,18 @@ USER FUNCTION ORCSIPDF()
 
 		oPrinter:SayAlign(nLine, nColPos, TRANSFORM((CALIAS)->ZV1_IPI, "@E 999.999")+' %', oFont1, nColIPI, nIncLine * nMultLine, , PAD_CENTER, 0)
 		nColPos += nColIPI
+
+		nMtTirada := (CALIAS)->ZV1_NROLOS * (CALIAS)->ZV1_MTLIN
+		
+		oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform(nMtTirada, "@E 9,999,999"))+" mt - "+' R$ '+transform(((calias)->ZV1_PRCIMP*1.20), "@E 999.99999"), oFont1, nColObs, nIncLine * nMultLine, COR_RED, PAD_LEFT, 0)
+		nLine += nIncLIne
+		oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform((calias)->ZV1_MTTOT, "@E 9,999,999"))+" mt - "+'R$ '+transform(((calias)->ZV1_PRCIMP), "@E 999.99999"), oFont1, nColObs, nIncLine * nMultLine, , PAD_LEFT, 0)
+		nLine += nIncLIne
+		//cObs2 += " "+alltrim(transform(nMtTirada, "@E 999,999.999"))+" mt - "+'R$ '+transform(((calias)->ZV1_PRCIMP*1.20), "@E 999.99999")+Chr(13)+Chr(10)
+		nMultLine := 2
+	
+
+
 		nLine += nIncLIne * ( nMultLine - 1 )
 		(CALIAS)->(DBSKIP())
 	ENDDO

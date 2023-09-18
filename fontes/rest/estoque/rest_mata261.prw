@@ -137,7 +137,7 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 	Local aLinha := {}
 	Local lRet:=.T.
 
-
+	//local dDtValid
 	Private lMsErroAuto := .F.
 	//cMaq := substr(cMaq,1,2)
 	conout('Codigo '+cCod)
@@ -146,7 +146,12 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 	conout('Loclz Destino '+cLoclzDest)
 //	conout('Usuario '+cUserRest)
 	conout('Lote '+cLote)
-
+	//POSICIONA NA SB8
+    SB8->(DBSETORDER(3))
+    SB8->(DBSEEK(XFILIAL("SB8")+PadR(cCod, tamsx3('B8_PRODUTO') [1])+PadR(cLocalOrig, tamsx3('B8_LOCAL') [1])+PadR(cLote, tamsx3('B8_LOTECTL') [1])))
+    conout("B8 "+SB8->B8_PRODUTO)
+	conout("B8 Lote ->"+SB8->B8_LOTECTL)
+	//dDtValid:=getvalidade(cCod,cLote);
 	//lNovo := U_GERASB2(cCod, cLocalDest)
 
 //u_zMta261(cCod, cLote, nQTD, cLocalOrig, cLoczOrigem, cLocalDest, cLoclzDest)
@@ -175,7 +180,9 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 		aadd(aLinha,{"D3_NUMSERI", "", Nil}) //Numero serie
 		aadd(aLinha,{"D3_LOTECTL", PadR(cLote, tamsx3('D3_LOTECTL') [1]), Nil}) //Lote Origem
 		aadd(aLinha,{"D3_NUMLOTE", "", Nil}) //sublote origem
-//	aadd(aLinha,{"D3_DTVALID", dDtValid, Nil}) //data validade
+	//	aadd(aLinha,{"D3_DTVALID", '', Nil}) //data validade
+		aadd(aLinha,{"D3_DTVALID", SB8->B8_DTVALID, Nil}) //data validade
+    
 		aadd(aLinha,{"D3_POTENCI", 0, Nil}) // Potencia
 		aadd(aLinha,{"D3_QUANT", nQTD, Nil}) //Quantidade
 		aadd(aLinha,{"D3_QTSEGUM", 0, Nil}) //Seg unidade medida
@@ -184,9 +191,11 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 
 		aadd(aLinha,{"D3_LOTECTL",  PadR(cLote, tamsx3('D3_LOTECTL') [1]), Nil}) //Lote destino
 		aadd(aLinha,{"D3_NUMLOTE", "", Nil}) //sublote destino
-//	aadd(aLinha,{"D3_DTVALID", dDtValid, Nil}) //validade lote destino
+		//aadd(aLinha,{"D3_DTVALID", dDtValid, Nil}) //validade lote destino
+		//aadd(aLinha,{"D3_DTVALID", '', Nil}) //data validade 
+		aadd(aLinha,{"D3_DTVALID", SB8->B8_DTVALID, Nil}) //data validade
+    
 		aadd(aLinha,{"D3_ITEMGRD", "", Nil}) //Item Grade
-
 		aadd(aLinha,{"D3_CODLAN", "", Nil}) //cat83 prod origem
 		aadd(aLinha,{"D3_CODLAN", "", Nil}) //cat83 prod destino
 
@@ -342,3 +351,31 @@ static function getLote(cLote, cProduto, nQuant)
 //	json_dbg(aRmaterial)
 
 return aRmaterial
+
+
+static function getvalidade(cCod,cLote)
+local dDatavlidade
+local cAlias
+
+
+	cAlias := getNexTAlias()
+	BeginSQL alias cAlias
+		SELECT TOP 1 *
+		FROM %TABLE:SB8%
+		WHERE B8_FILIAL = %XFILIAL:SB8% AND %NOTDEL%
+		AND B8_PRODUTO = %exp:cCod% 
+		and B8_LOTECTL = %exp:cLote%
+		
+	EndSQL
+
+	IF 	(cAlias)->(!EOF())
+		dDatavlidade:=CTOD((cAlias)->B8_DTVALID)
+
+
+	ENDIF
+
+	(cAlias)->(dbCloseArea())
+
+
+
+return dDatavlidade

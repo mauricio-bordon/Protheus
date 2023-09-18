@@ -81,27 +81,26 @@ user function etqrolo()
 			cStr := STRTRAN(cStr, "%ZD3_ROLO%", transform((cAlias)->ZD3_ROLO , "@E 999"))
 			cStr := STRTRAN(cStr, "%ZD3_MTROLO%", transform((cAlias)->ZD3_MTROLO, "@E 999"))
 
-		    cSaida += cStr +chr(10)+chr(13)
-    	
+			cSaida += cStr +chr(10)+chr(13)
+
 
 			(cAlias)->(DBSKIP())
 		ENDDO
 		(cAlias)->(DBCLOSEAREA())
 
-		
-			cPort := 'LPT1' // prnLPTPort()
-			FERASE("c:\windows\temp\etq_rolo_pa.prn" )
-			MemoWrite("c:\windows\temp\etq_rolo_pa.prn", cSaida)
 
-			Copy File "c:\windows\temp\etq_rolo_pa.prn" To LPT1
+		cPort := 'LPT1' // prnLPTPort()
+		FERASE("c:\windows\temp\etq_rolo_pa.prn" )
+		MemoWrite("c:\windows\temp\etq_rolo_pa.prn", cSaida)
+
+		Copy File "c:\windows\temp\etq_rolo_pa.prn" To LPT1
 
 
 
 	END
 
-// SE O PRODUTO FOR PI IMPRIME E FABRICACAO IMPRIME
-	IF SD3->D3_TIPO=="MP" .AND. SD3->D3_CF$"DE6"
-
+// SE O PRODUTO FOR MP IMPRIME E FABRICACAO IMPRIME
+	IF SD3->D3_TIPO=="MP" .AND. SD3->D3_CF$"DE6 DE4"
 
 		CURDIR( 'etq' )
 		cStrEtq := MemoRead( "etq_rolo_mp.txt" )
@@ -109,7 +108,12 @@ user function etqrolo()
 		dbSelectArea("SB1")
 		dbSeek(xFilial("SB1")+SD3->D3_COD)
 
-
+		IF ALLTRIM(SD3->D3_CF)=="DE6"
+		cD3_EMISSAO:=dtoc(SD3->D3_EMISSAO)
+		ELSE
+		cD3_EMISSAO:=ultimaemissao(SB1->B1_COD,SD3->D3_LOTECTL)
+		ENDIF
+	
 
 
 
@@ -117,9 +121,9 @@ user function etqrolo()
 		cStrEtq := STRTRAN(cStrEtq, "%B1_DESC%", SB1->B1_DESC)
 		cStrEtq := STRTRAN(cStrEtq, "%D3_UM%", SD3->D3_UM)
 		cStrEtq := STRTRAN(cStrEtq, "%D3_QUANT%", transform(SD3->D3_QUANT, "@E 999,999.999"))
-		cStrEtq := STRTRAN(cStrEtq, "%D3_EMISSAO%", dtoc(SD3->D3_EMISSAO))
+		cStrEtq := STRTRAN(cStrEtq, "%D3_EMISSAO%", cD3_EMISSAO)
 		cStrEtq := STRTRAN(cStrEtq, "%D3_LOTECTL%", SD3->D3_LOTECTL)
-		cStrEtq := STRTRAN(cStrEtq, "%BARRA%", SB1->B1_COD+';'+SD3->D3_LOTECTL+';'+transform(SD3->D3_QUANT, "@E 999,999.999"))
+		cStrEtq := STRTRAN(cStrEtq, "%BARRA%",alltrim(SB1->B1_COD)+';'+alltrim(SD3->D3_LOTECTL)+';'+transform(SD3->D3_QUANT, "@E 999,999.999"))
 
 //imprime 2 etq		
 //cStrEtq += cStrEtq +chr(10)+chr(13)
@@ -135,3 +139,31 @@ user function etqrolo()
 
 
 return
+
+static function ultimaemissao(cB1_COD,cD3_LOTECTL)
+local cD3_EMISSAO:=''
+local cAlias
+
+	cAlias := getNexTAlias()
+	BeginSQL alias cAlias
+		SELECT TOP 1 *
+		FROM %TABLE:SD3%
+		WHERE D3_FILIAL = %XFILIAL:SD3% AND %NOTDEL%
+		AND D3_COD = %exp:cB1_COD% 
+		and D3_LOTECTL = %exp:cD3_LOTECTL%
+		ORDER BY D3_EMISSAO ASC
+	EndSQL
+
+		while (cAlias)->(!eof())
+
+		cD3_EMISSAO:=(cAlias)->D3_EMISSAO
+		(cAlias)->(DBSKIP())
+			enddo
+		
+
+	(cAlias)->(dbCloseArea())
+
+cD3_EMISSAO:=DTOC(STOD(cD3_EMISSAO))
+
+
+return cD3_EMISSAO

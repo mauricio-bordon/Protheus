@@ -1019,7 +1019,7 @@ Static Function INCOK()
 
 		//Setando a linha atual
 		oModelGrid:SetLine(nLin)
-
+		//grupo+cliente+largura+
 		cIndex := Fwfldget('ZV1_GRUPO')+Fwfldget('ZV1_CLI')+transform(Fwfldget('ZV1_LARGCR'),"@E 999.999")
 		if ascan(aindex, cindex) == 0
 			aAdd(aindex, cindex)
