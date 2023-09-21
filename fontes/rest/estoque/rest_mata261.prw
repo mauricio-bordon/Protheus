@@ -200,7 +200,7 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 		aadd(aLinha,{"D3_CODLAN", "", Nil}) //cat83 prod destino
 
 		//	aadd(aLinha,{"D3_USUARIO", cUserRest, Nil}) //Item Grade
-		//	aadd(aLinha,{"D3_DTSIST", DDATABASE, Nil}) //Item Grade
+		//	aadd(aLinha,{"D3_DTSIST", DATE(), Nil}) //Item Grade
 		//	aadd(aLinha,{"D3_HRSIST", TIME(), Nil}) //Item Grade
 
 		aAdd(aAuto,aLinha)

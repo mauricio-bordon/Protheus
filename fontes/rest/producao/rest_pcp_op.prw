@@ -43,7 +43,7 @@ wsmethod get ws1 wsservice ws_pcp_op
 
 
 	aItem:= getOps(::maquina)
-
+	u_json_dbg(aItem)
 	wrk := JsonObject():new()
 
 	self:setStatus(200)
@@ -136,8 +136,8 @@ wsmethod get ws2 wsservice ws_pcp_op
 return lRet
 
 static function getOp(cNumero, cItem, cSequencia)
-	Local cAlias
-	Local aItem := {}
+	Local cAlias, cLotectl
+	Local aItem := {}, aItem2 := {}, aLotes := {}
 
 	
 	cAlias := getNextAlias()
@@ -170,7 +170,51 @@ static function getOp(cNumero, cItem, cSequencia)
 	ENDIF
 	(cAlias)->(DbClosearea())
 
+//Produções
+	cAlias := getNextAlias()
 
+
+	BeginSQL alias cAlias
+	SELECT D3_LOTECTL, D3_QUANT 
+	FROM %TABLE:SD3% D3 
+	WHERE  D3.D_E_L_E_T_<>'*' AND D3_FILIAL = %XFILIAL:SD3%
+		AND D3_OP = %EXP:cNumero+cItem+cSequencia% AND D3_CF = 'PR0'
+		AND D3_ESTORNO <> 'S'
+		order by 1
+	EndSQL
+	u_dbg_qry()
+	WHILE !(cAlias)->(Eof())
+		aItem2 := JsonObject():new()
+		aItem2['LOTE']		:= alltrim((cAlias)->D3_LOTECTL)
+		aItem2['QUANTIDADE']	:= (CALIAS)->D3_QUANT
+		aAdd(aLotes, aItem2)
+		conout('Lote: '+(cAlias)->D3_LOTECTL+'  = Quant: '+cvaltochar((CALIAS)->D3_QUANT))
+		(cAlias)->(dbSkip())
+	enddo
+	(cAlias)->(DbClosearea())
+	u_json_dbg(aLotes)
+	aItem['producoes']	:= aLotes
+
+	cAlias := getnextalias()
+
+		BeginSql alias CALIAS
+                SELECT MAX(D3_LOTECTL) AS LOTEMAX
+                FROM %TABLE:SD3%
+                WHERE D3_FILIAL = %XFILIAL:SD3% AND %NOTDEL%
+                AND D3_OP = %EXP:cNumero+cItem+cSequencia%
+                AND D3_CF = 'PR0'
+                AND D3_ESTORNO <> 'S'
+		EndSql
+		if (CALIAS)->(EOF())
+			nSeqOp := 0
+		else
+			nSeqOp := VAL( SUBSTR((CALIAS)->LOTEMAX,12,3) )
+		endif
+		(CALIAS)->(DBCLOSEAREA())
+		nSeqOp++
+		cLotectl := alltrim(cNumero+cItem+cSequencia) +  STRZERO(nSeqOp, 3)
+
+	aItem['proximo_lote']	:= cLotectl
 //	json_dbg(aItem)
 
 return aItem

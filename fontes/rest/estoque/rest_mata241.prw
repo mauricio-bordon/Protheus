@@ -219,7 +219,7 @@ static function consultaValida(codprod,slocal,sLocaliz)
 	BeginSQL alias cAlias
 
 		SELECT TOP 1 BF_PRODUTO,B1_DESC,BF_QUANT,B1_UM,BF_LOCAL,BF_LOCALIZ,BF_LOTECTL
-		FROM SBF070 BF
+		FROM %table:SBF% BF
 		INNER JOIN %TABLE:SB1% B1
 		ON B1_COD=BF_PRODUTO
 		WHERE BF.D_E_L_E_T_<>'*' and BF_FILIAL = %XFILIAL:SBF%

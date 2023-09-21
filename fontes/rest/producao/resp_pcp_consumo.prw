@@ -2,28 +2,31 @@
 #include "restful.ch"
 #include 'rwmake.ch'
 #Include "tbiconn.ch"
+#include "topconn.ch"
 
 
 wsrestful ws_pcp_op_consumo description "WS para consumir material na ordem"
-	wsdata codBar as char OPTIONAL
-	wsdata cOP as char OPTIONAL
-	wsdata cLocal as char OPTIONAL
+	wsdata codBar as char optional
+	wsdata cOP as char optional
+	wsdata cLocal as char optional
+	wsdata cLotectl as char optional
+	wsdata usuario as char optional
 
 
 	wsmethod get ws1;
 		description "Lista material local da máquina com validações de Local\Fifo\Estrutura" ;
-		wssyntax "/ws_pcp_op_consumo/{codBar}/{cOP}/{cLocal}";
-		path "/ws_pcp_op_consumo/{CodBar}/{cOP}/{cLocal}"
+		wssyntax "/ws_pcp_op_consumo/validalote/{cOP}/{codBar}";
+		path "/ws_pcp_op_consumo/validalote/{cOP}/{codBar}"
 
 	wsmethod get ws3;
 		description "Lista Lotes Consumidos na ordem" ;
-		wssyntax "/ws_pcp_op_consumo/{cOP}";
-		path "/ws_pcp_op_consumo/{cOP}"
+		wssyntax "/ws_pcp_op_consumo/list/{cOP}";
+		path "/ws_pcp_op_consumo/list/{cOP}"
 
 	wsmethod post ws2;
 		description "OP consome material uso de post";
-		wssyntax "/ws_pcp_op_consumo/{cOP}";
-		path "/ws_pcp_op_consumo/{cOP}"
+		wssyntax "/ws_pcp_op_consumo/requisitar/{cOP}";
+		path "/ws_pcp_op_consumo/requisitar/{cOP}"
 
 
 end wsrestful
@@ -37,30 +40,36 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 	Local aJson := {}
 
 	self:SetContentType("application/json")
+	aDados := u_bcreader(::codBar)
+	u_json_dbg(aDados)
+	u_json_dbg(::cOp)
+	if aDados[1] == ''
+		::SetResponse('{ "message": "Lote vazio","detailedMessage": "Informação de Lote vazia"}')
+		self:setStatus(400)
+		Return lGet
+	endif
+	cProdEmp := prodemp(::cOp, aDados[1], '01')
 
-	cProdEmp := prodemp(::cOp, ::codBar, ::cLocal)
-
-	
 	if alltrim(cProdEmp) == ''
-		::SetResponse('{ "message": "NÃ£o foi encontrado","detailedMessage": "Lote sem saldo ou produto nÃ£o pertence Ã  estrutura"}')
+		::SetResponse('{ "message": "Não foi encontrado","detailedMessage": "Lote sem saldo ou produto Não pertence Ã  estrutura"}')
 		self:setStatus(400)
 		Return lGet
 	endif
 	//Valida se existe o material no local correto e com saldo
-	lRet:=checalote(::codBar,::cLocal, cProdEmp)
+	lRet:=checalote(aDados[1],'01', cProdEmp)
 
 	if !lRet
 
-		::SetResponse('{ "message": "NÃ£o foi encontrado","detailedMessage": "Lote nÃ£o encontrado com saldo no endereÃ§o da mÃ¡quina"}')
+		::SetResponse('{ "message": "Não foi encontrado","detailedMessage": "Lote Não encontrado com saldo no endereÃ§o da mÃ¡quina"}')
 
 		self:setStatus(400)
 		Return lGet
 	endif
 	//verifica se Ã© o fifo
-	cLote:=checafifo(::codBar,::cLocal, cProdEmp)
+	cLote:=checafifo('01', cProdEmp)
 
 
-	if cLote<>alltrim(::codBar)
+	if cLote<>alltrim(aDados[1])
 		::SetResponse('{ "message": "Lote fora do FIFO","detailedMessage": "Lote fora do FIFO lote esperado '+cLote+'"}')
 
 		self:setStatus(400)
@@ -70,19 +79,19 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 	endif
 	//verifica se faz parte da estrutura.
 
-	lRet:=checaestrutura(::codBar,::cOP, cProdEmp)
+	lRet:=checaestrutura(aDados[1],::cOP, cProdEmp)
 
 	if !lRet
 
 
-		::SetResponse('{ "message": "Lote fora da estrutura","detailedMessage": "Este lote nÃ£o faz parte da estrutura do produto!"}')
+		::SetResponse('{ "message": "Lote fora da estrutura","detailedMessage": "Este lote Não faz parte da estrutura do produto!"}')
 
 		self:setStatus(400)
 		Return lGet
 	endif
 
 	// Busca lote para apresentar na tela.
-	aLote:=retlote(::codBar,::cLocal, cProdEmp)
+	aLote:=retlote(aDados[1],'01', cProdEmp)
 
 	CONOUT("Ret Lote")
 
@@ -104,7 +113,7 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 			aJson['LOCAL']:=aLote[nL][4]
 			aJson['PRODUTO']:=aLote[nL][5]
 			aJson['DESCRICAO']:=aLote[nL][6]
-			aJson['QUANTIDADE']:=aLote[nL][7]
+			aJson['QUANTIDADE']:=aDados[2]
 			aJson['SALDO']:=aLote[nL][8]
 		next nL
 		::SetResponse(aJson)
@@ -123,22 +132,22 @@ wsmethod post ws2 wsservice ws_pcp_op_consumo
 	Local lok := .T.
 	Local oJson
 	Local cBody := ::getContent()
-	Private cMsgErro := 'Ocorreu um erro nÃ£o previsto'
+	Private cMsgErro := 'Ocorreu um erro Não previsto'
 	oJson := JsonObject():new()
 	oJson:fromJSON(cBody)
-
+	u_json_dbg(oJson);
 //	lOk := limpaemp(::cOp)
 
 	lOk := consomelote(::cOP, oJson)
-		
+
 	if lOk
 
-		::SetResponse(oJson)
+		::SetResponse('{ "message": "Lote consumido com sucesso.","detailedMessage": "Lote consumido com sucesso"}')
 
 		self:setStatus(200)
 
 	else
-		::SetResponse('{ "message": "Ops...","detailedMessage": "'+cMsgErro+'"}')
+		::SetResponse('{ "message": "Erro ao consumir lote.","detailedMessage": "'+ENCODEUTF8(cMsgErro)+'"}')
 
 		self:setStatus(400)
 	endif
@@ -147,7 +156,7 @@ Return lPost
 
 
 static Function consomelote(cOp, oJson)
-	Local lRet:=.T., cDocSeq
+	Local lRet:=.T.
 
 	//Debug do Vetor
 	conout(oJson:toJson())
@@ -156,52 +165,34 @@ static Function consomelote(cOp, oJson)
 
 	Begin Transaction
 
-		nDocSeq	:= getmv("APP_DOCSEQ")
-		cDocSeq := 'W'+strzero(nDocSeq,8)
-		CONOUT('DOC SEQ APP: '+cDocSeq)
-		nDocSeq++
-		putmv("APP_DOCSEQ", nDocSeq)
-		CONOUT('NEXT DOC SEQ APP: '+strzero(nDocSeq,8))
+		
 		cMaq := POSICIONE("SC2", 1, XFILIAL("SC2")+cOP, "C2_MAQUINA")
 		cMaq := substr(cMaq,1,2)
 
-		_aCab1 := {{"D3_DOC" ,cDocSeq, NIL},;
-			{"D3_TM" ,'570' , NIL},;
+		_aCab1 := {{"D3_DOC" ,GetSxeNum("SD3","D3_DOC"), NIL},;
+			{"D3_TM" ,'505' , NIL},;
 			{"D3_EMISSAO" ,ddatabase, NIL}}
 //{"D3_CC" ," ", NIL},;
 		aVetor:={;
 			{"D3_OP"      ,cOP,NIL},;
 			{"D3_COD",padr(oJson['PRODUTO'],15),NIL},;
 			{"D3_LOCAL",oJson['LOCAL'],NIL},;
-			{"D3_LOCALIZ",oJson['LOCAL'],NIL},;
+			{"D3_LOCALIZ",oJson['LOCALIZACAO'],NIL},;
 			{"D3_QUANT",oJson['QUANTIDADE'],NIL},;
 			{"D3_LOTECTL",padr(oJson['LOTE'],10),NIL};
 			}
 		_atotitem := {}
 		aadd(_atotitem,aVetor)
 		lMsErroAuto := .F.
-
+		u_json_dbg(AVETOR)
 		MSExecAuto({|x,y,z| MATA241(x,y,z)},_aCab1,_atotitem,3)
-		
+
 		If lMsErroAuto
 			lRet :=.F.//deu erro
 			ctitulo:="Erro na execucao"
-			cmsg:="Verificar no SIGAADV o log "+NomeAutoLog()
-			conout(cMsg)
+			cMsgErro:=memoread (NomeAutoLog())
+			conout(cMsgErro)
 			DisarmTransaction()
-		else
-			conout("cDocSeq : " + cDocSeq)
-			conout('D3_DOC : ' + SD3->D3_DOC)
-			conout('R_E_C_N_O_: '+ STR(SD3->(RECNO())))
-			if SD3->(RECLOCK("SD3", .F.))
-				//CONOUT('ATUALIZADO CAMPOS D3_USUARIO E DATA/HORA. '+CUSUARIO)
-				SD3->D3_USUARIO  := oJson['USUARIO']
-				SD3->(MSUNLOCK())
-			else
-				DisarmTransaction()
-				LRET := .F.
-				conout('erro ao atualizar campos D3_USUARIO')
-			endif
 		endif
 
 	End Transaction
@@ -301,7 +292,7 @@ static Function checalote(codBar,cLocal, cProd)
 	cAlias := getNextAlias()
 	BeginSQL alias cAlias
 
-    SELECT BF_LOTECTL FROM SBF070
+    SELECT BF_LOTECTL FROM %TABLE:SBF%
     WHERE D_E_L_E_T_<>'*'
     AND BF_FILIAL= %XFILIAL:SBF%
     AND BF_LOCAL=%Exp:cLocal%
@@ -324,7 +315,7 @@ static Function checalote(codBar,cLocal, cProd)
 
 return lRet
 
-static Function checafifo(codBar,cLocal, cProd)
+static Function checafifo(cLocal, cProd)
 
 	Local cAlias
 	Local cLote
@@ -333,7 +324,7 @@ static Function checafifo(codBar,cLocal, cProd)
 	cAlias := getNextAlias()
 	BeginSQL alias cAlias
 
-   SELECT TOP 1 BF_LOTECTL FROM SBF070 BF 
+   SELECT TOP 1 BF_LOTECTL FROM %TABLE:SBF% BF 
 	    WHERE BF.D_E_L_E_T_<>'*' 
 		AND	BF_FILIAL = %XFILIAL:SBF%
         AND BF_QUANT - BF_EMPENHO > 0
@@ -366,8 +357,8 @@ static Function checaestrutura(codBar, cOP, cProdEmp)
 
 	BeginSQL alias cAlias
 
-SELECT C2_NUM FROM SC2070 C2
-INNER JOIN SG1070 G1
+SELECT C2_NUM FROM %TABLE:SC2% C2
+INNER JOIN %TABLE:SG1% G1
 ON G1_COD=C2_PRODUTO
 WHERE C2.D_E_L_E_T_<>'*'
 AND C2_FILIAL=%XFILIAL:SC2%
@@ -375,7 +366,7 @@ AND G1.D_E_L_E_T_<>'*'
 AND G1_FILIAL=%XFILIAL:SG1%
 AND C2_NUM=%Exp:cOrdem% and C2_ITEM = %EXP:CitemOp%
 AND G1_COMP=(
-	SELECT top 1 BF_PRODUTO FROM SBF070 BF 
+	SELECT top 1 BF_PRODUTO FROM %TABLE:SBF% BF 
 	WHERE BF.D_E_L_E_T_<>'*' AND BF_FILIAL=%XFILIAL:SBF% 
 	AND BF_LOTECTL=%Exp:codBar%
 	AND BF_PRODUTO=%EXP:cProdEmp%)
@@ -404,9 +395,10 @@ static function retlote(codBar,cLocal, cProd)
 
 	BeginSQL alias cAlias
     SELECT BF_LOCALIZ,BF_EMPENHO,BF_LOTECTL,BF_QUANT,BF_LOCAL,BF_PRODUTO,
-		(SELECT B1_DESC FROM SB1070 B1 WHERE B1.D_E_L_E_T_<>'*' AND B1_FILIAL=%XFILIAL:SB1% AND B1_COD=BF_PRODUTO) DESCRICAO 
+		(SELECT B1_DESC FROM %TABLE:SB1% B1 
+		WHERE B1.D_E_L_E_T_<>'*' AND B1_FILIAL=%XFILIAL:SB1% AND B1_COD=BF_PRODUTO) DESCRICAO 
 		FROM 
-		SBF070 BF
+		%TABLE:SBF% BF
 		WHERE BF.D_E_L_E_T_<>'*'
 		AND BF_FILIAL=%XFILIAL:SBF%
 		AND BF_LOCAL=%Exp:cLocal%
@@ -445,11 +437,11 @@ static function prodemp(cOp, cLote, cLocal)
 
 	BeginSQl alias cAlias
 		SELECT TOP 1 G1_COMP
-		FROM SG1070 G1 INNER JOIN SC2070 C2 ON (C2_PRODUTO = G1_COD) 
-		INNER JOIN SBF070 BF ON (BF_PRODUTO = G1_COMP)
-		WHERE G1_FILIAL = '00' AND G1.D_E_L_E_T_ <> '*'
-		AND C2_FILIAL = '00' AND C2.D_E_L_E_T_ <> '*'
-		AND BF_FILIAL = '00' AND BF.D_E_L_E_T_ <> '*'
+		FROM %TABLE:SG1% G1 INNER JOIN %TABLE:SC2% C2 ON (C2_PRODUTO = G1_COD) 
+		INNER JOIN %table:SBF% BF ON (BF_PRODUTO = G1_COMP)
+		WHERE G1_FILIAL = %xfilial:SG1% AND G1.D_E_L_E_T_ <> '*'
+		AND C2_FILIAL = %xfilial:SC2% AND C2.D_E_L_E_T_ <> '*'
+		AND BF_FILIAL = %xfilial:SBF% AND BF.D_E_L_E_T_ <> '*'
 		AND BF_LOTECTL = %EXP:CLOTE%
 		AND BF_LOCAL = %EXP:CLOCAL%
 		AND BF_QUANT > 0
