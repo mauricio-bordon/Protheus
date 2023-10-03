@@ -32,6 +32,12 @@ wsrestful expedicao description "WS para listar expedicao "
 		path "/expedicao/listaprod/{cDOC}/{cSerie}"
 
 
+	wsmethod post ws5;
+		description "Inclui ZS4 Respostas ";
+		wssyntax "/expedicao/add/zs4/{cID}";
+		path "/expedicao/add/zs4/{cID}"
+
+
 end wsrestful
 
 
@@ -180,28 +186,30 @@ wsmethod post ws3 wsservice expedicao
 	oJson:fromJSON(cBody)
 	cDOC:=oJson['DOC']
 	cSerie:=PADR( oJson['SERIE'], TAMSX3("ZS1_SERIE")[1] )
-	cA2_COD:=oJson['A2_COD']
+	cA1_COD:=oJson['A1_COD']
 	cID := GETSXENUM("ZS1","ZS1_ID")
 	oJson['ID']:=cID
 
 	dbselectarea("ZS1")
-	ZS1->(dbsetorder(2))
-	ZS1->(dbseek(xfilial("ZS1")+cDOC+cSerie+cA2_COD))
+	ZS1->(dbsetorder(3))
+	ZS1->(dbseek(xfilial("ZS1")+cDOC+cSerie+cA1_COD))
 
 	IF ZS1->(!FOUND())
 
 		ZS1->(RecLock('ZS1', .T.))
-		ZS1->ZS1_FILIAL := xFilial("ZS4")
+		ZS1->ZS1_FILIAL := xFilial("ZS1")
 		ZS1->ZS1_TIPO := oJson['TIPO']
 		ZS1->ZS1_ID := cID
 		ZS1->ZS1_DOC := oJson['DOC']
 		ZS1->ZS1_SERIE := oJson['SERIE']
 		ZS1->ZS1_PLACA := oJson['PLACA']
 		ZS1->ZS1_USERI := oJson['USUARIO']
-		ZS1->ZS1_FORNEC := oJson['A2_COD']
+		ZS1->ZS1_CLIENT := oJson['A1_COD']
+		ZS1->ZS1_STATUS := 'F'
 		ZS1->ZS1_DTINIC:= dDataBase
 		ZS1->ZS1_HRINIC :=substr(Time(),1,5)
-
+		ZS1->ZS1_DTFINA:= dDataBase
+		
 		ZS1->(Msunlock())
 		ConfirmSX8()
 
@@ -292,6 +300,64 @@ return lRet
 
 
 
+
+
+wsmethod post ws5 wsservice expedicao
+	Local lPost := .T.
+	Local lOk := .T.
+	local i
+	Local oJson,cID
+	Local cBody := ::getContent()
+	Private cMsgErro := 'Ocorreu um erro não previsto'
+	oJson := JsonObject():new()
+	oJson:fromJSON(cBody)
+	cID:=::cID
+
+	names := oJson:GetNames()
+
+	for i := 1 to len(names)
+		conout(names[i])
+
+
+		dbselectarea("ZS4")
+		ZS4->(RecLock('ZS4', .T.))
+		ZS4->ZS4_FILIAL := xFilial("ZS4")
+		ZS4->ZS4_ID := cID
+		ZS4->ZS4_IDPERG := names[i]
+		ZS4->ZS4_RESPOS := oJson[names[i]]
+
+		ZS4->(Msunlock())
+
+	next i
+
+
+
+
+/*
+	else
+	
+		lOk=.F.
+		cMsgErro:="Post errado"
+	ENDIF
+
+
+*/
+
+	if lOk
+
+		::SetResponse(oJson)
+
+		self:setStatus(200)
+
+	else
+		::SetResponse('{ "message": "Ops...","detailedMessage": "'+cMsgErro+'"}')
+
+		self:setStatus(400)
+	endif
+
+Return lPost
+
+
 static function retexpedir()
 	Local cAlias
 	Local aRecebe := {}
@@ -315,7 +381,7 @@ static function retexpedir()
 	AND ZS1_FILIAL = %XFILIAL:ZS1%
 	WHERE F2.D_E_L_E_T_<>'*' AND F2_FILIAL = %XFILIAL:SF2%
     AND A1.D_E_L_E_T_<>'*' AND A1_FILIAL = %XFILIAL:SA1%
-   	AND F2_EMISSAO>'20230801'
+   	AND F2_EMISSAO>'20230901'
 	AND F2_DOC NOT IN (SELECT ZS1_DOC FROM %TABLE:ZS1%  WHERE F2_DOC=ZS1_DOC	AND F2_SERIE=ZS1_SERIE
 	AND A1_COD=ZS1_CLIENT AND ZS1_STATUS='F' AND D_E_L_E_T_<>'*' )
 	
