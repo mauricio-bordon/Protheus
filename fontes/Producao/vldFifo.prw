@@ -2,13 +2,13 @@
 user function vldFifo()
 	Local lRet:=.T.
 	Local cLoteFifo:=""
-	IF FUNNAME() == "MATA381" .AND. !isblind() .and. cUserName!='angela.vieira'
+	IF FUNNAME() == "MATA381" .AND. !isblind() .and. cUserName!='william.ferreira'
 
 		cLoteFifo:=getFifo(M->D4_LOTECTL)
 
 		IF M->D4_LOTECTL!=cLoteFifo
-			//Alert("Lote escolhido fora do FIFO. Lote do FIFO é "+cLoteFifo)
-			//lRet:=.F.
+			Alert("Lote escolhido fora do FIFO. Lote do FIFO é "+cLoteFifo)
+			lRet:=.F.
 		ENDIF
 
 	ENDIF

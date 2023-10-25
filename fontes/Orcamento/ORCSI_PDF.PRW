@@ -128,9 +128,9 @@ USER FUNCTION ORCSIPDF()
 	oPrinter:SayAlign(nLine, nColPos, 'Item', oFont3b, nColItem, nIncLine * 2, , PAD_CENTER, 0)
 	nColPos += nColItem
 
-	oPrinter:SayAlign(nLine, nColPos, 'Quantidade', oFont3b, nColQtdVol, nIncLine, , PAD_CENTER, 0)
-	oPrinter:SayAlign(nLine + nIncLine, nColPos, '(volume)', oFont3b, nColQtdVol, nIncLine, , PAD_CENTER, 0)
-	nColPos += nColQtdVol
+	//oPrinter:SayAlign(nLine, nColPos, 'Quantidade', oFont3b, nColQtdVol, nIncLine, , PAD_CENTER, 0)
+	//oPrinter:SayAlign(nLine + nIncLine, nColPos, '(volume)', oFont3b, nColQtdVol, nIncLine, , PAD_CENTER, 0)
+	//nColPos += nColQtdVol
 
 	oPrinter:SayAlign(nLine, nColPos, 'Unidade', oFont3b, nColUn, nIncLine * 2, , PAD_CENTER, 0)
 	nColPos += nColUn
@@ -197,9 +197,9 @@ USER FUNCTION ORCSIPDF()
 		endif
 		oPrinter:SayAlign(nLine, nColPos, (calias)->ZV1_ITEM, oFont1, nColItem, nIncLine * nMultLine, , PAD_CENTER, 0)
 		nColPos += nColItem
-
-		oPrinter:SayAlign(nLine, nColPos, transform((calias)->ZV1_MTTOT, "@E 9,999,999"), oFont1, nColQtdVol, nIncLine  * nMultLine, , PAD_CENTER, 0)
-		nColPos += nColQtdVol
+		//QUANTIDADE
+		//oPrinter:SayAlign(nLine, nColPos, transform((calias)->ZV1_MTTOT, "@E 9,999,999"), oFont1, nColQtdVol, nIncLine  * nMultLine, , PAD_CENTER, 0)
+		//nColPos += nColQtdVol
 
 		oPrinter:SayAlign(nLine, nColPos, 'MT', oFont1, nColUn, nIncLine * nMultLine, , PAD_CENTER, 0)
 		nColPos += nColUn
@@ -240,10 +240,20 @@ USER FUNCTION ORCSIPDF()
 		nColPos += nColIPI
 
 		nMtTirada := (CALIAS)->ZV1_NROLOS * (CALIAS)->ZV1_MTLIN
+		if (calias)->ZV1_MTTOT>nMtTirada
+	
+		oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform((calias)->ZV1_MTTOT, "@E 9,999,999"))+" mt - "+' R$ '+transform(((calias)->ZV1_PRCIMP), "@E 999.99999"), oFont1, nColObs, nIncLine * nMultLine, , PAD_LEFT, 0)
 		
-		oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform(nMtTirada, "@E 9,999,999"))+" mt - "+' R$ '+transform(((calias)->ZV1_PRCIMP*1.20), "@E 999.99999"), oFont1, nColObs, nIncLine * nMultLine, COR_RED, PAD_LEFT, 0)
+		else
+		oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform((calias)->ZV1_MTTOT, "@E 9,999,999"))+" mt - "+' R$ '+transform((((calias)->ZV1_PRCIMP*1.25)), "@E 999.99999"), oFont1, nColObs, nIncLine * nMultLine, , PAD_LEFT, 0)
+
 		nLine += nIncLIne
-		oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform((calias)->ZV1_MTTOT, "@E 9,999,999"))+" mt - "+'R$ '+transform(((calias)->ZV1_PRCIMP), "@E 999.99999"), oFont1, nColObs, nIncLine * nMultLine, , PAD_LEFT, 0)
+
+		oPrinter:SayAlign(nLine, 1150, "Desconto de 25% para pedidos acima de ", oFont1, nColObs, nIncLine * nMultLine,COR_RED , PAD_LEFT, 0)
+		oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform(nMtTirada*2, "@E 9,999,999"))+" mt - "+'R$ '+transform(((calias)->ZV1_PRCIMP), "@E 999.99999"), oFont1, nColObs, nIncLine * nMultLine,COR_RED , PAD_LEFT, 0)
+		
+			
+		endif	
 		nLine += nIncLIne
 		//cObs2 += " "+alltrim(transform(nMtTirada, "@E 999,999.999"))+" mt - "+'R$ '+transform(((calias)->ZV1_PRCIMP*1.20), "@E 999.99999")+Chr(13)+Chr(10)
 		nMultLine := 2
@@ -254,6 +264,7 @@ USER FUNCTION ORCSIPDF()
 		(CALIAS)->(DBSKIP())
 	ENDDO
 	(CALIAS)->(DBCLOSEAREA())
+
 	nLine += nIncLine
 	nLine := prnTCV(nLine)
 
@@ -266,7 +277,7 @@ USER FUNCTION ORCSIPDF()
 	ENDIF
 */
 	//Rodapé
-	nLine := 2400
+	nLine := 2350
 	oPrinter:Line( nLine, nColIni, nLine,nColFim )
 	nLine += nIncLine
 	oPrinter:Say( nLine, 1250, 'http://www.inducoat.com.br (19) 3167-0700', oFont1b)

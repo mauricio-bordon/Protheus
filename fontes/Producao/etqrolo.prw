@@ -2,7 +2,7 @@ user function etqrolo()
 	local cStrEtq
 	local cAlias
 // SE O PRODUTO FOR PI IMPRIME E FABRICACAO IMPRIME
-	IF SD3->D3_TIPO=="PI" .AND. D3_CF$"PR0_DE0"
+	IF SD3->D3_TIPO=="PI" .AND. D3_CF$"PR0_DE0_DE4"
 
 		CURDIR( 'etq' )
 		cStrEtq := MemoRead( "etq_rolo_pi.txt" )
@@ -20,8 +20,8 @@ user function etqrolo()
 		cStrEtq := STRTRAN(cStrEtq, "%D3_QUANT%", transform(SD3->D3_QUANT, "@E 999,999.999"))
 		cStrEtq := STRTRAN(cStrEtq, "%D3_EMISSAO%", dtoc(SD3->D3_EMISSAO))
 		cStrEtq := STRTRAN(cStrEtq, "%D3_LOTECTL%", SD3->D3_LOTECTL)
-		cStrEtq := STRTRAN(cStrEtq, "%BARRA%", SB1->B1_COD+';'+SD3->D3_LOTECTL+';'+transform(SD3->D3_QUANT, "@E 999,999.999"))
-
+		cStrEtq := STRTRAN(cStrEtq, "%BARRAS%", alltrim(SB1->B1_COD)+';'+alltrim(SD3->D3_LOTECTL)+';'+alltrim(transform(SD3->D3_QUANT, "@E 999,999.999")))
+		cStrEtq := STRTRAN(cStrEtq, "%OBS%", SH6->H6_OBSERVA)
 //imprime 2 etq		
 //cStrEtq += cStrEtq +chr(10)+chr(13)
 

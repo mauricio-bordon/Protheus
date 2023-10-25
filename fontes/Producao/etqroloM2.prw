@@ -16,7 +16,7 @@ user function etqrolom2()
 		cStrEtq := STRTRAN(cStrEtq, "%D3_EMISSAO%", dtoc(SH6->H6_DTPROD))
 		cStrEtq := STRTRAN(cStrEtq, "%D3_LOTECTL%", SH6->H6_LOTECTL)
 		cStrEtq := STRTRAN(cStrEtq, "%OBS%", SH6->H6_OBSERVA)
-	    	cStrEtq := STRTRAN(cStrEtq, "%BARRA%", SB1->B1_COD+';'+SH6->H6_LOTECTL+';'+transform(SH6->H6_QTDPROD, "@E 999,999.999"))
+	    cStrEtq := STRTRAN(cStrEtq, "%BARRAS%", alltrim(SB1->B1_COD)+';'+alltrim(SH6->H6_LOTECTL)+';'+alltrim(transform(SH6->H6_QTDPROD, "@E 999,999.999")))
 
 //imprime 2 etq		
 //cStrEtq += cStrEtq +chr(10)+chr(13)

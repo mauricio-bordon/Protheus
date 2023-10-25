@@ -43,15 +43,18 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 	aDados := u_bcreader(::codBar)
 	u_json_dbg(aDados)
 	u_json_dbg(::cOp)
+	conout('x1')
 	if aDados[1] == ''
-		::SetResponse('{ "message": "Lote vazio","detailedMessage": "Informação de Lote vazia"}')
+		conout('x2')
+		::SetResponse('{"message": "Lote vazio","detailedMessage": "Informação de Lote vazia"}')
 		self:setStatus(400)
 		Return lGet
 	endif
 	cProdEmp := prodemp(::cOp, aDados[1], '01')
 
 	if alltrim(cProdEmp) == ''
-		::SetResponse('{ "message": "Não foi encontrado","detailedMessage": "Lote sem saldo ou produto Não pertence Ã  estrutura"}')
+	
+		::SetResponse('{ "code": "400","message": "Nao foi encontrado","detailedMessage": "Lote sem saldo ou produto Nao pertence a estrutura"}')
 		self:setStatus(400)
 		Return lGet
 	endif
@@ -59,8 +62,7 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 	lRet:=checalote(aDados[1],'01', cProdEmp)
 
 	if !lRet
-
-		::SetResponse('{ "message": "Não foi encontrado","detailedMessage": "Lote Não encontrado com saldo no endereÃ§o da mÃ¡quina"}')
+		::SetResponse('{"message": "Não foi encontrado","detailedMessage": "Lote Não encontrado com saldo no endereÃ§o da mÃ¡quina"}')
 
 		self:setStatus(400)
 		Return lGet
@@ -70,8 +72,8 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 
 
 	if cLote<>alltrim(aDados[1])
-		::SetResponse('{ "message": "Lote fora do FIFO","detailedMessage": "Lote fora do FIFO lote esperado '+cLote+'"}')
-
+		::SetResponse('{"message": "Lote fora do FIFO","detailedMessage": "Lote fora do FIFO lote esperado '+cLote+'"}')
+		
 		self:setStatus(400)
 		Return lGet
 
@@ -84,8 +86,8 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 	if !lRet
 
 
-		::SetResponse('{ "message": "Lote fora da estrutura","detailedMessage": "Este lote Não faz parte da estrutura do produto!"}')
-
+		::SetResponse('{"message": "Lote fora da estrutura","detailedMessage": "Este lote Não faz parte da estrutura do produto!"}')
+		conout('x6')
 		self:setStatus(400)
 		Return lGet
 	endif
@@ -97,12 +99,12 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 
 	If Len(aLote) == 0
 
-		::SetResponse('{ "message": "Ops... ocorreu problema","detailedMessage": "Ocorreu erro ao buscar o lote! "}')
-
+		::SetResponse('{"message": "Ops... ocorreu problema","detailedMessage": "Ocorreu erro ao buscar o lote! "}')
+		conout('x7')
 		self:setStatus(400)
 
 	else
-
+		conout('x8')
 		CONOUT("ENTROU ws_pcp_op_consumo 200")
 		self:setStatus(200)
 		for nL := 1 to len(aLote)
@@ -165,7 +167,7 @@ static Function consomelote(cOp, oJson)
 
 	Begin Transaction
 
-		
+
 		cMaq := POSICIONE("SC2", 1, XFILIAL("SC2")+cOP, "C2_MAQUINA")
 		cMaq := substr(cMaq,1,2)
 

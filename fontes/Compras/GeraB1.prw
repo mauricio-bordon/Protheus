@@ -46,6 +46,7 @@ User Function GeraB1()
 			M->B1_RASTRO 	:= 'L'
 			//M->B1_TIPOCQ	:= 'M'
 			M->B1_PRVALID:=365
+			M->B1_LOCPAD:='02'
 
 		endif
 
