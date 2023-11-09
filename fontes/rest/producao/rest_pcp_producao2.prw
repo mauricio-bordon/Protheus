@@ -84,13 +84,13 @@ static Function incproducao(cOp, oJson, _cParcTot)
 	Local cProd := POSICIONE('SC2', 1, xfilial('SC2')+cOp, "C2_PRODUTO")
 	Local cMaq := POSICIONE('SC2', 1, xfilial('SC2')+cOp, "C2_MAQUINA")
 	Local aDtHr := proxap(cop)
-//	Local cOperador := oJson['MATRICULA']
+	Local cOperador := oJson['IDUSUARIO']
 	Local _cOperac := '01'
 	Local _cHoraIni:= aDtHr[2]
 	Local _cHoraFin:= time()
 	Local _nQtdProd:= oJson['QUANTIDADE']
 	Local _nQtdPerd:= 0
-//	Local cObs := oJson['OBS']
+	Local cObs := oJson['OBS']
 	Local cLotectl := oJson['LOTE']
 
 
@@ -112,8 +112,8 @@ static Function incproducao(cOp, oJson, _cParcTot)
 	aadd(aMata680,{"H6_DTAPONT", DDATABASE ,NIL})
 	aadd(aMata680,{"H6_LOTECTL", cLotectl ,NIL})
 	aadd(aMata680,{"H6_DTVALID", ddatabase+365 ,NIL})
-//	aadd(aMata680,{"H6_OPERADO", cOperador ,NIL})
-	//aadd(aMata680,{"H6_OBSERVA", cObs ,NIL})
+	aadd(aMata680,{"H6_OPERADO", cOperador ,NIL})
+	aadd(aMata680,{"H6_OBSERVA", cObs ,NIL})
 	aadd(aMata680,{"PENDENTE", "1" ,NIL})
 //aadd(aMata680,{"H6_LOCAL", _cLocal ,NIL})
 	U_JSON_DBG(aMAta680)
@@ -301,7 +301,7 @@ wsmethod post ws3 wsservice ws_pcp_producao2
 	Local oJson
 	Local cOp := padr(alltrim(::NUMERO)+alltrim(::ITEM)+alltrim(::SEQUENCIA),13)
 	Local cBody := ::getContent()
-	Local nQuje := POSICIONE('SC2', 1, xfilial('SC2')+cOp, "C2_QUJE")
+	//Local nQuje := POSICIONE('SC2', 1, xfilial('SC2')+cOp, "C2_QUJE")
 	private cUserRest := 'coletor'
 	private cMsg := ''
 	oJson := JsonObject():new()

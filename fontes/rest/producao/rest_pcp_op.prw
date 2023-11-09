@@ -180,7 +180,7 @@ static function getOp(cNumero, cItem, cSequencia)
 	WHERE  D3.D_E_L_E_T_<>'*' AND D3_FILIAL = %XFILIAL:SD3%
 		AND D3_OP = %EXP:cNumero+cItem+cSequencia% AND D3_CF = 'PR0'
 		AND D3_ESTORNO <> 'S'
-		order by 1
+		order by 1 DESC
 	EndSQL
 	u_dbg_qry()
 	WHILE !(cAlias)->(Eof())
