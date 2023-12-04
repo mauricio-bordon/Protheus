@@ -160,17 +160,19 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	endif
 
 	//verfifica se todos os itens foram palletizado
+	/*
 	dbSelectArea("ZD3")
 	ZD3->(dbSetOrder(1)) //ZT0_FILIAL+ZT0_NUMOP+ZT0_ITEM
 	ZD3->(dbSeek(xFilial("ZD3")+cOP))
 
-	
+*/	
+		ZD3->( dbGoTop() )
 
 	Do while ZD3->(!eof())  .And. ZD3->ZD3_OP = cOP
 		//se existir rolo sem pallet aguarda.
 		if EMPTY(alltrim(ZD3->ZD3_PALLET))
 			lPallet:=.F.
-			ZD3->(dbclosearea())
+			
 			return
 		endif
 		ZD3->(dbSkip())
@@ -181,6 +183,9 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 //se todos os rolos foram colocado em pallet envia email sobre o peso
 	if lPallet
 	//Alert()
+	cAssunto:="Finalizado op"
+	u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )	
+
 	ENDIF
 
 

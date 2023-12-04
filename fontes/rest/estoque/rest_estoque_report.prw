@@ -61,12 +61,15 @@ static function getSaldos(cTipo)
 
 	BeginSQL alias cAlias
 	SELECT B1_COD, RTRIM(B1_DESC) AS DESCRICAO, B1_UM, B2_QATU,
-	 BF_LOCAL, BF_LOCALIZ, BF_LOTECTL, coalesce(BF_QUANT,0) as BF_QUANT
+	 BF_LOCAL, BF_LOCALIZ, BF_LOTECTL,B8_DTVALID, coalesce(BF_QUANT,0) as BF_QUANT
 	FROM %TABLE:SB1% B1  INNER JOIN  %TABLE:SB2% B2 ON B1.B1_COD=B2.B2_COD
-	LEFT JOIN %TABLE:SBF% BF ON B2.B2_COD=BF.BF_PRODUTO AND B2_LOCAL = BF_LOCAL AND BF.D_E_L_E_T_<>'*' AND BF_FILIAL = %XFILIAL:SBF%
-	WHERE  B2.D_E_L_E_T_<>'*' AND B2_FILIAL = %XFILIAL:SBF%
+	LEFT JOIN %TABLE:SBF% BF ON B2.B2_COD=BF.BF_PRODUTO AND B2_LOCAL = BF_LOCAL 
+	AND BF.D_E_L_E_T_<>'*' AND BF_FILIAL = %XFILIAL:SBF%
+	LEFT JOIN  %TABLE:SB8% B8 ON B2.B2_COD=B8.B8_PRODUTO AND B2_LOCAL = B8_LOCAL AND B8_LOTECTL=BF_LOTECTL
+ 	AND B8.D_E_L_E_T_<>'*' AND B8_FILIAL =  %XFILIAL:SB8%  
+  	WHERE  B2.D_E_L_E_T_<>'*' AND B2_FILIAL = %XFILIAL:SB2%
 		AND B1.D_E_L_E_T_<>'*' AND B1_FILIAL = %XFILIAL:SB1%
-	ORDER BY B1_COD, BF_LOCAL,BF_LOCALIZ, BF_LOTECTL
+	ORDER BY B1_COD,BF_LOTECTL,B8_DTVALID, BF_LOCAL,BF_LOCALIZ DESC 
 	EndSQL
 	u_dbg_qry()
 	cKey := ''
@@ -88,6 +91,7 @@ static function getSaldos(cTipo)
 		aItem[nPos]['items'][nPosSbf]['local']		:= alltrim((cAlias)->BF_LOCAL)
 		aItem[nPos]['items'][nPosSbf]['localizacao']		:= alltrim((cAlias)->BF_LOCALIZ)
 		aItem[nPos]['items'][nPosSbf]['lote']	:= alltrim((cAlias)->BF_LOTECTL)
+		aItem[nPos]['items'][nPosSbf]['validade']	:= dtoc(stod((cAlias)->B8_DTVALID))
 		aItem[nPos]['items'][nPosSbf]['quantidade']	:= (cAlias)->BF_QUANT
 		aItem[nPos]['quantidade'] +=  (cAlias)->BF_QUANT
 		(cAlias)->(dbSkip())
