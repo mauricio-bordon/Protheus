@@ -9,6 +9,7 @@ wsrestful ws_pcp_producao2 description "WS para incluir producao"
 	wsdata ITEM as char OPTIONAL
 	wsdata SEQUENCIA as char OPTIONAL
 	wsdata CPARCTOT as char OPTIONAL
+	wsdata LOTE as char OPTIONAL
 
 	wsmethod post ws2;
 		description "OP inclui producao post";
@@ -19,6 +20,12 @@ wsrestful ws_pcp_producao2 description "WS para incluir producao"
 		description "OP encerra producao post";
 		wssyntax "/ws_pcp_producao2/encerra/{NUMERO}/{ITEM}/{SEQUENCIA}";
 		path "/ws_pcp_producao2/encerra/{NUMERO}/{ITEM}/{SEQUENCIA}/"
+
+	wsmethod get ws4;
+		description "Imprime etq lote PI";
+		wssyntax "/ws_pcp_producao2/print/{LOTE}";
+		path "/ws_pcp_producao2/print/{LOTE}"
+
 end wsrestful
 
 wsmethod post ws2 wsservice ws_pcp_producao2
@@ -332,6 +339,30 @@ wsmethod post ws3 wsservice ws_pcp_producao2
 	endif
 	conout('-------------')
 Return lPost
+
+
+wsmethod get ws4 wsservice ws_pcp_producao2
+	Local lOk := .T.
+	Local cLote := ::LOTE
+	private cMsg := ''
+	
+
+	lOk := U_etqpim2(cLote) // validaOp(cOp, nQuje)
+	
+
+		
+	if !lOk
+		::SetResponse('{ "message": "Erro ao tentar imprimir, verifique a impressora.","detailedMessage": "'+cMsg+'"}')
+
+		self:setStatus(400)
+	else
+		
+		
+			self:setStatus(200)
+
+			endif
+	conout('-------------')
+Return lok
 
 
 static Function rEnc681(cOp)

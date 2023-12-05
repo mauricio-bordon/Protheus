@@ -55,6 +55,12 @@ wsrestful recebimento description "WS para listar recebiemnto "
 		wssyntax "/recebimento/update/zs1/{cID}";
 		path "/recebimento/update/zs1/{cID}"
 
+
+	wsmethod post ws10;
+		description "Print ZS2 Item ";
+		wssyntax "/recebimento/print/zs2/{cID}";
+		path "/recebimento/print/zs2/{cID}"
+
 end wsrestful
 
 
@@ -559,6 +565,47 @@ wsmethod post ws9 wsservice recebimento
 		Endif
 		
 	ZS1->(dbclosearea())
+
+
+
+	if lOk
+
+		::SetResponse(oJson)
+
+		self:setStatus(200)
+
+	else
+		::SetResponse('{ "message": "Ops...","detailedMessage": "'+cMsgErro+'"}')
+
+		self:setStatus(400)
+	endif
+
+Return lPost
+
+
+wsmethod post ws10 wsservice recebimento
+	Local lPost := .T.
+	Local lOk := .T.
+	Local oJson,cID
+	Local cBody := ::getContent()
+	Private cMsgErro := 'Ocorreu um erro não previsto'
+	oJson := JsonObject():new()
+	oJson:fromJSON(cBody)
+	cID:=::cID
+
+	cZS2_PRODUT:=PADR( oJson['ZS2_PRODUT'], TAMSX3("ZS2_PRODUT")[1] )
+	cZS2_ITEM:=oJson['ZS2_ITEM']
+	dbselectarea("ZS1")
+	ZS1->(dbSetOrder(1))
+	
+	If ZS1->(dbseek(xfilial("ZS1")+cID))
+		cZS1_FORNEC:=ZS1->ZS1_FORNEC
+		cZS1_DOC:=ZS1->ZS1_DOC
+		Endif
+		
+	ZS1->(dbclosearea())
+
+	lOk:=u_etqrecebe(cZS1_DOC,cZS1_FORNEC,cZS2_PRODUT,cZS2_ITEM)
 
 
 

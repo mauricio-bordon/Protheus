@@ -64,7 +64,7 @@ static function consultauser()
 
 	While !(cAlias)->(Eof())
 		aAdd(aTipo, {})
-		aAdd(aTipo[len(aTipo)], alltrim((cAlias)->ZUS_LOGIN) )
+		aAdd(aTipo[len(aTipo)], alltrim((cAlias)->ZUS_ID) )
 		aAdd(aTipo[len(aTipo)], alltrim((cAlias)->ZUS_NOME)+" ( "+alltrim((cAlias)->ZUS_LOGIN)+')' )
 
 		(cAlias)->(dbSkip())

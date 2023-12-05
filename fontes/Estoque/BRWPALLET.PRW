@@ -89,22 +89,22 @@ STATIC FUNCTION PRINTCAIX(cOP)
 	(calias)->(DBgoTOP())
 
 	while (calias)->(!eof())
-	cStr := cStrEtq
-	cStr := STRTRAN(cStr, "%B1_COD%", alltrim((CALIAS)->ZD3_COD) )	
-	cStr := STRTRAN(cStr, "%B1_DESC%", alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+(CALIAS)->ZD3_COD,"B1_DESC")) )
-	cStr := STRTRAN(cStr, "%ZD3_LOTE%", alltrim((CALIAS)->ZD3_LOTE) )	
-	
-	cPrint1:=alltrim(transform((CALIAS)->QTDROLO,"@E 999"))+" Rolo(s) na caixa"
-	cStr := STRTRAN(cStr, "%PRINT1%", cPrint1)
-	
-	cPrint2:="Quantidade "+alltrim(transform((CALIAS)->TOTAL,"@E 99999"))+" "+alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+(CALIAS)->ZD3_COD,"B1_UM"))
-	cStr := STRTRAN(cStr, "%PRINT2%", cPrint2)
-	
-	cStr :=STRTRAN(cStr, "%CAIXA%", alltrim(transform((CALIAS)->ZD3_CAIXA,"@E 999"))+' / '+alltrim(transform(nCaixa,"@E 999")) )	
-	sCodbar:=alltrim((CALIAS)->ZD3_LOTE)+";"+alltrim(transform((CALIAS)->ZD3_CAIXA,"@E 999"))+";"+alltrim(transform((CALIAS)->TOTAL,"@E 99999"))
-	cStr :=STRTRAN(cStr, "%CODBAR%", sCodbar )	
+		cStr := cStrEtq
+		cStr := STRTRAN(cStr, "%B1_COD%", alltrim((CALIAS)->ZD3_COD) )
+		cStr := STRTRAN(cStr, "%B1_DESC%", alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+(CALIAS)->ZD3_COD,"B1_DESC")) )
+		cStr := STRTRAN(cStr, "%ZD3_LOTE%", alltrim((CALIAS)->ZD3_LOTE) )
 
-	cSaida += cStr +chr(10)+chr(13)
+		cPrint1:=alltrim(transform((CALIAS)->QTDROLO,"@E 999"))+" Rolo(s) na caixa"
+		cStr := STRTRAN(cStr, "%PRINT1%", cPrint1)
+
+		cPrint2:="Quantidade "+alltrim(transform((CALIAS)->TOTAL,"@E 99999"))+" "+alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+(CALIAS)->ZD3_COD,"B1_UM"))
+		cStr := STRTRAN(cStr, "%PRINT2%", cPrint2)
+
+		cStr :=STRTRAN(cStr, "%CAIXA%", alltrim(transform((CALIAS)->ZD3_CAIXA,"@E 999"))+' / '+alltrim(transform(nCaixa,"@E 999")) )
+		sCodbar:=alltrim((CALIAS)->ZD3_LOTE)+";"+alltrim(transform((CALIAS)->ZD3_CAIXA,"@E 999"))+";"+alltrim(transform((CALIAS)->TOTAL,"@E 99999"))
+		cStr :=STRTRAN(cStr, "%CODBAR%", sCodbar )
+
+		cSaida += cStr +chr(10)+chr(13)
 
 		(calias)->(DBSKIP())
 	enddo
@@ -119,8 +119,9 @@ return
 
 STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	Local cAlias := getNextalias()
+	Local lPallet:=.T.
 	// Local cOpLike := SC2->C2_NUM+'%'
-	Local cLotectl := '', aItens := {}, nTotalMT := 0, nRolos := 0, cstr
+	Local cLotectl := '', aItens := {}, nTotalMT := 0, nRolos := 0, cstr,lPallet:=.T.
 
 	DbSelectArea('ZD2')
 	ZD2->(DBSETORDER(1))
@@ -152,11 +153,41 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	(calias)->(DBCLOSEAREA())
 
 	if len(aItens) > 0
-		ETQSIPLT(SC2->C2_NUM, SC2->C2_PRODUTO, cLotectl, ZD2->ZD2_CODCLI, aItens, ntotalMt, 0, nRolos, ZD2->ZD2_PESOLI, ZD2->ZD2_PESOBR)
-		MsgInfo(cStr, 'info')
+		ETQSIPLT(SC2->C2_NUM, SC2->C2_PRODUTO,SC2->C2_LOCAL, cLotectl, ZD2->ZD2_CODCLI, aItens, ntotalMt, 0, nRolos, ZD2->ZD2_PESOLI, ZD2->ZD2_PESOBR)
+		MsgInfo(cStr, 'Info')
 	else
 		MsgAlert("Linha selecionada não está associada a Pallet", 'Aviso')
 	endif
+
+	//verfifica se todos os itens foram palletizado
+	/*
+	dbSelectArea("ZD3")
+	ZD3->(dbSetOrder(1)) //ZT0_FILIAL+ZT0_NUMOP+ZT0_ITEM
+	ZD3->(dbSeek(xFilial("ZD3")+cOP))
+
+*/	
+		ZD3->( dbGoTop() )
+
+	Do while ZD3->(!eof())  .And. ZD3->ZD3_OP = cOP
+		//se existir rolo sem pallet aguarda.
+		if EMPTY(alltrim(ZD3->ZD3_PALLET))
+			lPallet:=.F.
+			
+			return
+		endif
+		ZD3->(dbSkip())
+	Enddo
+
+	//ZD3->(dbclosearea())
+
+//se todos os rolos foram colocado em pallet envia email sobre o peso
+	if lPallet
+	//Alert()
+	cAssunto:="Finalizado op"
+	u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )	
+
+	ENDIF
+
 
 RETURN
 
@@ -374,7 +405,7 @@ STATIC Function DMNTPLTSI()
 	oMark:refresh()
 Return NIL
 
-static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, ntotalM2, nRolos, nPesoLiq, nPesoBruto)
+static Function ETQSIPLT(CORDEM, CCOD,cLocal, CLOTECTL, cCliente, aItens, ntotalMT, ntotalM2, nRolos, nPesoLiq, nPesoBruto)
 
 	Local cStr := "", i//, CALIAS
 	//Local  cDESC := ''
@@ -444,5 +475,65 @@ static Function ETQSIPLT(CORDEM, CCOD, CLOTECTL, cCliente, aItens, ntotalMT, nto
 		Copy File "c:\windows\temp\zpl_etiqueta_pallet_si.prn" To LPT2
 	endif
 
+	//ENDEREÇA PARA EXP
+	lRet:=TMATA265(CLOTECTL,cLocal)
 
 Return
+
+
+
+sTATIC Function TMATA265(CLOTECTL,cLocal)
+	Local aCabSDA       := {}
+	Local aItSDB        := {}
+	Local _aItensSDB    := {}
+	Local cAlias
+	Private lMsErroAuto := .F.
+
+
+	cAlias := Getnextalias()
+
+
+	BeginSql alias calias
+		SELECT *
+		FROM %TABLE:SDA%
+		WHERE DA_FILIAL = %XFILIAL:SDA% AND %NOTDEL%
+		AND DA_LOTECTL = %EXP:CLOTECTL% AND DA_ORIGEM = 'SD3' AND DA_SALDO > 0
+	endsql
+
+	WHILE (cALIAS)->(!EOF())
+		lMsErroAuto := .F.
+		conout("Dist: "+ (cALIAS)->DA_PRODUTO + ' - '+(cALIAS)->DA_LOTECTL)
+		//Cabecalho com a informaÃ§Ã£oo do item e NumSeq que sera endereÃ§ado.
+		aCabSDA := {{"DA_PRODUTO" ,(cALIAS)->DA_PRODUTO,Nil},;
+			{"DA_NUMSEQ"  ,(cALIAS)->DA_NUMSEQ,Nil}}
+
+
+		if cLocal == '02'
+			cLocaliz:='EXP'
+		else
+			cLocaliz:='LP'
+		endif
+		//Dados do item que serÃ¡ endereÃ§ado
+		aItSDB := {{"DB_ITEM"     ,"0001"      ,Nil},;
+			{"DB_ESTORNO"  ," "       ,Nil},;
+			{"DB_LOCALIZ"  ,cLocaliz    ,Nil},;
+			{"DB_DATA"    ,dDataBase   ,Nil},;
+			{"DB_QUANT"  ,(cALIAS)->DA_SALDO           ,Nil}}
+		_aItensSDB := {}
+		aadd(_aItensSDB,aitSDB)
+
+		//Executa o endere?amento do item
+		MATA265( aCabSDA, _aItensSDB, 3)
+		If lMsErroAuto
+			MostraErro()
+			EXIT
+		Endif
+		(CALIAS)->(DBSKIP())
+	ENDDO
+	(CALIAS)->(DBCLOSEAREA())
+
+	IF lMsErroAuto
+		RETURN .F.
+	ENDIF
+Return .T.
+
