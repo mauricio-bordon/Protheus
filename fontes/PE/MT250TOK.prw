@@ -9,11 +9,16 @@
         FROM %TABLE:SD4%
         WHERE D4_FILIAL = %XFILIAL:SD4% AND %NOTDEL%
         AND D4_OP = %EXP:COP% AND RTRIM(D4_LOTECTL) = ''
+        AND D4_COD NOT LIKE 'PI8100%'
     ENDSQL
 
     if (calias)->(!eof())
+    
         lOk := .F.
         conout('Não é possível produzir pois Existe empenho sem lote definido.')
+        conout((calias)->D4_COD)
+        		u_dbg_qry('QUERY VALIDA LOTE')
+
     ENDIF
     (calias)->(DBCLOSEAREA())
 
