@@ -9,14 +9,15 @@ wsrestful ws_pcp_op_consumo description "WS para consumir material na ordem"
 	wsdata codBar as char optional
 	wsdata cOP as char optional
 	wsdata cLocal as char optional
+	wsdata cLocaliz as char optional
 	wsdata cLotectl as char optional
 	wsdata usuario as char optional
 
 
 	wsmethod get ws1;
 		description "Lista material local da máquina com validações de Local\Fifo\Estrutura" ;
-		wssyntax "/ws_pcp_op_consumo/validalote/{cOP}/{codBar}";
-		path "/ws_pcp_op_consumo/validalote/{cOP}/{codBar}"
+		wssyntax "/ws_pcp_op_consumo/validalote/{cOP}/{cLocaliz}/{codBar}";
+		path "/ws_pcp_op_consumo/validalote/{cOP}/{cLocaliz}/{codBar}"
 
 	wsmethod get ws3;
 		description "Lista Lotes Consumidos na ordem" ;
@@ -38,6 +39,7 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 	local nL
 	local cLote, cProdEmp
 	Local aJson := {}
+	
 
 	self:SetContentType("application/json")
 	aDados := u_bcreader(::codBar)
@@ -50,16 +52,16 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 		self:setStatus(400)
 		Return lGet
 	endif
-	cProdEmp := prodemp(::cOp, aDados[1], '01')
+	cProdEmp := prodemp(::cOp, aDados[1], '02',::cLocaliz)
 
 	if alltrim(cProdEmp) == ''
-	
-		::SetResponse('{ "code": "400","message": "Nao foi encontrado","detailedMessage": "Lote sem saldo ou produto Nao pertence a estrutura"}')
+
+		::SetResponse('{ "code": "400","message": "Nao foi encontrado","detailedMessage": "Lote sem saldo no local da maquina ou produto Nao pertence a estrutura"}')
 		self:setStatus(400)
 		Return lGet
 	endif
 	//Valida se existe o material no local correto e com saldo
-	lRet:=checalote(aDados[1],'01', cProdEmp)
+	lRet:=checalote(aDados[1],'02', cProdEmp,::cLocaliz)
 
 	if !lRet
 		::SetResponse('{"message": "Não foi encontrado","detailedMessage": "Lote Não encontrado com saldo no endereÃ§o da mÃ¡quina"}')
@@ -68,7 +70,7 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 		Return lGet
 	endif
 	//verifica se Ã© o fifo
-	cLote:=checafifo('01', cProdEmp)
+	cLote:=checafifo('02', cProdEmp)
 
 
 	if cLote<>alltrim(aDados[1])
@@ -93,7 +95,7 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 	endif
 
 	// Busca lote para apresentar na tela.
-	aLote:=retlote(aDados[1],'01', cProdEmp)
+	aLote:=retlote(aDados[1],'02', cProdEmp,::cLocaliz)
 
 	CONOUT("Ret Lote")
 
@@ -181,7 +183,7 @@ static Function consomelote(cOp, oJson)
 			{"D3_LOCAL",oJson['LOCAL'],NIL},;
 			{"D3_LOCALIZ",oJson['LOCALIZACAO'],NIL},;
 			{"D3_QUANT",oJson['QUANTIDADE'],NIL},;
-			{"D3_LOTECTL",padr(oJson['LOTE'],10),NIL};
+			{"D3_LOTECTL",padr(oJson['LOTE'], tamsx3('D3_LOTECTL') [1]),NIL};
 			}
 		_atotitem := {}
 		aadd(_atotitem,aVetor)
@@ -284,7 +286,7 @@ return aLotes
 
 
 
-static Function checalote(codBar,cLocal, cProd)
+static Function checalote(codBar,cLocal, cProd,cLocaliz)
 
 	Local cAlias
 	Local lRet:=.F.
@@ -298,6 +300,7 @@ static Function checalote(codBar,cLocal, cProd)
     WHERE D_E_L_E_T_<>'*'
     AND BF_FILIAL= %XFILIAL:SBF%
     AND BF_LOCAL=%Exp:cLocal%
+	AND BF_LOCALIZ=%Exp:cLocaliz%
     AND BF_LOTECTL=%Exp:codBar%
 	AND BF_PRODUTO = %EXP:CPROD%
     AND BF_QUANT>0
@@ -327,12 +330,17 @@ static Function checafifo(cLocal, cProd)
 	BeginSQL alias cAlias
 
    SELECT TOP 1 BF_LOTECTL FROM %TABLE:SBF% BF 
-	    WHERE BF.D_E_L_E_T_<>'*' 
+		   INNER JOIN %TABLE:SB8% B8
+		   ON B8_LOCAL=BF_LOCAL
+   		   AND BF_PRODUTO=B8_PRODUTO
+   		   AND BF_LOTECTL=B8_LOTECTL
+	    WHERE BF.D_E_L_E_T_<>'*'
+		AND B8.D_E_L_E_T_<>'*' 
 		AND	BF_FILIAL = %XFILIAL:SBF%
         AND BF_QUANT - BF_EMPENHO > 0
 		AND BF_LOCAL = %Exp:cLocal%
 		AND BF_PRODUTO= %EXP:CPROD%
-		ORDER BY BF_LOTECTL
+		ORDER BY B8_DTVALID ASC
 	EndSQL
 	u_dbg_qry()
 	While !(cAlias)->(Eof())
@@ -387,7 +395,7 @@ AND G1_COMP=(
 
 Return lRet
 
-static function retlote(codBar,cLocal, cProd)
+static function retlote(codBar,cLocal, cProd,cLocaliz)
 	Local cAlias
 	Local aLote := {}
 
@@ -404,6 +412,7 @@ static function retlote(codBar,cLocal, cProd)
 		WHERE BF.D_E_L_E_T_<>'*'
 		AND BF_FILIAL=%XFILIAL:SBF%
 		AND BF_LOCAL=%Exp:cLocal%
+		AND BF_LOCALIZ=%Exp:cLocaliz%
 		AND BF_LOTECTL=%Exp:codBar%
 		AND BF_PRODUTO = %EXP:CPROD%
 	EndSQL
@@ -433,7 +442,7 @@ static function retlote(codBar,cLocal, cProd)
 Return aLote
 
 
-static function prodemp(cOp, cLote, cLocal)
+static function prodemp(cOp, cLote, cLocal,cLocaliz)
 
 	Local cAlias := getNextAlias()
 
@@ -446,6 +455,7 @@ static function prodemp(cOp, cLote, cLocal)
 		AND BF_FILIAL = %xfilial:SBF% AND BF.D_E_L_E_T_ <> '*'
 		AND BF_LOTECTL = %EXP:CLOTE%
 		AND BF_LOCAL = %EXP:CLOCAL%
+		AND BF_LOCALIZ = %EXP:cLocaliz%
 		AND BF_QUANT > 0
 		AND C2_NUM+C2_ITEM+C2_SEQUEN = %EXP:COP%
 	EndSQL

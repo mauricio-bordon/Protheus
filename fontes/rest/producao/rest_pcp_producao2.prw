@@ -121,8 +121,10 @@ static Function incproducao(cOp, oJson, _cParcTot)
 	aadd(aMata680,{"H6_DTVALID", ddatabase+365 ,NIL})
 	aadd(aMata680,{"H6_OPERADO", cOperador ,NIL})
 	aadd(aMata680,{"H6_OBSERVA", cObs ,NIL})
-	aadd(aMata680,{"PENDENTE", "1" ,NIL})
+//	aadd(aMata680,{"PENDENTE", "1" ,NIL})
 //aadd(aMata680,{"H6_LOCAL", _cLocal ,NIL})
+//	aadd(aMata680,{"H6_LOCAL", '' ,NIL})
+
 	U_JSON_DBG(aMAta680)
 	lMsErroAuto :=.F.
 	MsExecAuto({|x,y|MATA681(x,y)},aMata680,3)
