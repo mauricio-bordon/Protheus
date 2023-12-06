@@ -256,15 +256,15 @@ static function retListCsm(cop)
 
 //todo data sistema / hora sistema
 	BeginSQL alias cAlias
-    SELECT D3_COD, D3_LOTECTL, D3_CF, '' as D3_DTSIST, '' as D3_HRSIST,
-	 SUM(D3_QUANT) AS D3_QUANT
+    SELECT D3_COD, D3_LOTECTL, '' as D3_DTSIST, '' as D3_HRSIST,
+	 SUM(CASE WHEN D3_CF LIKE 'RE%' THEN D3_QUANT WHEN D3_CF LIKE 'DE%' THEN -D3_QUANT ELSE 0 END ) AS D3_QUANT
     FROM %TABLE:SD3% 
     WHERE D_E_L_E_T_<>'*' AND D3_FILIAL=%XFILIAL:SD3%
         AND D3_OP like  %Exp:cOpLike%
 		AND D3_CF <> 'PR0'
 		AND D3_ESTORNO <> 'S'    
 		AND LEFT(D3_COD,3) NOT IN ('MOD')
-	GROUP BY D3_COD, D3_LOTECTL, D3_CF
+	GROUP BY D3_COD, D3_LOTECTL
 	ORDER BY D3_COD, D3_LOTECTL DESC
 	EndSQL
 	u_dbg_qry()
@@ -274,7 +274,7 @@ static function retListCsm(cop)
 		aAdd(aLotes[len(aLotes)], alltrim((cAlias)->D3_LOTECTL) )
 		aAdd(aLotes[len(aLotes)], (cAlias)->D3_QUANT)
 		aAdd(aLotes[len(aLotes)], (cAlias)->D3_COD)
-		aAdd(aLotes[len(aLotes)], (cAlias)->D3_CF)
+		aAdd(aLotes[len(aLotes)], '')
 		aAdd(aLotes[len(aLotes)], DTOC(STOD((cAlias)->D3_DTSIST)))
 		aAdd(aLotes[len(aLotes)], (cAlias)->D3_HRSIST)
 		(cAlias)->(dbSkip())

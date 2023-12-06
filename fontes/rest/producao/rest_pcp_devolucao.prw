@@ -13,8 +13,8 @@ wsrestful ws_pcp_op_devolucao description "WS para DEVOLVER material da ordem"
 
 	wsmethod get ws1;
 		description "Valida Lote" ;
-		wssyntax "/ws_pcp_op_devolucao/validalote/{codBar}/{cOP}";
-		path "/ws_pcp_op_devolucao/validalote/{codBar}/{cOP}"
+		wssyntax "/ws_pcp_op_devolucao/validalote/{cOp}/{codBar}";
+		path "/ws_pcp_op_devolucao/validalote/{cOp}/{codBar}"
 
 	wsmethod get ws3;
 		description "Lista Lotes Consumidos na ordem" ;
@@ -34,7 +34,7 @@ wsmethod get ws1 wsservice ws_pcp_op_devolucao
 	Local lGet := .T.
 	local aLote
 	local nL
-	local cproddev
+	local cproddev, cLote
 	Local aJson := {}
 	self:SetContentType("application/json")
 	aDados := u_bcreader(::codBar)
@@ -47,7 +47,12 @@ wsmethod get ws1 wsservice ws_pcp_op_devolucao
 		self:setStatus(400)
 		Return lGet
 	endif
-	cproddev := cnslote(::cOp, aDados[1])
+	cLote := aDados[1]
+	if aDados[3] == ''
+		cproddev := cnslote(::cOp, cLote)
+	else
+		cproddev := aDados[3]
+	endif
 
 
 	if alltrim(cproddev) == ''
@@ -57,7 +62,7 @@ wsmethod get ws1 wsservice ws_pcp_op_devolucao
 	endif
 
 	// Busca lote para apresentar na tela.
-	aLote:=retlote(::codBar,::cLocal, cproddev,::cOp )
+	aLote:=retlote(cLote, cproddev,::cOp )
 
 	CONOUT("Ret Lote")
 
@@ -110,8 +115,8 @@ wsmethod post ws2 wsservice ws_pcp_op_devolucao
 
 	///validar se qunatidae solocitada pode ser devolvida
 
-	lOk := vlddev(::cOP,oJson)
-
+	// lOk := vlddev(::cOP,oJson)
+	lOk := .T.
 	if Lok 
 		lOk := devolvelote(::cOP, oJson)
 	endif
@@ -238,7 +243,7 @@ static function vlddev(COP, oJson)
 
 return lOk
 static Function devolvelote(cOp, oJson)
-	Local lRet:=.T., nDoCSeq, cDocSeq
+	Local lRet:=.T.
 
 	//Debug do Vetor
 	conout(oJson:toJson())
@@ -247,28 +252,21 @@ static Function devolvelote(cOp, oJson)
 
 	Begin Transaction
 
-		nDocSeq	:= getmv("APP_DOCSEQ")
-		cDocSeq := 'W'+strzero(nDocSeq,8)
-		CONOUT('DOC SEQ APP: '+cDocSeq)
-		nDocSeq++
-		putmv("APP_DOCSEQ", nDocSeq)
-		CONOUT('NEXT DOC SEQ APP: '+strzero(nDocSeq,8))
+
 		cMaq := POSICIONE("SC2", 1, XFILIAL("SC2")+cOP, "C2_MAQUINA")
 		cMaq := substr(cMaq,1,2)
 
-		_aCab1 := {{"D3_DOC" ,cDocSeq, NIL},;
-			{"D3_TM" ,'040' , NIL},;
+		_aCab1 := {{"D3_DOC" ,GetSxeNum("SD3","D3_DOC"), NIL},;
+			{"D3_TM" ,'020' , NIL},;
 			{"D3_CC" ,"   ", NIL},;
 			{"D3_EMISSAO" ,ddatabase, NIL}}
 
 		aVetor:={{"D3_OP"      ,cOP,NIL},;
 			{"D3_COD",padr(oJson['PRODUTO'],15),NIL},;
-			{"D3_NUMROLO",SPACE(3),NIL},;
 			{"D3_LOCAL",oJson['LOCAL'],NIL},;
-			{"D3_LOCALIZ",oJson['LOCAL'],NIL},;
+			{"D3_LOCALIZ",oJson['LOCALIZACAO'],NIL},;
 			{"D3_QUANT",oJson['QUANTIDADE'],NIL},;
-			{"D3_LOTECTL",padr(oJson['LOTE'],10),NIL},;
-			{"D3_OBSROLO",'',NIL}}
+			{"D3_LOTECTL",padr(oJson['LOTE'],10),NIL}}
 
 		lMsErroAuto := .F.
 		_atotitem := {}
@@ -284,7 +282,6 @@ static Function devolvelote(cOp, oJson)
 			conout(cMsg)
 			DisarmTransaction()
 		else
-			conout("cDocSeq : " + cDocSeq)
 			conout('D3_DOC : ' + SD3->D3_DOC)
 			conout('R_E_C_N_O_: '+ STR(SD3->(RECNO())))
 
@@ -294,7 +291,7 @@ static Function devolvelote(cOp, oJson)
 				SD3->(MSUNLOCK())
 
 				//Endereçar
-				LRET := distdev(SD3->D3_NUMSEQ, SD3->D3_COD, SD3->D3_LOTECTL)
+				LRET := distdev(SD3->D3_NUMSEQ, SD3->D3_COD, SD3->D3_LOTECTL, oJson['LOCAL'], oJson['LOCALIZACAO'])
 
 				IF !LRET
 					DisarmTransaction()
@@ -366,7 +363,7 @@ static function retListCsm(cop)
 
 	BeginSQL alias cAlias
     SELECT D3_COD, D3_LOTECTL, D3_QUANT, D3_NUMSEQ, D3_CF, D3_DTSIST, D3_HRSIST
-    FROM SD3070 
+    FROM %table:SD3% 
     WHERE D_E_L_E_T_<>'*' AND D3_FILIAL=%XFILIAL:SD3%
         AND D3_OP like  %Exp:cOpLike%
 		AND D3_CF <> 'PR0'
@@ -390,7 +387,7 @@ static function retListCsm(cop)
 
 return aLotes
 
-static function retlote(codBar,cLocal, cProd, cOp)
+static function retlote(cLote, cProd, cOp)
 	Local cAlias
 	Local aLote := {}
 
@@ -401,11 +398,10 @@ static function retlote(codBar,cLocal, cProd, cOp)
 	BeginSQL alias cAlias
     SELECT D3_LOCALIZ, D3_QUANT,D3_LOTECTL,D3_LOCAL,D3_COD, B1_UM, B1_LARGURA, B1_SEGUM, B1_TIPCONV, B1_CONV
 		, RTRIM(B1_DESC) DESCRICAO
-		FROM SD3070 D3 INNER JOIN SB1070 B1 ON (B1_COD = D3_COD)
+		FROM %TABLE:SD3% D3 INNER JOIN %TABLE:SB1% B1 ON (B1_COD = D3_COD)
 		WHERE D3.D_E_L_E_T_<>'*' AND D3_FILIAL=%XFILIAL:SD3%
 		AND B1.D_E_L_E_T_<>'*' AND B1_FILIAL=%XFILIAL:SB1%
-		AND D3_LOCAL=%Exp:cLocal%
-		AND D3_LOTECTL=%Exp:codBar%
+		AND D3_LOTECTL=%Exp:cLote%
 		AND D3_COD = %EXP:CPROD%
 		AND D3_CF LIKE 'RE%'
 		AND D3_OP = %EXP:cOP%
@@ -475,7 +471,7 @@ static function cnslote(cOp, cLote)
 
 return cProd
 
-static Function distdev(cNumseq, CPRODUTO, CLOTECTL)
+static Function distdev(cNumseq, CPRODUTO, CLOTECTL, cLocal, cLocaliz)
 	LOCAL LOK:=.t.
 	acab:={}
 	aitem:={}
@@ -549,7 +545,7 @@ static Function distdev(cNumseq, CPRODUTO, CLOTECTL)
 
 
 		Aadd(aItem,{{"DB_ITEM",n_item		,NIL},;
-			{"DB_LOCALIZ"	,c_locdest			,NIL},;
+			{"DB_LOCALIZ"	,cLocaliz			,NIL},;
 			{"DB_QUANT"		,query1->da_saldo 	,NIL},;
 			{"DB_DATA"		,ddatabase		  	,NIL},;
 			{"DB_OCORRE"	,space(4)		  	,NIL},;
