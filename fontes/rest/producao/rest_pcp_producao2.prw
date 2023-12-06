@@ -97,7 +97,7 @@ static Function incproducao(cOp, oJson, _cParcTot)
 	Local _cHoraFin:= time()
 	Local _nQtdProd:= oJson['QUANTIDADE']
 	Local _nQtdPerd:= 0
-	Local cObs := +oJson['OBS']
+	Local cObs := oJson['OBS']
 	Local cLotectl := oJson['LOTE']
 
 
