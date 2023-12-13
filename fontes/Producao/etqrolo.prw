@@ -2,7 +2,7 @@ user function etqrolo()
 	local cStrEtq
 	local cAlias
 // SE O PRODUTO FOR PI IMPRIME E FABRICACAO IMPRIME
-	IF SD3->D3_TIPO=="PI" .AND. D3_CF$"PR0_DE0_DE4"
+	IF SD3->D3_TIPO=="PI" .AND. D3_CF$"PR0_DE0_DE4_DE1"
 
 		CURDIR( 'etq' )
 		cStrEtq := MemoRead( "etq_rolo_pi.txt" )
