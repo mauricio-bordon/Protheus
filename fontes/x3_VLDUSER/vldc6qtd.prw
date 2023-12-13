@@ -38,7 +38,7 @@ user function vldc6qtd()
 
 	nRolosCrt:= int(nLargPI / nLargProd)
 	nMtTirada := nRolosCrt * nMtRolo
-	if INCLUI .and. cC6_TES != '502'
+	if INCLUI .and. cC6_TES != '502' .and. cC6_TES != '519'
 		if mod(nQtdVen, nMtTirada) <> 0 //Se Rolos digitados não for multiplo avisa
 			MsgStop('Quantidade em Metros Lineares digitada não é múltiplo dos metros lineares da tirada. ('+CValToChar(nMtTirada)+')', 'Aviso')
 			return .F.
