@@ -3,7 +3,7 @@ User Function A250REQAUT
 	Local cReqAut   := PARAMIXB[1]
 	Local cProgMenu := FunName()
 	Local cFunction := ProcName(3) + ' / ' + ProcName(4)
-	Local cOP, cMaq, cProduto, cRoteiro
+	Local cOP, cMaq, cProduto, cRoteiro,cColetor
 
 	ConOut('-------------------------------------------')
 	ConOut('---A250REQAUT---')
@@ -23,11 +23,12 @@ User Function A250REQAUT
 		cMaq := POSICIONE('SC2', 1, XFILIAL('SC2') + cOp , 'C2_MAQUINA')
 		cProduto := POSICIONE('SC2', 1, XFILIAL('SC2') + cOp , 'C2_PRODUTO')
 		cRoteiro := POSICIONE('SC2', 1, XFILIAL('SC2') + cOp , 'C2_ROTEIRO')
+		cColetor := POSICIONE('SC2', 1, XFILIAL('SC2') + cOp , 'C2_COLETOR')
 		conout('Maquina '+ cMaq)
 		conout('Produto '+ cProduto)
 		conout('Roteiro '+ cRoteiro)
-		if cReqAut == 'A' .AND. alltrim(cRoteiro) <> '' .and. left(cProduto,2) == 'PI'
-			conout('Desabilita requisicao automatica')
+		if cReqAut == 'A' .AND. alltrim(cRoteiro) <> '' .and. left(cProduto,2) == 'PI' .and. cColetor == 'S'
+			conout('Desabilita requisicao automatica para coletor')
 			cReqAut := 'D'
 		endif
 	endif
