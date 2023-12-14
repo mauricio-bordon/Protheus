@@ -61,6 +61,8 @@ USER FUNCTION ETQRETPI()
 		cStr := STRTRAN(cStr, "%D3_QUANT%", TRANSFORM((CALIAS)->BF_QUANT, "@E 999,999,999.999") )
 		cStr := STRTRAN(cStr, "%D3_EMISSAO%", DTOC(dDtProducao) )
 		cStr := STRTRAN(cStr, "%D3_LOTECTL%", alltrim((CALIAS)->BF_LOTECTL) )
+		cStr := STRTRAN(cStr, "%BARRAS%", alltrim((CALIAS)->B1_COD)+';'+alltrim((CALIAS)->BF_LOTECTL)+';'+alltrim(transform((CALIAS)->BF_QUANT, "@E 999,999.999")))
+		cStr := STRTRAN(cStr, "%OBS%", "" )
 
 		cSaida += cStr +chr(10)+chr(13)
 		(CALIAS)->(DBSKIP())
