@@ -229,10 +229,16 @@ Static Function getensaios(cLote)
 
 	WHILE (cAlias)->(!EOF())
 
+		//unidade de medida de espessura se diferencia para Grupo 9 Selo e grupo 8 PEX
 		//cOP:=(cAlias)->D3_OP
 		IF alltrim((CALIAS)->ZQ0_ENSAIO)=='Espessura'
+			
+			IF SB1->B1_GRUPO$'PA9' 
 			aAdd(aEnsaios,{'Espessura Total','µm',alltrim((CALIAS)->ZQ0_RESULT),(CALIAS)->ZQ0_ESPCIF})
-
+			ELSE
+			aAdd(aEnsaios,{'Espessura Total','mm',alltrim((CALIAS)->ZQ0_RESULT),(CALIAS)->ZQ0_ESPCIF})
+			ENDIF
+			
 		elseif alltrim((CALIAS)->ZQ0_ENSAIO)=='LarguraMin'
 			cLargura:=alltrim((CALIAS)->ZQ0_RESULT)+' mín'
 

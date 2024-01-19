@@ -27,8 +27,9 @@ User Function A250REQAUT
 		conout('Maquina '+ cMaq)
 		conout('Produto '+ cProduto)
 		conout('Roteiro '+ cRoteiro)
-		if cReqAut == 'A' .AND. alltrim(cRoteiro) <> '' .and. left(cProduto,2) == 'PI' .and. cColetor == 'S'
-			conout('Desabilita requisicao automatica para coletor')
+	//	if cReqAut == 'A' .AND. alltrim(cRoteiro) <> '' .and. left(cProduto,2) == 'PI' .and. cColetor == 'S'
+		if cReqAut == 'A' .AND. alltrim(cRoteiro) <> ''  .and. cColetor == 'S'
+				conout('Desabilita requisicao automatica para coletor')
 			cReqAut := 'D'
 		endif
 	endif

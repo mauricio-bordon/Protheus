@@ -340,7 +340,7 @@ static Function checafifo(cLocal, cProd)
         AND BF_QUANT - BF_EMPENHO > 0
 		AND BF_LOCAL = %Exp:cLocal%
 		AND BF_PRODUTO= %EXP:CPROD%
-		ORDER BY B8_DTVALID ASC
+		ORDER BY B8_DTVALID,BF_LOTECTL ASC
 	EndSQL
 	u_dbg_qry()
 	While !(cAlias)->(Eof())

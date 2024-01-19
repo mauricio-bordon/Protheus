@@ -117,8 +117,8 @@ USER FUNCTION ORCSIPDF()
 	nColLargFx	:= 180
 	nColObs		:= 750
 	nColPrcLiq	:= 270
-	nColPrcImp 	:= 270
-	nColIPI		:= 280
+	nColPrcImp 	:= 370
+	nColIPI		:= 380
 	nColValvolume:= 750
 
 	nColPos 	:=  nColIni
@@ -154,14 +154,14 @@ USER FUNCTION ORCSIPDF()
 	oPrinter:SayAlign(nLine + nIncLine, nColPos, '(MT)', oFont3b, nColPrcLiq, nIncLine, , PAD_CENTER, 0)
 	nColPos += nColPrcLiq
 
-	oPrinter:SayAlign(nLine, nColPos, 'Preço com impostos', oFont3b, nColPrcImp, nIncLine, , PAD_CENTER, 0)
+	oPrinter:SayAlign(nLine, nColPos, 'Preço com ICMS\PIS\COFINS', oFont3b, nColPrcImp, nIncLine, , PAD_CENTER, 0)
 	oPrinter:SayAlign(nLine + nIncLine, nColPos, '(MT)', oFont3b, nColPrcImp, nIncLine, , PAD_CENTER, 0)
 	nColPos += nColPrcImp
 
 	oPrinter:SayAlign(nLine, nColPos, 'IPI', oFont3b, nColIPI, nIncLine * 2, , PAD_CENTER, 0)
 	nColPos += nColIPI
 
-	oPrinter:SayAlign(nLine, nColPos, 'Valor por volume com impostos (MT)', oFont3b, nColObs, nIncLine * 2, , PAD_LEFT, 0)
+	oPrinter:SayAlign(nLine, nColPos, 'Valor por volume com ICMS\PIS\COFINS (MT)', oFont3b, nColObs, nIncLine * 2, , PAD_LEFT, 0)
 	nColPos += nColObs
 
 	/*
@@ -249,7 +249,7 @@ USER FUNCTION ORCSIPDF()
 
 		nLine += nIncLIne
 
-		oPrinter:SayAlign(nLine, 1150, "Desconto de 25% para pedidos acima de ", oFont1, nColObs, nIncLine * nMultLine,COR_RED , PAD_LEFT, 0)
+		oPrinter:SayAlign(nLine, 1350, "Desconto de 25% para pedidos acima de ", oFont1, nColObs, nIncLine * nMultLine,COR_RED , PAD_LEFT, 0)
 		oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform(nMtTirada*2, "@E 9,999,999"))+" mt - "+'R$ '+transform(((calias)->ZV1_PRCIMP), "@E 999.99999"), oFont1, nColObs, nIncLine * nMultLine,COR_RED , PAD_LEFT, 0)
 		
 			

@@ -37,11 +37,23 @@ User Function GeraB1()
 				lRet:=.F.
 
 			ELSE
+				//verifica se tem decimal
+				if MOD(M->B1_LARGURA,1)==0
 
-				M->B1_COD:=M->B1_TIPO+M->B1_GRUPO+cValToChar(PADL(M->B1_LARGURA,4,"0"))
+					//M->B1_COD:=M->B1_TIPO+M->B1_GRUPO+cValToChar(PADL(M->B1_LARGURA,4,"0"))
+					M->B1_COD:=M->B1_TIPO+M->B1_GRUPO+cValToChar(PADL(int(M->B1_LARGURA),4,"0"))
+				else
+					//se tiver decimal adiciona a letra D mais o decimal 2 digitos
+					aString:= STRTOKARR(alltrim(str(M->B1_LARGURA)),".")
+					sDecimal:=aString[2]
+					if len(sDecimal)==1
+						sDecimal:=sDecimal+'0'
+					endif
+					M->B1_COD:=M->B1_TIPO+M->B1_GRUPO+cValToChar(PADL(int(M->B1_LARGURA),4,"0"))+"D"+sDecimal
+
+				ENDIF
+
 			ENDIF
-
-
 			//se PI OU PA CONTROLA LOTE
 			M->B1_RASTRO 	:= 'L'
 			//M->B1_TIPOCQ	:= 'M'
@@ -49,7 +61,7 @@ User Function GeraB1()
 			M->B1_LOCPAD:='02'
 		ELSE   //É PI  COM UNIDADE DE MEDIDA KILO
 			BeginSql alias CALIAS
-		SELECT   ISNULL(MAx(SUBSTRING(B1_COD,7,6)),0)+1 NOVOCOD 
+				SELECT   ISNULL(MAx(SUBSTRING(B1_COD,7,6)),0)+1 NOVOCOD 
 				FROM  SB1010 SB1 
 				WHERE B1_FILIAL = %XFILIAL:SB1% AND SB1.%NOTDEL% 
 				AND B1_TIPO = %EXP:M->B1_TIPO%
@@ -63,7 +75,7 @@ User Function GeraB1()
 			enddo
 			(calias)->(DBCLOSEAREA())
 
-					//se PI KG CONTROLA LOTE
+			//se PI KG CONTROLA LOTE
 			M->B1_RASTRO 	:= 'L'
 			M->B1_PRVALID:=365
 			M->B1_LOCPAD:='02'
@@ -73,6 +85,13 @@ User Function GeraB1()
 		if M->B1_TIPO$"EM_PM_MC"
 			M->B1_LOCALIZ 	:= 'S'
 		ENDIF
+
+		if M->B1_TIPO$"P3"
+			M->B1_LOCALIZ 	:= 'S'
+			M->B1_RASTRO 	:= 'L'
+
+		ENDIF
+
 
 		if M->B1_TIPO$"MP"
 			//se PI OU PA CONTROLA LOTE

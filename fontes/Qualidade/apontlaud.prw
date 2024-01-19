@@ -67,7 +67,7 @@ user function apontlaud()
 	oSay1:= tSay():New(35,10,{||"Ordem: "+SC2->C2_NUM+" Item: "+SC2->C2_ITEM+" Sequencia:"+SC2->C2_SEQUEN},oDlg,,,,,,.T.,,,)
 
 	oSay2:= tSay():New(50,10,{||"Espessura Total"},oDlg,,,,,,.T.,,,)
-	oGet2:= TGet():New(50,80,, oDlg, 60,10,'@E 999.9',,,,,,,.T.,,.T.,,,,,.F.,,,'nesp')
+	oGet2:= TGet():New(50,80,, oDlg, 60,10,'@E 999.99',,,,,,,.T.,,.T.,,,,,.F.,,,'nesp')
 	oGet2:bSetGet := {|u| If(PCount()>0,nesp:=u,nesp) }
 
 	oSay3:= tSay():New(65,10,{||"Largura Min"},oDlg,,,,,,.T.,,,)
@@ -115,14 +115,14 @@ user function apontlaud()
 		ZQ0_FILIAL := xFilial('ZQ0')
 		ZQ0_OP:= cOP
 		ZQ0_ENSAIO:= 'LarguraMin'
-		ZQ0_RESULT:= transform(nlargmin,"@E 999.9")
+		ZQ0_RESULT:= transform(nlargmin,"@E 999.99")
 		ZQ0->(MSUNLOCK())
 
 		ZQ0->(RecLock('ZQ0', .T.))
 		ZQ0_FILIAL := xFilial('ZQ0')
 		ZQ0_OP:= cOP
 		ZQ0_ENSAIO:= 'LarguraMax'
-		ZQ0_RESULT:= transform(nlargmax,"@E 999.9")
+		ZQ0_RESULT:= transform(nlargmax,"@E 999.99")
 		ZQ0->(MSUNLOCK())
 
 
@@ -163,12 +163,29 @@ static function valida(c2Produto)
 	Local lErro:=.F.
 	Local cMsg:="",i,cEnsaioAtual
 	Local cAlias,cGrupo,aEnsaios:={}
+	Local cTipo:=""
 
-	if len(alltrim(c2Produto))==10
 
-		cGrupo:=substr(c2Produto,3,4)
+	cGrupo:=substr(c2Produto,3,4)
+	// grupo pex considera final 0810
+	if substr(cGrupo,1,2)=='80'
+
+		if cGrupo=="8015"
+		cProdutpai:='PI80090810'
+		cTipo:="PEX"
+		
+		else
+		cProdutpai:='PI'+cGrupo+'0810'
+		cTipo:="PEX"
+		endif	
+		//if ndiamE>=350 .and. ndiamE<=450
+		ndiamEMin:=350
+		ndiamEMax:=700
+	else
 		cProdutpai:='PI'+cGrupo+'0665'
-
+		cTipo:="SELO"
+		ndiamEMin:=350
+		ndiamEMax:=450
 	endif
 
 	CALIAS := getNextAlias()
@@ -238,13 +255,15 @@ static function valida(c2Produto)
 		endif
 
 		if !lErro
-			if ndiamE>=350 .and. ndiamE<=450
-			lRet:=.T.
+
+			//if ndiamE>=350 .and. ndiamE<=450
+			if ndiamE>=ndiamEMin .and. ndiamE<=ndiamEMax
+				lRet:=.T.
 			else
 				lErro:=.T.
 				cMsg:="Diametro externo fora dos limites especificados. Contacte a Qualidade "
 
-				endif
+			endif
 		endif
 	ELSE
 		ALERT("Nao existe especificao para o produto "+cProdutpai+". Contacte a Qualidade ")

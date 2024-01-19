@@ -8,6 +8,7 @@
 wsrestful ws_pcp_op_devolucao description "WS para DEVOLVER material da ordem"
 	wsdata codBar as char OPTIONAL
 	wsdata cOP as char OPTIONAL
+	wsdata cLocaliz as char optional
 
 
 

@@ -428,8 +428,15 @@ User Function ZV1VLD03()
 		Help( ,, 'Help',, 'Grupo não encontrado' , 1, 0 )
 		return .F.
 	ENDIF
+	//Largura diferente para PI8
 
+	if substr(cGrupo,1,1)=='8'
+
+	nLarg   := 810
+	else
 	nLarg   := getmv('IC_PIFXCRT')
+	endif	
+
 	nMtRolo := getmv('IC_MTRLMX')
 	cImp    := '0' 	// TODO, VERIFICAR SOBRE IMPRESSAO
 

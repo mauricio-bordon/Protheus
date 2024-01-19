@@ -1,8 +1,11 @@
 // CLASSIFICACAO FISCAL DO PRODUTO
 User Function b1fiscal(cCod)
 	Local lOk 		:= .T.
+	
+	//ncm e ipi para produtos SELO
 	Local cNcm 		:= "76072000"
 	Local nIpi 	 	:= 3.25
+	
 	Local nPcofins := 7.6
 	Local nPis 	 := 1.65
 	Local nPicm 	:= 18
@@ -19,7 +22,13 @@ User Function b1fiscal(cCod)
 	if SB1->B1_TIPO == 'PA'
 
 		conout('Classificando produto com b1fiscal COD '+SB1->B1_COD)
+		//ncm pex 
+		if substr(SB1->B1_GRUPO, 1, 2)=='80' 
+		cNcm 		:= "39211900"
+		nIpi 	 	:= 9.75
 
+		endif
+		
 		SB1->(RecLock("SB1", .F. ))
 		//SB1->B1_TE 		:= cTe
 		//SB1->B1_TS		:= cTs
