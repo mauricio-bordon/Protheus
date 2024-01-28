@@ -79,7 +79,8 @@ static function getOps(cMaquina)
 	WHERE  C2.D_E_L_E_T_<>'*' AND C2_FILIAL = %XFILIAL:SC2%
 		AND B1.D_E_L_E_T_<>'*' AND B1_FILIAL = %XFILIAL:SB1%
 		AND C2_DATRF = '        '
-		AND B1_TIPO = 'PI' AND C2_ROTEIRO <> '  '
+		AND C2_ROTEIRO <> '  '
+		AND C2_COLETOR='S'
 		AND C2_PRIORID < 800
 		%EXP:cWhere%
 	ORDER BY C2_MAQUINA, C2_PRIORID,C2_NUM, C2_ITEM, C2_SEQUEN

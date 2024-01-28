@@ -6,7 +6,13 @@
 /* sql RETORNA RESULTADO E TRANSFERE TUDO PARA 01/LP */
 user function transfgeral()
 LOCAL cAlias
+local lLote
+local cLocalDest, cLoclzDest
 
+cLocalDest:='02'
+cLoclzDest:='CH1'
+// se for sem lote 
+lLote:=.F.
 
 	cAlias := getNextAlias()
 
@@ -15,12 +21,14 @@ LOCAL cAlias
 			where BF_FILIAL = %XFILIAL:SBF% AND %NOTDEL% 
 			AND BF_QUANT > 0
 			AND BF_LOCAL = '01' 
-            AND BF_LOCALIZ<>'LP'
+			AND (BF_PRODUTO LIKE 'PM%' or BF_PRODUTO LIKE 'EM%' )
+            //AND BF_LOCALIZ<>'LP'
+
 		EndSql
 		While !(cAlias)->(Eof())
 	
     // comentado quando usar descomentar
-     //   transfi((cAlias)->BF_PRODUTO, (cAlias)->BF_QUANT,(cAlias)->BF_LOCAL,(cAlias)->BF_LOCALIZ, '01', 'LP', (cAlias)->BF_LOTECTL, 'Admin')
+        transfi((cAlias)->BF_PRODUTO, (cAlias)->BF_QUANT,(cAlias)->BF_LOCAL,(cAlias)->BF_LOCALIZ, cLocalDest, cLoclzDest, (cAlias)->BF_LOTECTL, 'Admin',lLote)
     
         (cAlias)->(dbSkip())
 	    enddo
@@ -32,7 +40,7 @@ LOCAL cAlias
 
 RETURN
 
-static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDest, cLote, cUserRest)
+static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDest, cLote, cUserRest,lLote)
 
 	Local aAuto := {}
 
@@ -49,10 +57,13 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 //	conout('Usuario '+cUserRest)
 	conout('Lote '+cLote)
 	//POSICIONA NA SB8
+	if lLote
     SB8->(DBSETORDER(3))
     SB8->(DBSEEK(XFILIAL("SB8")+PadR(cCod, tamsx3('B8_PRODUTO') [1])+PadR(cLocalOrig, tamsx3('B8_LOCAL') [1])+PadR(cLote, tamsx3('B8_LOTECTL') [1])))
     conout("B8 "+SB8->B8_PRODUTO)
 	conout("B8 Lote ->"+SB8->B8_LOTECTL)
+	
+	endif
 	//dDtValid:=getvalidade(cCod,cLote);
 	//lNovo := U_GERASB2(cCod, cLocalDest)
 
@@ -83,8 +94,11 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 		aadd(aLinha,{"D3_LOTECTL", PadR(cLote, tamsx3('D3_LOTECTL') [1]), Nil}) //Lote Origem
 		aadd(aLinha,{"D3_NUMLOTE", "", Nil}) //sublote origem
 	//	aadd(aLinha,{"D3_DTVALID", '', Nil}) //data validade
+		
+		if lLote
 		aadd(aLinha,{"D3_DTVALID", SB8->B8_DTVALID, Nil}) //data validade
-    
+		endif 
+
 		aadd(aLinha,{"D3_POTENCI", 0, Nil}) // Potencia
 		aadd(aLinha,{"D3_QUANT", nQTD, Nil}) //Quantidade
 		aadd(aLinha,{"D3_QTSEGUM", 0, Nil}) //Seg unidade medida
@@ -95,7 +109,8 @@ static function transfi(cCod, nQTD,cLocalOrig,cLoczOrigem, cLocalDest, cLoclzDes
 		aadd(aLinha,{"D3_NUMLOTE", "", Nil}) //sublote destino
 		//aadd(aLinha,{"D3_DTVALID", dDtValid, Nil}) //validade lote destino
 		//aadd(aLinha,{"D3_DTVALID", '', Nil}) //data validade 
-		aadd(aLinha,{"D3_DTVALID", SB8->B8_DTVALID, Nil}) //data validade
+		// comentado no lLote
+		//aadd(aLinha,{"D3_DTVALID", SB8->B8_DTVALID, Nil}) //data validade
     
 		aadd(aLinha,{"D3_ITEMGRD", "", Nil}) //Item Grade
 		aadd(aLinha,{"D3_CODLAN", "", Nil}) //cat83 prod origem
