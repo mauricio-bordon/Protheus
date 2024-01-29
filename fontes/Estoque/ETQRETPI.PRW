@@ -71,7 +71,7 @@ USER FUNCTION ETQRETPI()
 
 
 
-     cPort := 'LPT1' // prnLPTPort()
+     cPort := 'LPT2' // prnLPTPort()
     FERASE("c:\windows\temp\etq_rolo_pi.prn" )
     MemoWrite("c:\windows\temp\etq_rolo_pi.prn", cSaida)
 

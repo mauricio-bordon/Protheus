@@ -2,6 +2,8 @@
 #include "restful.ch"
 #include 'rwmake.ch'
 #Include "tbiconn.ch"
+#include "topconn.ch"
+
 
 
 wsrestful ws_vendas_intra description "WS para incluir pedido da intra"
@@ -65,8 +67,8 @@ Begin Transaction
 		Q2:="SELECT COALESCE(MAX(C6.C6_NUM),'000000') AS MAXNUM FROM "+RETSQLNAME("SC6")+" C6 "
 	    Q2+="WHERE C6.D_E_L_E_T_ <> '*' AND C6_FILIAL='"+XFILIAL("SC6")+"'"
 	    Q2+="AND C6.C6_NUM LIKE '0%' "
-	            
-	     tcquery q2 alias "query2" new
+		
+		tcquery q2 alias "query2" new
 	     
 	     query2->(dbgotop())
 	            
@@ -106,8 +108,8 @@ Begin Transaction
 		            {"C5_ESPECI1" ,cEspecie+iif(nVolumes>1,'S', ''),Nil},; // Especie >> Obter na tela
 		            {"C5_MOEDA"  ,1                             ,Nil},; // Moeda
 	    	        {"C5_LIBEROK","S"                           ,Nil},; // Liberacao Total
-	        	    {"C5_TIPLIB" ,"1"                           ,Nil},; // Tipo de Liberacao
-	        	    {"C5_MSGNOTA",Alltrim(SA1->A1_OBSNOTA)+" "+Alltrim(SA1->A1_OBSNOT2)      ,Nil}} //mensagem para nota  
+	        	    {"C5_TIPLIB" ,"1"                           ,Nil}}//,; // Tipo de Liberacao
+	        	 //   {"C5_MSGNOTA",Alltrim(SA1->A1_OBSNOTA)+" "+Alltrim(SA1->A1_OBSNOT2)      ,Nil}} //mensagem para nota  
 	            	            
             (caliasCabec)->(dbclosearea())
 	       	itemc6 := 1  
@@ -123,10 +125,12 @@ Begin Transaction
 		aItens:={}
 	     while (cAlias2)->(!eof())   
 	     		//gERAR PRODUTO  caso nao exista
-                cProduto := 'PA' + (cAlias2)->produto+strzero( (cAlias2)->largura_corte, 4)
+             
+			 
+			    cProduto := 'PA' + (cAlias2)->produto+strzero( (cAlias2)->largura_corte, 4)
 
 	           //Dados do produto   
-		        QB1:="SELECT B1.B1_COD, B1.B1_DESC, B1.B1_UM, B1.B1_ORIGEM, B1.B1_QTDPCT, B1.B1_TS, B1_CODLBL FROM "+RETSQLNAME("SB1")+" B1 "
+		        QB1:="SELECT B1.B1_COD, B1.B1_DESC, B1.B1_UM, B1.B1_ORIGEM, B1.B1_TS FROM "+RETSQLNAME("SB1")+" B1 "
 		        QB1+="WHERE B1.B1_FILIAL='"+XFILIAL("SB1")+"' AND B1.D_E_L_E_T_ <> '*' "
 		        QB1+="AND B1.B1_COD='"+cproduto+"' "
 		                    
@@ -144,6 +148,18 @@ Begin Transaction
 		        	cTes := MaTesInt(2,cTpOper,cCliente,'01',"C",c_codb1) 
 				endif
 
+				//VERIFICA SE É AMOSTRA OU PEDIDO E DEFINE O tes ctpoper
+				if (caliasCabec)->tipo=='A'
+					CTpOper := '7'
+				cTes := '502'
+				
+				else
+
+				CTpOper := '01'
+				cTes := '512'
+				
+				endIF
+
 				IF empty(CTES)
 					alert('TES VAZIO. Verifique o pedido i4s')
 					aItens := {}
@@ -160,12 +176,12 @@ Begin Transaction
 				tcquery cQuery alias "queryF4" new
 		        queryf4->(dbgotop())
 		                 
-		        c_origb1:=left(c_origem,1) + alltrim(queryF4->f4_sittrib)
-		        if substr(queryF4->f4_cf,1,1)=='5' .and. SA1->A1_EST <> 'SP'
-		        	c_cfop:= '6' + substr(queryF4->f4_cf,2,3)   
-		        else
+		       // c_origb1:=left(c_origem,1) + alltrim(queryF4->f4_sittrib)
+		       // if substr(queryF4->f4_cf,1,1)=='5' .and. SA1->A1_EST <> 'SP'
+		       // 	c_cfop:= '6' + substr(queryF4->f4_cf,2,3)   
+		       // else
 		        	c_cfop:=  queryF4->f4_cf         
-		        endif    
+		       // endif    
 		        queryF4->(dbclosearea())
 		        
 				 
@@ -173,7 +189,7 @@ Begin Transaction
 					if alltrim((cAlias2)->item_pedido_cliente) <> ''
 						cITEMPC :=alltrim((cAlias2)->item_pedido_cliente)
 					endif
-				endif
+				//endif
 				
 
 		 	     //ITEM DO PEDIDO   

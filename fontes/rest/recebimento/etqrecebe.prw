@@ -82,7 +82,7 @@ AND ZS2_ITEM=%EXP:citem%
 */
 
 conout("Print saida")
-CONOUT(cSaida)
+//CONOUT(cSaida)
 
 oJson["chave"]:= "CoatIndu"
 oJson["impressao"]:= cSaida
