@@ -6,17 +6,17 @@
 
 
 
-wsrestful ws_vendas_intra description "WS para incluir pedido da intra"
+wsrestful ws_vendasintra description "WS para incluir pedido da intra"
 	wsdata NUMERO as char OPTIONAL
 
 	wsmethod post ws1;
 		description "incluir pedido intra";
-		wssyntax "/ws_vendas_intra/{NUMERO}";
-		path "/ws_vendas_intra/{NUMERO}"
+		wssyntax "/ws_vendasintra/{NUMERO}";
+		path "/ws_vendasintra/{NUMERO}"
 
 end wsrestful
 
-wsmethod post ws1 wsservice ws_vendas_intra
+wsmethod post ws1 wsservice ws_vendasintra
 	Local lPost := .T.
 	Local lok := .T.
 	Local oJson
@@ -30,7 +30,7 @@ wsmethod post ws1 wsservice ws_vendas_intra
 	oJson:fromJSON(cBody)
 	conout(cBody)
 
-
+	CONOUT(cNumero)
 	lOk := incpedido(cNumero)
 
 	if !lOk
@@ -47,182 +47,184 @@ Return lPost
 
 
 static function incpedido(cNumero)
-	Local cAliasCabec, Calias2
+	Local cAliasCabec, Calias2, nAux
 	cAliasCabec := getNextAlias()
 
 	BeginSql alias cAliasCabec
         SELECT *
-        FROM pedidos
-        where numero = %exp:cNumero%
+        FROM PEDIDOS
+        where CODIGO = %exp:cNumero%
 	ENdSql
 
 	if (caliasCabec)->(eof())
 		cmsgErro := "pedido não existe"
+		CONOUT(cMsgErro)
 		Return .F.
 	endif
 
 
-		//Buscar próximo número de Pedido
-		Q2:="SELECT COALESCE(MAX(C6.C6_NUM),'000000') AS MAXNUM FROM "+RETSQLNAME("SC6")+" C6 "
-		Q2+="WHERE C6.D_E_L_E_T_ <> '*' AND C6_FILIAL='"+XFILIAL("SC6")+"'"
-		Q2+="AND C6.C6_NUM LIKE '0%' "
+	//Buscar próximo número de Pedido
+	Q2:="SELECT COALESCE(MAX(C6.C6_NUM),'000000') AS MAXNUM FROM "+RETSQLNAME("SC6")+" C6 "
+	Q2+="WHERE C6.D_E_L_E_T_ <> '*' AND C6_FILIAL='"+XFILIAL("SC6")+"'"
+	Q2+="AND C6.C6_NUM LIKE '0%' "
 
-		tcquery q2 alias "query2" new
+	tcquery q2 alias "query2" new
 
-		query2->(dbgotop())
+	query2->(dbgotop())
 
-		c_c6max:=query2->maxnum
-		n_ped:=val(c_c6max) + 1
+	c_c6max:=query2->maxnum
+	n_ped:=val(c_c6max) + 1
 
-		query2->(dbclosearea())
+	query2->(dbclosearea())
 
-		ccnum:=strzero(n_ped,6)
+	ccnum:=strzero(n_ped,6)
 
-		ccliente := (caliasCabec)->cliente
+	ccliente := (caliasCabec)->cliente
 
-		dbSelectArea("SA1")
-		dbSetOrder(1)
-		dbSeek(xFilial("SA1")+cCliente)
+	dbSelectArea("SA1")
+	dbSetOrder(1)
+	dbSeek(xFilial("SA1")+cCliente)
 
-		aCabec:=    {{"C5_NUM",ccnum          				    ,Nil},; // Numero do pedido
-		{"C5_TIPO"   ,"N" 	                        ,Nil},; // Tipo de pedido
-		{"C5_CLIENTE", cCliente			            ,Nil},; // Codigo do cliente
-		{"C5_LOJAENT","01"                 		    ,Nil},; // Loja para entrada
-		{"C5_LOJACLI",'01'                          ,Nil},; // Loja do cliente
-		{"C5_TIPOCLI","R"                           ,Nil},; // Tipo cliente
-		{"C5_CLIFIN" ,cCliente        	      	    ,Nil},; // Codigo do cliente final
-		{"C5_CONDPAG",(caliasCabec)->cond_pag			            ,Nil},; // Codigo da condicao de pagamento
-		{"C5_TPFRETE",(caliasCabec)->tipo_frete               ,Nil},; // Tipo de frete -- Sem frete
-		{"C5_TRANSP" ,(caliasCabec)->Transportadora	                    ,Nil},; // Trasnportadora?
-		{"C5_REDESP" ,(caliasCabec)->redespacho                      ,Nil},; // Transportadora redespacho
-		{"C5_BLOQ"   ,'S'	                        ,Nil},; // Ped. Bloqueado ?
-		{"C5_CLIENT" ,ccliente                      ,Nil},; // Cliente de Entrega
-		{"C5_REMESSA","N"                           ,Nil},; // Simples remessa?
-		{"C5_TIPOPER",if(cTipoPed='AM', "A","N")    ,Nil},;  // Tipo de Liberacao
-		{"C5_TABELA" ,"1"                           ,Nil},; // Codigo da Tabela de Preco
-		{"C5_EMISSAO",dDatabase                     ,Nil},; // Data de emissao
-		{"C5_PESOL"  ,0                         ,Nil},; // peso Liquido >> Obter na tela
-		{"C5_PBRUTO" ,0                         ,Nil},; // peso Bruto >> Obter na tela
-		{"C5_VOLUME1" ,0                       ,Nil},; // Volume >> Obter na tela
-		{"C5_ESPECI1" ,cEspecie+iif(nVolumes>1,'S', ''),Nil},; // Especie >> Obter na tela
-		{"C5_MOEDA"  ,1                             ,Nil},; // Moeda
-		{"C5_LIBEROK","S"                           ,Nil},; // Liberacao Total
-		{"C5_TIPLIB" ,"1"                           ,Nil}}//,; // Tipo de Liberacao
-		//   {"C5_MSGNOTA",Alltrim(SA1->A1_OBSNOTA)+" "+Alltrim(SA1->A1_OBSNOT2)      ,Nil}} //mensagem para nota
+	aCabec:=    {{"C5_NUM",ccnum          				    ,Nil},; // Numero do pedido
+	{"C5_TIPO"   ,"N" 	                        ,Nil},; // Tipo de pedido
+	{"C5_CLIENTE", cCliente			            ,Nil},; // Codigo do cliente
+	{"C5_LOJAENT","01"                 		    ,Nil},; // Loja para entrada
+	{"C5_LOJACLI",'01'                          ,Nil},; // Loja do cliente
+	{"C5_TIPOCLI","R"                           ,Nil},; // Tipo cliente
+	{"C5_CLIFIN" ,cCliente        	      	    ,Nil},; // Codigo do cliente final
+	{"C5_CONDPAG",(caliasCabec)->CONDPAG			            ,Nil},; // Codigo da condicao de pagamento
+	{"C5_TPFRETE",(caliasCabec)->tipo_frete               ,Nil},; // Tipo de frete -- Sem frete
+	{"C5_TRANSP" ,(caliasCabec)->Transportadora	                    ,Nil},; // Trasnportadora?
+	{"C5_REDESP" ,(caliasCabec)->redespacho                      ,Nil},; // Transportadora redespacho
+	{"C5_BLOQ"   ,'S'	                        ,Nil},; // Ped. Bloqueado ?
+	{"C5_CLIENT" ,ccliente                      ,Nil},; // Cliente de Entrega
+	{"C5_REMESSA","N"                           ,Nil},; // Simples remessa?
+	{"C5_TIPOPER",if((caliasCabec)->TIPO=='A', "A","N")    ,Nil},;  // Tipo de Liberacao
+	{"C5_TABELA" ,"1"                           ,Nil},; // Codigo da Tabela de Preco
+	{"C5_EMISSAO",dDatabase                     ,Nil},; // Data de emissao
+	{"C5_PESOL"  ,0                         ,Nil},; // peso Liquido >> Obter na tela
+	{"C5_PBRUTO" ,0                         ,Nil},; // peso Bruto >> Obter na tela
+	{"C5_VOLUME1" ,0                       ,Nil},; // Volume >> Obter na tela
+	{"C5_ESPECI1" ,cEspecie+iif(nVolumes>1,'S', ''),Nil},; // Especie >> Obter na tela
+	{"C5_MOEDA"  ,1                             ,Nil},; // Moeda
+	{"C5_LIBEROK","S"                           ,Nil},; // Liberacao Total
+	{"C5_TIPLIB" ,"1"                           ,Nil}}//,; // Tipo de Liberacao
+	//   {"C5_MSGNOTA",Alltrim(SA1->A1_OBSNOTA)+" "+Alltrim(SA1->A1_OBSNOT2)      ,Nil}} //mensagem para nota
 
-		(caliasCabec)->(dbclosearea())
-		itemc6 := 1
-		//Busca itens da nota
-		//Obtém Nota fiscal do itxerp
-		cAlias2 := getNextAlias()
+	(caliasCabec)->(dbclosearea())
+	itemc6 := 1
+	//Busca itens da nota
+	//Obtém Nota fiscal do itxerp
+	cAlias2 := getNextAlias()
 
-		BeginSQL alias cAliasItens
+	BeginSQL alias cAliasItens
 			SELECT *			
             FROM PEDIDO_ITENS 
-			WHERE NUMERO = %EXP:cNumero% 
-		ENdSql
-		aItens:={}
-		while (cAlias2)->(!eof())
-			//gERAR PRODUTO  caso nao exista
+			WHERE CODIGO = %EXP:cNumero% 
+	ENdSql
+	aItens:={}
+	while (cAlias2)->(!eof())
+		//gERAR PRODUTO  caso nao exista
 //			cProduto := 'PA' + (cAlias2)->produto+strzero( (cAlias2)->largura_corte, 4)
 
-			cProduto :=	criasb1((cAlias2)->produto, (cAlias2)->largura_corte)
+		cProduto :=	criasb1((cAlias2)->produto, (cAlias2)->largura_corte)
 
-			if alltrim(cProduto) == ''
-				cmsgErro := 'Erro produto criar'
-				return .F.
-			endif
-			//Dados do produto
-			QB1:="SELECT B1.B1_COD, B1.B1_DESC, B1.B1_UM, B1.B1_ORIGEM, B1.B1_TS FROM "+RETSQLNAME("SB1")+" B1 "
-			QB1+="WHERE B1.B1_FILIAL='"+XFILIAL("SB1")+"' AND B1.D_E_L_E_T_ <> '*' "
-			QB1+="AND B1.B1_COD='"+cproduto+"' "
+		if alltrim(cProduto) == ''
+			cmsgErro := 'Erro produto criar'
+			CONOUT(cmsgErro)
+			return .F.
+		endif
+		//Dados do produto
+		QB1:="SELECT B1.B1_COD, B1.B1_DESC, B1.B1_UM, B1.B1_ORIGEM, B1.B1_TS FROM "+RETSQLNAME("SB1")+" B1 "
+		QB1+="WHERE B1.B1_FILIAL='"+XFILIAL("SB1")+"' AND B1.D_E_L_E_T_ <> '*' "
+		QB1+="AND B1.B1_COD='"+cproduto+"' "
 
-			tcquery qb1 alias "queryb1" new
-			queryb1->(dbgotop())
+		tcquery qb1 alias "queryb1" new
+		queryb1->(dbgotop())
 
-			c_codb1:=queryb1->b1_cod
-			c_descb1:=alltrim(queryb1->b1_desc)
-			c_umb1:=queryb1->b1_um
-			c_origem := queryb1->b1_origem
-			queryb1->(dbclosearea())
-			CTpOper := ''//(CALIAS2)->P19_TIPO_OPERACAO
-			cTes := ''
-			if !empty(cTpOper)
-				cTes := MaTesInt(2,cTpOper,cCliente,'01',"C",c_codb1)
-			endif
+		c_codb1:=queryb1->b1_cod
+		c_descb1:=alltrim(queryb1->b1_desc)
+		c_umb1:=queryb1->b1_um
+		c_origem := queryb1->b1_origem
+		queryb1->(dbclosearea())
+		CTpOper := ''//(CALIAS2)->P19_TIPO_OPERACAO
+		cTes := ''
+		if !empty(cTpOper)
+			cTes := MaTesInt(2,cTpOper,cCliente,'01',"C",c_codb1)
+		endif
 
-			//VERIFICA SE É AMOSTRA OU PEDIDO E DEFINE O tes ctpoper
-			if (caliasCabec)->tipo=='A'
-				CTpOper := '7'
-				cTes := '502'
+		//VERIFICA SE É AMOSTRA OU PEDIDO E DEFINE O tes ctpoper
+		if (caliasCabec)->tipo=='A'
+			CTpOper := '7'
+			cTes := '502'
 
-			else
+		else
 
-				CTpOper := '01'
-				cTes := '512'
+			CTpOper := '01'
+			cTes := '512'
 
-			endIF
+		endIF
 
-			//Dados de Situação tributária
-			CQUERY := "SELECT F4_SITTRIB, F4_CF "
-			CQUERY += "FROM "+RETSQLNAME("SF4")+" "
-			CQUERY += "WHERE D_E_L_E_T_ <> '*' AND F4_FILIAL = '"+XFILIAL("SF4")+"' "
-			CQUERY += "AND F4_CODIGO = '"+cTes+"'"
+		//Dados de Situação tributária
+		CQUERY := "SELECT F4_SITTRIB, F4_CF "
+		CQUERY += "FROM "+RETSQLNAME("SF4")+" "
+		CQUERY += "WHERE D_E_L_E_T_ <> '*' AND F4_FILIAL = '"+XFILIAL("SF4")+"' "
+		CQUERY += "AND F4_CODIGO = '"+cTes+"'"
 
-			tcquery cQuery alias "queryF4" new
-			queryf4->(dbgotop())
+		tcquery cQuery alias "queryF4" new
+		queryf4->(dbgotop())
 
-			// c_origb1:=left(c_origem,1) + alltrim(queryF4->f4_sittrib)
-			// if substr(queryF4->f4_cf,1,1)=='5' .and. SA1->A1_EST <> 'SP'
-			// 	c_cfop:= '6' + substr(queryF4->f4_cf,2,3)
-			// else
-			c_cfop:=  queryF4->f4_cf
-			// endif
-			queryF4->(dbclosearea())
-
-
-			cNUMPCOM := alltrim((cAlias2)->pedido_cliente)
-			if alltrim((cAlias2)->item_pedido_cliente) <> ''
-				cITEMPC :=alltrim((cAlias2)->item_pedido_cliente)
-			endif
-			//endif
+		// c_origb1:=left(c_origem,1) + alltrim(queryF4->f4_sittrib)
+		// if substr(queryF4->f4_cf,1,1)=='5' .and. SA1->A1_EST <> 'SP'
+		// 	c_cfop:= '6' + substr(queryF4->f4_cf,2,3)
+		// else
+		c_cfop:=  queryF4->f4_cf
+		// endif
+		queryF4->(dbclosearea())
 
 
-			//ITEM DO PEDIDO
-			dDtEntrega := stod(u_DIASUTEIS( DTOS(dDatabase),1))
-			aadd(aItens, {{"C6_NUM"   ,ccnum          ,Nil},; // Numero do Pedido
-			{"C6_ITEM"   ,strzero(itemc6,2)			           ,Nil},; // Numero do Item no Pedido
-			{"C6_PRODUTO",c_codb1                     ,Nil},; // Codigo do Produto
-			{"C6_DESCRI" ,c_descb1                    ,Nil},; // descrição
-			{"C6_DPD"    ,c_dpd                   ,Nil},; // dpd
-			{"C6_UM"     ,c_umb1                      ,Nil},; // Unidade de Medida Primar.
-			{"C6_QTDVEN" ,(cAlias2)->total_metros_lineares                    ,Nil},; // Quantidade Vendida
-			{"C6_PRCVEN" ,(cAlias2)->preco_venda                    ,Nil},; // Preco Unitario Liquido   ?????????????
-			{"C6_PRUNIT" ,(cAlias2)->preco_venda                   ,Nil},; // Preco Unitario Liquido   ?????????????
-			{"C6_VALOR"  ,ROUND((cAlias2)->preco_venda * (cAlias2)->total_metros_lineares,2)					 ,Nil},; // Valor Total do Item  ??????????
-			{"C6_OPER"   ,cTpOper                                                                                                                                                                                     ,Nil},; // TP. OPERACAO
-			{"C6_TES"    , cTes                    ,Nil},; // Tipo de Entrada/Saida do Item // {"C6_TES"    ,space(3) ,Nil},; // Tipo de Entrada/Saida do Item
-			{"C6_CF"     , c_cfop                 ,Nil},; // CFOP
-			{"C6_COMIS1" ,(cAlias2)->comissao          ,Nil},; // Comissao Vendedor
-			{"C6_ENTREG" ,stod((cAlias2)->data_entrega)   ,Nil},; // Data da Entrega
-			{"C6_CLI"    ,SA1->A1_COD        ,Nil},; // Cliente
-			{"C6_TUBETE"    ,SA1->A1_COD        ,Nil},; // Cliente
-			{"C6_EMBOBIN"    ,(cAlias2)->sentido_rebob        ,Nil},; // Cliente
-			{"C6_EMBALA"    ,(cAlias2)->embalagem        ,Nil},; // Cliente
-			{"C6_TIRADAS"    ,(cAlias2)->tiradas         ,Nil},; // Cliente
-			{"C6_DESCONT",0                           ,Nil},; // Percentual de Desconto
-			{"C6_LOJA"   ,"01"                        ,Nil},; // Loja do Cliente
-			{"C6_NUMPCOM" ,cNUMPCOM	,Nil},; // pEDIDO CLIENTE
-			{"C6_ITEMPC" ,cITEMPC	,Nil},; // item pEDIDO CLIENTE
-			{"C6_CLASFIS",c_origb1                    ,Nil}}) // Classificação Fiscal
+		cNUMPCOM := alltrim((cAlias2)->pedido_cliente)
+		if alltrim((cAlias2)->item_pedido_cliente) <> ''
+			cITEMPC :=alltrim((cAlias2)->item_pedido_cliente)
+		endif
+		//endif
 
 
-			itemc6++
-			(cAlias2)->(dbSkip())
-		enddo
-		(cAlias2)->(dbCloseArea())
-		if len(aItens) > 0
-			Begin Transaction
+		//ITEM DO PEDIDO
+		dDtEntrega := stod(u_DIASUTEIS( DTOS(dDatabase),1))
+		aadd(aItens, {{"C6_NUM"   ,ccnum          ,Nil},; // Numero do Pedido
+		{"C6_ITEM"   ,strzero(itemc6,2)			           ,Nil},; // Numero do Item no Pedido
+		{"C6_PRODUTO",c_codb1                     ,Nil},; // Codigo do Produto
+		{"C6_DESCRI" ,c_descb1                    ,Nil},; // descrição
+		{"C6_DPD"    ,c_dpd                   ,Nil},; // dpd
+		{"C6_UM"     ,c_umb1                      ,Nil},; // Unidade de Medida Primar.
+		{"C6_QTDVEN" ,(cAlias2)->total_metros_lineares                    ,Nil},; // Quantidade Vendida
+		{"C6_PRCVEN" ,(cAlias2)->preco_venda                    ,Nil},; // Preco Unitario Liquido   ?????????????
+		{"C6_PRUNIT" ,(cAlias2)->preco_venda                   ,Nil},; // Preco Unitario Liquido   ?????????????
+		{"C6_VALOR"  ,ROUND((cAlias2)->preco_venda * (cAlias2)->total_metros_lineares,2)					 ,Nil},; // Valor Total do Item  ??????????
+		{"C6_OPER"   ,cTpOper                                                                                                                                                                                     ,Nil},; // TP. OPERACAO
+		{"C6_TES"    , cTes                    ,Nil},; // Tipo de Entrada/Saida do Item // {"C6_TES"    ,space(3) ,Nil},; // Tipo de Entrada/Saida do Item
+		{"C6_CF"     , c_cfop                 ,Nil},; // CFOP
+		{"C6_COMIS1" ,(cAlias2)->comissao          ,Nil},; // Comissao Vendedor
+		{"C6_ENTREG" ,stod((cAlias2)->data_entrega)   ,Nil},; // Data da Entrega
+		{"C6_CLI"    ,SA1->A1_COD        ,Nil},; // Cliente
+		{"C6_TUBETE"    ,SA1->A1_COD        ,Nil},; // Cliente
+		{"C6_EMBOBIN"    ,(cAlias2)->sentido_rebob        ,Nil},; // Cliente
+		{"C6_EMBALA"    ,(cAlias2)->embalagem        ,Nil},; // Cliente
+		{"C6_TIRADAS"    ,(cAlias2)->tiradas         ,Nil},; // Cliente
+		{"C6_DESCONT",0                           ,Nil},; // Percentual de Desconto
+		{"C6_LOJA"   ,"01"                        ,Nil},; // Loja do Cliente
+		{"C6_NUMPCOM" ,cNUMPCOM	,Nil},; // pEDIDO CLIENTE
+		{"C6_ITEMPC" ,cITEMPC	,Nil},; // item pEDIDO CLIENTE
+		{"C6_CLASFIS",c_origb1                    ,Nil}}) // Classificação Fiscal
+
+
+		itemc6++
+		(cAlias2)->(dbSkip())
+	enddo
+	(cAlias2)->(dbCloseArea())
+	if len(aItens) > 0
+		Begin Transaction
 
 			lMsErroAuto:=.F.
 
@@ -232,7 +234,13 @@ static function incpedido(cNumero)
 			cmsg:="Houve erro na inclusao de pedido "
 			If lMsErroAuto  //Houve algum erro na execucao do SigaAuto
 				conout("erroauto")
-				//Mostraerro()
+				aLogAuto := GetAutoGRLog()
+
+//Percorrendo o Log e incrementando o texto (para usar o CRLF você deve usar a include "Protheus.ch")
+				For nAux := 1 To Len(aLogAuto)
+					cLogTxt += aLogAuto[nAux] + CRLF
+				Next
+				CONOUT(cLogTxt)
 				DisarmTransaction()
 				lok := .F.
 			else
@@ -247,13 +255,13 @@ static function incpedido(cNumero)
 				endif
 			endif
 
-			End Transaction
-		else
-			cMsgErro := "Erro ao inserir pedido. N Itens"
-			
-			lok := .F.
-		endif
-	
+		End Transaction
+	else
+		cMsgErro := "Erro ao inserir pedido. N Itens"
+		CONOUT("Erro ao inserir pedido. N Itens --------------------------------------------------")
+		lok := .F.
+	endif
+
 
 return lok
 
@@ -279,7 +287,7 @@ static function CRIASB1(cGrupo, cLARGCR)
 	SBM->(DbSetOrder(1))
 	SBM->(DBSEEK(XFILIAL('SBM')+cGrupo))
 	cB1_DESC := SBM->BM_DESC + CValToChar(cLargCr) + ' MM'
-	
+
 	aVetor:= {		 {"B1_COD"     	,cB1_COD	    	,Nil},;
 		{"B1_DESC"    	,cB1_DESC 			,Nil},;
 		{"B1_TIPO"    	,'PA'   		,Nil},;
