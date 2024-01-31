@@ -102,22 +102,18 @@ static function incpedido(cNumero)
 	{"C5_TIPOPER",if((caliasCabec)->TIPO=='A', "A","N")    ,Nil},;  // Tipo de Liberacao
 	{"C5_TABELA" ,"1"                           ,Nil},; // Codigo da Tabela de Preco
 	{"C5_EMISSAO",dDatabase                     ,Nil},; // Data de emissao
-	{"C5_PESOL"  ,0                         ,Nil},; // peso Liquido >> Obter na tela
-	{"C5_PBRUTO" ,0                         ,Nil},; // peso Bruto >> Obter na tela
-	{"C5_VOLUME1" ,0                       ,Nil},; // Volume >> Obter na tela
-	{"C5_ESPECI1" ,cEspecie+iif(nVolumes>1,'S', ''),Nil},; // Especie >> Obter na tela
 	{"C5_MOEDA"  ,1                             ,Nil},; // Moeda
 	{"C5_LIBEROK","S"                           ,Nil},; // Liberacao Total
 	{"C5_TIPLIB" ,"1"                           ,Nil}}//,; // Tipo de Liberacao
 	//   {"C5_MSGNOTA",Alltrim(SA1->A1_OBSNOTA)+" "+Alltrim(SA1->A1_OBSNOT2)      ,Nil}} //mensagem para nota
 
-	(caliasCabec)->(dbclosearea())
+	
 	itemc6 := 1
 	//Busca itens da nota
 	//Obtém Nota fiscal do itxerp
 	cAlias2 := getNextAlias()
 
-	BeginSQL alias cAliasItens
+	BeginSQL alias cAlias2
 			SELECT *			
             FROM PEDIDO_ITENS 
 			WHERE CODIGO = %EXP:cNumero% 
@@ -126,9 +122,9 @@ static function incpedido(cNumero)
 	while (cAlias2)->(!eof())
 		//gERAR PRODUTO  caso nao exista
 //			cProduto := 'PA' + (cAlias2)->produto+strzero( (cAlias2)->largura_corte, 4)
-
+	conout('Grupo: '+(cAlias2)->produto + ' Largura: '+str((cAlias2)->largura_corte)) 
 		cProduto :=	criasb1((cAlias2)->produto, (cAlias2)->largura_corte)
-
+	conout('Produto: '+cProduto)
 		if alltrim(cProduto) == ''
 			cmsgErro := 'Erro produto criar'
 			CONOUT(cmsgErro)
@@ -191,24 +187,23 @@ static function incpedido(cNumero)
 
 
 		//ITEM DO PEDIDO
-		dDtEntrega := stod(u_DIASUTEIS( DTOS(dDatabase),1))
+		//dDtEntrega := stod(u_DIASUTEIS( DTOS(dDatabase),1))
 		aadd(aItens, {{"C6_NUM"   ,ccnum          ,Nil},; // Numero do Pedido
 		{"C6_ITEM"   ,strzero(itemc6,2)			           ,Nil},; // Numero do Item no Pedido
 		{"C6_PRODUTO",c_codb1                     ,Nil},; // Codigo do Produto
 		{"C6_DESCRI" ,c_descb1                    ,Nil},; // descrição
-		{"C6_DPD"    ,c_dpd                   ,Nil},; // dpd
 		{"C6_UM"     ,c_umb1                      ,Nil},; // Unidade de Medida Primar.
-		{"C6_QTDVEN" ,(cAlias2)->total_metros_lineares                    ,Nil},; // Quantidade Vendida
-		{"C6_PRCVEN" ,(cAlias2)->preco_venda                    ,Nil},; // Preco Unitario Liquido   ?????????????
-		{"C6_PRUNIT" ,(cAlias2)->preco_venda                   ,Nil},; // Preco Unitario Liquido   ?????????????
-		{"C6_VALOR"  ,ROUND((cAlias2)->preco_venda * (cAlias2)->total_metros_lineares,2)					 ,Nil},; // Valor Total do Item  ??????????
+		{"C6_QTDVEN" ,(cAlias2)->quant_mt                    ,Nil},; // Quantidade Vendida
+		{"C6_PRCVEN" ,(cAlias2)->PRECO_FINAL                    ,Nil},; // Preco Unitario Liquido   ?????????????
+		{"C6_PRUNIT" ,(cAlias2)->PRECO_FINAL                   ,Nil},; // Preco Unitario Liquido   ?????????????
+		{"C6_VALOR"  ,ROUND((cAlias2)->PRECO_FINAL * (cAlias2)->quant_mt,2)					 ,Nil},; // Valor Total do Item  ??????????
 		{"C6_OPER"   ,cTpOper                                                                                                                                                                                     ,Nil},; // TP. OPERACAO
 		{"C6_TES"    , cTes                    ,Nil},; // Tipo de Entrada/Saida do Item // {"C6_TES"    ,space(3) ,Nil},; // Tipo de Entrada/Saida do Item
 		{"C6_CF"     , c_cfop                 ,Nil},; // CFOP
 		{"C6_COMIS1" ,(cAlias2)->comissao          ,Nil},; // Comissao Vendedor
 		{"C6_ENTREG" ,stod((cAlias2)->data_entrega)   ,Nil},; // Data da Entrega
 		{"C6_CLI"    ,SA1->A1_COD        ,Nil},; // Cliente
-		{"C6_TUBETE"    ,SA1->A1_COD        ,Nil},; // Cliente
+		{"C6_TUBETE"    ,(cAlias2)->DIAMETRO_INTERNO        ,Nil},; // Cliente
 		{"C6_EMBOBIN"    ,(cAlias2)->sentido_rebob        ,Nil},; // Cliente
 		{"C6_EMBALA"    ,(cAlias2)->embalagem        ,Nil},; // Cliente
 		{"C6_TIRADAS"    ,(cAlias2)->tiradas         ,Nil},; // Cliente
@@ -216,13 +211,14 @@ static function incpedido(cNumero)
 		{"C6_LOJA"   ,"01"                        ,Nil},; // Loja do Cliente
 		{"C6_NUMPCOM" ,cNUMPCOM	,Nil},; // pEDIDO CLIENTE
 		{"C6_ITEMPC" ,cITEMPC	,Nil},; // item pEDIDO CLIENTE
-		{"C6_CLASFIS",c_origb1                    ,Nil}}) // Classificação Fiscal
+		{"C6_CLASFIS",'500'                    ,Nil}}) // Classificação Fiscal
 
 
 		itemc6++
 		(cAlias2)->(dbSkip())
 	enddo
 	(cAlias2)->(dbCloseArea())
+	(caliasCabec)->(dbclosearea())
 	if len(aItens) > 0
 		Begin Transaction
 
@@ -235,7 +231,7 @@ static function incpedido(cNumero)
 			If lMsErroAuto  //Houve algum erro na execucao do SigaAuto
 				conout("erroauto")
 				aLogAuto := GetAutoGRLog()
-
+	CLOGTXT := ''
 //Percorrendo o Log e incrementando o texto (para usar o CRLF você deve usar a include "Protheus.ch")
 				For nAux := 1 To Len(aLogAuto)
 					cLogTxt += aLogAuto[nAux] + CRLF
@@ -268,7 +264,7 @@ return lok
 
 static function CRIASB1(cGrupo, cLARGCR)
 	Local lOK := .T., aVetor, cB1_DESC
-	Local cB1_COD := 'PA'+cGrupo+strzero(cLARGCR,4)
+	Local cB1_COD := 'PA'+alltrim(cGrupo)+strzero(cLARGCR,4)
 
 	dbSelectArea('SB1')
 	SB1->(DbSetOrder(1))
@@ -287,12 +283,13 @@ static function CRIASB1(cGrupo, cLARGCR)
 	SBM->(DbSetOrder(1))
 	SBM->(DBSEEK(XFILIAL('SBM')+cGrupo))
 	cB1_DESC := SBM->BM_DESC + CValToChar(cLargCr) + ' MM'
-
-	aVetor:= {		 {"B1_COD"     	,cB1_COD	    	,Nil},;
-		{"B1_DESC"    	,cB1_DESC 			,Nil},;
+//	 {"B1_COD"     	,cB1_COD	    	,Nil},;
+		
+	aVetor:= {	{"B1_DESC"    	,cB1_DESC 			,Nil},;
 		{"B1_TIPO"    	,'PA'   		,Nil},;
 		{"B1_UM"      	,'MT'       		,Nil},;
 		{"B1_LOCPAD"  	,'01'        	,Nil},;
+		{"B1_LARGURA" 	,cLARGCR	   	,Nil},;
 		{"B1_GRUPO"   	,ALLTRIM(cGrupo)       	,Nil},;
 		{"B1_RASTRO"  	,'L'		   	,Nil},;
 		{"B1_LOCALIZ"  	,'S'		   	,Nil},;
