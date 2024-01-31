@@ -25,8 +25,12 @@ user function vldc6qtd()
 
 	local nPosQtdVen := ascan(aHeader, {|aH| alltrim(aH[2]) == "C6_QTDVEN"})
 	local nQtdVen := aCols[N, nPosQtdVen]
-
-
+conout('vldc6qtd')
+		
+	if isblind()
+		conout('vldc6qtd, isblind')
+		return .T.
+	endif
 	if left(cProduto,2) <> 'PA'
 		return .T.
 	endif
