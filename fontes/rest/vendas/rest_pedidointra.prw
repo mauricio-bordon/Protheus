@@ -90,7 +90,7 @@ static function incpedido(cNumero)
 	{"C5_CLIENTE", alltrim(cCliente)			            ,Nil},; // Codigo do cliente
 	{"C5_LOJAENT","01"                 		    ,Nil},; // Loja para entrada
 	{"C5_LOJACLI",'01'                          ,Nil},; // Loja do cliente
-	{"C5_TIPOCLI","R"                           ,Nil},; // Tipo cliente
+	{"C5_TIPOCLI","F"                           ,Nil},; // Tipo cliente
 	{"C5_CONDPAG",(caliasCabec)->CONDPAG			            ,Nil},; // Codigo da condicao de pagamento
 	{"C5_TPFRETE",alltrim((caliasCabec)->tipo_frete)               ,Nil},; // Tipo de frete -- Sem frete
 	{"C5_TRANSP" ,alltrim((caliasCabec)->Transportadora)	                    ,Nil},; // Trasnportadora?
@@ -177,6 +177,8 @@ static function incpedido(cNumero)
 		cNUMPCOM := alltrim((cAlias2)->pedido_cliente)
 		if alltrim((cAlias2)->item_pedido_cliente) <> ''
 			cITEMPC :=alltrim((cAlias2)->item_pedido_cliente)
+			else
+			CITEMPC:=""
 		endif
 		//endif
 

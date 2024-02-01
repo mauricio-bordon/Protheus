@@ -6,7 +6,7 @@ X3_VLDUSER --> C6_QTDVEN
 sE PRODUTO PA (Selo de Indução), VALIDA SE QUANTIDADE DIGITADA É PROPPORCIONAL AO QUE SERÁ CORTADO
 */
 user function vldc6qtd()
-
+/*
 	local nPosMtRolo:= ascan(aHeader, {|aH| alltrim(aH[2]) == "C6_MTROLO"})
 	local nMtRolo   := aCols[N, nPosMtRolo]
 
@@ -48,5 +48,5 @@ conout('vldc6qtd')
 			return .F.
 		endif
 	ENDIF
-
+*/
 return .T.
