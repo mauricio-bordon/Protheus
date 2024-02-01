@@ -33,7 +33,7 @@ User Function GeraB1()
 		if M->B1_TIPO$"PI_PA" .AND. ALLTRIM(M->B1_GRUPO) != '' .AND. M->B1_UM<>'KG'
 
 			IF M->B1_LARGURA==0
-				Alert("Para PI e PA preecha a largura do produto antes do grupo!")
+				Alert("Para PI e PA preencha a largura do produto antes do grupo!")
 				lRet:=.F.
 
 			ELSE
