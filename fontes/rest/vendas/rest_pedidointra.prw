@@ -196,8 +196,8 @@ static function incpedido(cNumero)
 		{"C6_VALOR"  ,ROUND((cAlias2)->PRECO_FINAL * (cAlias2)->quant_mt,2)					 ,Nil},; // Valor Total do Item  ??????????
 		{"C6_TES"    , cTes                    ,Nil},; // Tipo de Entrada/Saida do Item // {"C6_TES"    ,space(3) ,Nil},; // Tipo de Entrada/Saida do Item
 		{"C6_CF"     , alltrim(c_cfop)                ,Nil},; // CFOP
-		{"C6_COMIS1" ,(cAlias2)->comissao          ,Nil},; // Comissao Vendedor
-		{"C6_ENTREG" ,(dDatabase+1)   ,Nil},; // Data da Entrega
+		{"C6_COMIS1" ,(cAlias2)->COMISSAO          ,Nil},; // Comissao Vendedor
+		{"C6_ENTREG" ,sTOD((cAlias2)->DATA_ENTREGA)   ,Nil},; // Data da Entrega
 		{"C6_TIRADAS"    ,(cAlias2)->tiradas         ,Nil},; // Cliente
 		{"C6_MTROLO"    ,(cAlias2)->metragem_linear         ,Nil},; // Cliente
 		{"C6_TUBETE"    ,(cAlias2)->DIAMETRO_INTERNO        ,Nil},; // Cliente
@@ -312,7 +312,7 @@ conout(cB1_COD)
 	aVetor:= {	{"B1_DESC"    	,cB1_DESC 			,Nil},;
 		{"B1_TIPO"    	,'PA'   		,Nil},;
 		{"B1_UM"      	,'MT'       		,Nil},;
-		{"B1_LOCPAD"  	,'01'        	,Nil},;
+		{"B1_LOCPAD"  	,'02'        	,Nil},;
 		{"B1_LARGURA" 	,cLARGCR	   	,Nil},;
 		{"B1_GRUPO"   	,ALLTRIM(cGrupo)       	,Nil},;
 		{"B1_RASTRO"  	,'L'		   	,Nil},;

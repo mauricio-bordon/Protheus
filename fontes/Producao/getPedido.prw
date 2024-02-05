@@ -29,13 +29,20 @@ user function getPedido(cCampo)
 			cDados:=SA1->A1_NOME
 		endif
 
-		if cCampo=='TIRADAS' .and. SC2->C2_TIRADAS==0
+		if cCampo=='TIRADAS' 
 			cDados:=SC6->C6_TIRADAS
 		endif
 
+	if cCampo=='MTROLO' 
+			cDados:=SC6->C6_MTROLO
+		endif
 
 
-	endif
+	if cCampo=='NROLOS' 
+			cDados:=SC6->C6_NROLOS
+		endif
+
+endif
 
 
 
