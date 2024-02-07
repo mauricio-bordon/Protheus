@@ -177,7 +177,7 @@ static function incpedido(cNumero)
 		cNUMPCOM := alltrim((cAlias2)->pedido_cliente)
 		if alltrim((cAlias2)->item_pedido_cliente) <> ''
 			cITEMPC :=alltrim((cAlias2)->item_pedido_cliente)
-			else
+		else
 			CITEMPC:=""
 		endif
 		//endif
@@ -205,7 +205,7 @@ static function incpedido(cNumero)
 		{"C6_EMBALA"    ,(cAlias2)->embalagem        ,Nil},; // Cliente
 		{"C6_NUMPCOM" ,cNUMPCOM	,Nil},; // pEDIDO CLIENTE
 		{"C6_ITEMPC" ,cITEMPC	,Nil},;
-		{"C6_LOJA"   ,"01"                        ,Nil}}) // Classificação Fiscal
+			{"C6_LOJA"   ,"01"                        ,Nil}}) // Classificação Fiscal
 
 /*
 ,; // Loja do Cliente
@@ -240,22 +240,22 @@ static function incpedido(cNumero)
 				lok := .F.
 			else
 				//Avisos
-			
-					//atualiza pedido intra
-					cUpd := " UPDATE PEDIDOS set PEDIDO_PROTHEUS = '"+ccnum+"', STATUS = '2' WHERE CODIGO = '"+cNumero+"'"
-					//Tenta executar o update
-					nErro := TcSqlExec(cUpd)
 
-					//Se houve erro, mostra a mensagem e cancela a transação
-					If nErro != 0
-						Help( ,, 'Help',, "Erro ao ATUALIZAR PEDIDO INTRA. "+TcSqlError() , 1, 0 )
-						DisarmTransaction()
-						cmsg := ' Erro ao atualizar pedido intra'
-						lOk := .F.
-					else
-							lok := .T.
-					EndIf
-					
+				//atualiza pedido intra
+				cUpd := " UPDATE PEDIDOS set PEDIDO_PROTHEUS = '"+ccnum+"', STATUS = '2' WHERE CODIGO = '"+cNumero+"'"
+				//Tenta executar o update
+				nErro := TcSqlExec(cUpd)
+
+				//Se houve erro, mostra a mensagem e cancela a transação
+				If nErro != 0
+					Help( ,, 'Help',, "Erro ao ATUALIZAR PEDIDO INTRA. "+TcSqlError() , 1, 0 )
+					DisarmTransaction()
+					cmsg := ' Erro ao atualizar pedido intra'
+					lOk := .F.
+				else
+					lok := .T.
+				EndIf
+
 			endif
 
 		End Transaction
@@ -288,7 +288,7 @@ static function CRIASB1(cGrupo, nLARGCR)
 
 	ENDIF
 
-conout(cB1_COD)
+	conout(cB1_COD)
 	dbSelectArea('SB1')
 	SB1->(DbSetOrder(1))
 	SB1->(DBSEEK(XFILIAL('SB1')+cB1_COD  ), .t.)
@@ -306,18 +306,18 @@ conout(cB1_COD)
 	dbSelectArea('SBM')
 	SBM->(DbSetOrder(1))
 	SBM->(DBSEEK(XFILIAL('SBM')+cGrupo))
-	cB1_DESC := SBM->BM_DESC + CValToChar(cLargCr) + ' MM'
+	cB1_DESC := SBM->BM_DESC + CValToChar(nLARGCR) + ' MM'
 //	 {"B1_COD"     	,cB1_COD	    	,Nil},;
 
-	aVetor:= {	{"B1_DESC"    	,cB1_DESC 			,Nil},;
+	aVetor:= {	{"B1_COD"     	,cB1_COD	    	,Nil},;
+		{"B1_DESC"    	,cB1_DESC 			,Nil},;
 		{"B1_TIPO"    	,'PA'   		,Nil},;
 		{"B1_UM"      	,'MT'       		,Nil},;
 		{"B1_LOCPAD"  	,'02'        	,Nil},;
-		{"B1_LARGURA" 	,cLARGCR	   	,Nil},;
+		{"B1_LARGURA" 	,nLARGCR	   	,Nil},;
 		{"B1_GRUPO"   	,ALLTRIM(cGrupo)       	,Nil},;
 		{"B1_RASTRO"  	,'L'		   	,Nil},;
-		{"B1_LOCALIZ"  	,'S'		   	,Nil},;
-		{"B1_LARGURA" 	,cLARGCR	   	,Nil}}
+		{"B1_LOCALIZ"  	,'S'		   	,Nil}}
 
 	conout("Antes Execauto mata010")
 	lMsErroAuto := .F.
@@ -328,7 +328,10 @@ conout(cB1_COD)
 		lOk := .F.
 		ctitulo:="Erro na execucao do AUTO010."
 		cmsg:="Verificar no SIGAADV o log "+NomeAutoLog()+CHR(13)
+		cMsgErro:=memoread (NomeAutoLog())
 		conout(cMsg)
+		
+		conout(cMsgErro)
 		return ''
 	Endif
 
