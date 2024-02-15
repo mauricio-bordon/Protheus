@@ -267,7 +267,7 @@ static Function devolvelote(cOp, oJson)
 			{"D3_LOCAL",oJson['LOCAL'],NIL},;
 			{"D3_LOCALIZ",oJson['LOCALIZACAO'],NIL},;
 			{"D3_QUANT",oJson['QUANTIDADE'],NIL},;
-			{"D3_LOTECTL",padr(oJson['LOTE'],10),NIL}}
+			{"D3_LOTECTL",oJson['LOTE'],NIL}}
 
 		lMsErroAuto := .F.
 		_atotitem := {}

@@ -31,6 +31,10 @@ wsmethod post ws1 wsservice ws_vendasintra
 	conout(cBody)
 
 	CONOUT(cNumero)
+
+
+
+	conout('ANTES INCPEDIDO - ---- ---- - - - - - -')
 	lOk := incpedido(cNumero)
 
 	if !lOk
@@ -49,6 +53,7 @@ Return lPost
 static function incpedido(cNumero)
 	Local cAliasCabec, Calias2
 	cAliasCabec := getNextAlias()
+	conout('GETALIAS DENTRO DO INC - ---- ---- - - - - - -')
 
 	BeginSql alias cAliasCabec
         SELECT *
@@ -62,6 +67,7 @@ static function incpedido(cNumero)
 		Return .F.
 	endif
 
+	conout('INCLUINDO PEDIDO - ---- ---- - - - - - -')
 
 	//Buscar próximo número de Pedido
 	Q2:="SELECT COALESCE(MAX(C6.C6_NUM),'000000') AS MAXNUM FROM "+RETSQLNAME("SC6")+" C6 "
@@ -81,6 +87,17 @@ static function incpedido(cNumero)
 
 	ccliente := (caliasCabec)->cliente
 
+	if (caliasCabec)->tipo=='A'
+
+		cCondPag:='001'
+
+	else
+
+		cCondPag:=(caliasCabec)->CONDPAG
+
+	endif
+
+
 	dbSelectArea("SA1")
 	dbSetOrder(1)
 	dbSeek(xFilial("SA1")+cCliente)
@@ -91,7 +108,7 @@ static function incpedido(cNumero)
 	{"C5_LOJAENT","01"                 		    ,Nil},; // Loja para entrada
 	{"C5_LOJACLI",'01'                          ,Nil},; // Loja do cliente
 	{"C5_TIPOCLI","F"                           ,Nil},; // Tipo cliente
-	{"C5_CONDPAG",(caliasCabec)->CONDPAG			            ,Nil},; // Codigo da condicao de pagamento
+	{"C5_CONDPAG",cCondPag			            ,Nil},; // Codigo da condicao de pagamento
 	{"C5_TPFRETE",alltrim((caliasCabec)->tipo_frete)               ,Nil},; // Tipo de frete -- Sem frete
 	{"C5_TRANSP" ,alltrim((caliasCabec)->Transportadora)	                    ,Nil},; // Trasnportadora?
 	{"C5_REDESP" ,alltrim((caliasCabec)->redespacho)                      ,Nil},; // Transportadora redespacho
@@ -192,7 +209,7 @@ static function incpedido(cNumero)
 		{"C6_UM"     ,c_umb1                      ,Nil},; // Unidade de Medida Primar.
 		{"C6_QTDVEN" ,(cAlias2)->quant_mt                    ,Nil},; // Quantidade Vendida
 		{"C6_PRCVEN" ,(cAlias2)->PRECO_FINAL                    ,Nil},; // Preco Unitario Liquido   ?????????????
-		{"C6_PRUNIT" ,(cAlias2)->PRECO_FINAL                   ,Nil},; // Preco Unitario Liquido   ?????????????
+		{"C6_PRUNIT" ,0                   ,Nil},; // Preco LISTA   ?????????????
 		{"C6_VALOR"  ,ROUND((cAlias2)->PRECO_FINAL * (cAlias2)->quant_mt,2)					 ,Nil},; // Valor Total do Item  ??????????
 		{"C6_TES"    , cTes                    ,Nil},; // Tipo de Entrada/Saida do Item // {"C6_TES"    ,space(3) ,Nil},; // Tipo de Entrada/Saida do Item
 		{"C6_CF"     , alltrim(c_cfop)                ,Nil},; // CFOP
@@ -209,7 +226,7 @@ static function incpedido(cNumero)
 
 /*
 ,; // Loja do Cliente
-
+ 
 ,; // item pEDIDO CLIENTE
 		{"C6_CLASFIS",'500'                    ,Nil}
 {"C6_OPER"   ,cTpOper                                                                                                                                                                                     ,Nil},; // TP. OPERACAO

@@ -288,7 +288,7 @@ wsmethod get ws4 wsservice recebimento
 		self:setStatus(200)
 		for nL := 1 to len(aProduto)
 
-			aProdItem:=retproditem(cID,aProduto[nL][2])
+			aProdItem:=retproditem(cID,aProduto[nL][2],aProduto[nL][5])
 
 			aJson2 := {}
 
@@ -595,6 +595,8 @@ wsmethod post ws10 wsservice recebimento
 
 	cZS2_PRODUT:=PADR( oJson['ZS2_PRODUT'], TAMSX3("ZS2_PRODUT")[1] )
 	cZS2_ITEM:=oJson['ZS2_ITEM']
+	cZS2_LOTEFO:=oJson['ZS2_LOTEFO']
+
 	dbselectarea("ZS1")
 	ZS1->(dbSetOrder(1))
 	
@@ -605,7 +607,7 @@ wsmethod post ws10 wsservice recebimento
 		
 	ZS1->(dbclosearea())
 
-	lOk:=u_etqrecebe(cZS1_DOC,cZS1_FORNEC,cZS2_PRODUT,cZS2_ITEM)
+	lOk:=u_etqrecebe(cZS1_DOC,cZS1_FORNEC,cZS2_PRODUT,cZS2_ITEM,cZS2_LOTEFO)
 
 
 
@@ -753,7 +755,7 @@ static function  retprod(cID)
 
 return aProdutos
 
-static function  retproditem(cID,cProd)
+static function  retproditem(cID,cProd,cD1_LOTEFOR)
 	Local cAlias
 	Local aProdItem := {}
 	cAlias := getNextAlias()
@@ -768,7 +770,7 @@ static function  retproditem(cID,cProd)
 	WHERE ZS2.D_E_L_E_T_<>'*' AND ZS2_FILIAL = %XFILIAL:ZS2%
 	AND ZS2_ID=%EXP:cID%
 	AND ZS2_PRODUT=%EXP:cProd%
-	
+	AND ZS2_LOTEFO=%EXP:cD1_LOTEFOR%
 	EndSQL
 	//u_dbg_qry()
 	//ZS3_FILIAL	ZS3_IDPERG	ZS3_PERG	ZS3_ATIVO	D_E_L_E_T_	R_E_C_N_O_	R_E_C_D_E_L_

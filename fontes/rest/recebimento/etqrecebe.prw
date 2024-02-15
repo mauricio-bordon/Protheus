@@ -1,6 +1,6 @@
 #Include "TOTVS.ch"
 
-user function etqrecebe(cnota,cfornece,cproduto,citem)
+user function etqrecebe(cnota,cfornece,cproduto,citem,clotefor)
 	local cAlias
 	local lOk:=.T.
 	 Local bObject := {|| JsonObject():New()}
@@ -41,6 +41,7 @@ AND D1_FORNECE=ZS1_FORNEC
 INNER JOIN ZS2010 ZS2
 ON ZS1_ID=ZS2_ID
 AND D1_COD=ZS2_PRODUT
+AND D1_LOTEFOR=ZS2_LOTEFO
 WHERE ZS1.D_E_L_E_T_<>'*'
 AND ZS2.D_E_L_E_T_<>'*'
 AND SD1.D_E_L_E_T_<>'*'
@@ -48,6 +49,7 @@ AND ZS1_DOC=%EXP:cNota%
 AND ZS1_FORNEC=%EXP:cfornece%
 AND ZS2_PRODUT=%EXP:cproduto%
 AND ZS2_ITEM=%EXP:citem%
+AND ZS2_LOTEFO=%EXP:clotefor%
         
         
         
@@ -86,7 +88,7 @@ conout("Print saida")
 
 oJson["chave"]:= "CoatIndu"
 oJson["impressao"]:= cSaida
-oJson["ip"]:= "192.168.0.11"
+oJson["ip"]:= "192.168.2.238"
 
 cJson:=oJson:ToJson()
 
