@@ -121,7 +121,7 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	Local cAlias := getNextalias()
 	Local lPallet:=.T.
 	// Local cOpLike := SC2->C2_NUM+'%'
-	Local cLotectl := '', aItens := {}, nTotalMT := 0, nRolos := 0, cstr,lPallet:=.T.
+	Local cLotectl := '', aItens := {}, nTotalMT := 0, nRolos := 0, cstr
 
 	DbSelectArea('ZD2')
 	ZD2->(DBSETORDER(1))
@@ -153,7 +153,7 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	(calias)->(DBCLOSEAREA())
 
 	if len(aItens) > 0
-		ETQSIPLT(SC2->C2_NUM, SC2->C2_PRODUTO,SC2->C2_LOCAL, cLotectl, ZD2->ZD2_CODCLI, aItens, ntotalMt, 0, nRolos, ZD2->ZD2_PESOLI, ZD2->ZD2_PESOBR)
+		ETQSIPLT(SC2->C2_NUM,SC2->C2_ITEM, SC2->C2_PRODUTO,SC2->C2_LOCAL, cLotectl, ZD2->ZD2_CODCLI, aItens, ntotalMt, 0, nRolos, ZD2->ZD2_PESOLI, ZD2->ZD2_PESOBR)
 		MsgInfo(cStr, 'Info')
 	else
 		MsgAlert("Linha selecionada não está associada a Pallet", 'Aviso')
@@ -183,8 +183,8 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 //se todos os rolos foram colocado em pallet envia email sobre o peso
 	if lPallet
 	//Alert()
-	cAssunto:="Finalizado op"
-	u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )	
+	//cAssunto:="Finalizado op"
+	//u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )	
 
 	ENDIF
 
@@ -405,7 +405,7 @@ STATIC Function DMNTPLTSI()
 	oMark:refresh()
 Return NIL
 
-static Function ETQSIPLT(CORDEM, CCOD,cLocal, CLOTECTL, cCliente, aItens, ntotalMT, ntotalM2, nRolos, nPesoLiq, nPesoBruto)
+static Function ETQSIPLT(CORDEM,cItemop, CCOD,cLocal, CLOTECTL, cCliente, aItens, ntotalMT, ntotalM2, nRolos, nPesoLiq, nPesoBruto)
 
 	Local cStr := "", i//, CALIAS
 	//Local  cDESC := ''
@@ -443,9 +443,16 @@ static Function ETQSIPLT(CORDEM, CCOD,cLocal, CLOTECTL, cCliente, aItens, ntotal
 	cSaida := ''
 
 	cStr := cStrEtq
-
+	//verifica se existe DPD para o produto
+	cDPD:=alltrim(POSICIONE('SC6',7,XFILIAL('SC6')+CORDEM+cItemop,"C6_DPD"))
+	cPedCli:=alltrim(POSICIONE('SC6',7,XFILIAL('SC6')+CORDEM+cItemop,"C6_PEDCLI"))
+	
 	cStr := STRTRAN(cStr, "%DESC%", alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+cCod,"B1_DESC")) )
+	cStr := STRTRAN(cStr, "%DESC%", alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+cCod,"B1_DESC")))
 	cStr := STRTRAN(cStr, "%COD%", alltrim(cCOD) )
+ 	cStr := STRTRAN(cStr, "%DPD%", alltrim(cDPD) )
+	cStr := STRTRAN(cStr, "%PEDCLI%", alltrim(cPedCli) )
+	
 	cStr := STRTRAN(cStr, "%LOTE%", alltrim(cLOTECTL) )
 	cStr := STRTRAN(cStr, "%BARCODE%", alltrim(cLOTECTL) )
 	cStr := STRTRAN(cStr, "%CLIENTE%", alltrim(POSICIONE('SA1',1,XFILIAL('SA1')+cCliente,"A1_NOME")) )

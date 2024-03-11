@@ -8,11 +8,24 @@
 
 wsrestful ws_vendasintra description "WS para incluir pedido da intra"
 	wsdata NUMERO as char OPTIONAL
+	wsdata cC6_NUM as char OPTIONAL
+	wsdata cC6_ITEM as char OPTIONAL
+	wsdata sA1_COD as char OPTIONAL
 
 	wsmethod post ws1;
 		description "incluir pedido intra";
 		wssyntax "/ws_vendasintra/{NUMERO}";
 		path "/ws_vendasintra/{NUMERO}"
+
+	wsmethod post ws2;
+		description "delete pedido";
+		wssyntax "/ws_vendasintra/del/{cC6_NUM}/{cC6_ITEM}";
+		path "/ws_vendasintra/del/{cC6_NUM}/{cC6_ITEM}"
+
+	wsmethod get ws3;
+		description "Print carta proposta";
+		wssyntax "/ws_vendasintra/print/{sA1_COD}";
+		path "/ws_vendasintra/print/{sA1_COD}"	
 
 end wsrestful
 
@@ -48,6 +61,98 @@ wsmethod post ws1 wsservice ws_vendasintra
 	endif
 	conout('-------------')
 Return lPost
+
+wsmethod post ws2 wsservice ws_vendasintra
+	Local lPost := .T.
+	Local lok := .T.
+	//Local cBody := ::getContent()
+	local sRet:=''
+	
+	private cUserRest := cUsuario
+	private cMsg := ''
+
+	
+
+
+
+	conout('DELETE PEDIDO - ---- ---- - - - - - -')
+	sRet := delpedido(::cC6_NUM,::cC6_ITEM)
+
+	if !lOk
+		::SetResponse('{ "message": "Erro","detailedMessage": "'+cMsg+'"}')
+		self:setStatus(400)
+	else
+
+		::SetResponse('{ "resp":"'+sRet+'","message": "Item do pedido excluido com sucesso","detailedMessage": "Pedido incluido com sucesso"}')
+		self:setStatus(200)
+
+	endif
+	conout('-------------')
+Return lPost
+
+
+wsmethod get ws3 wsservice ws_vendasintra
+	Local lGet := .T.
+	Local lOk:=.F.
+	private cUserRest := cUsuario
+	private cMsg := ''
+
+	
+
+
+
+	conout('DELETE PEDIDO - ---- ---- - - - - - -')
+	lOk := U_ORCSIINTRA(::sA1_COD)
+
+	if !lOk
+		::SetResponse('{ "message": "Erro","detailedMessage": "'+cMsg+'"}')
+		self:setStatus(400)
+	else
+
+		::SetResponse('{ "resp":"Enviado com sucesso","message": "Enviado com sucesso","detailedMessage": "Enviado com sucesso"}')
+		self:setStatus(200)
+
+	endif
+	conout('-------------')
+Return lGet
+
+static function delpedido(cC6_NUM,cC6_ITEM)
+	local sRet:='0'
+	conout('PEDIDO VARIAVEIS DELETE')
+	conout(cC6_NUM)
+	conout(cC6_ITEM)
+//1	C5_FILIAL+C5_NUM
+//1	C6_FILIAL+C6_NUM+C6_ITEM+C6_PRODUTO
+
+	dbselectarea("SC6")
+	SC6->(dbSetOrder(1))
+	If dbseek(xfilial("SC6")+cC6_NUM+cC6_ITEM)
+		SC6->(RecLock('SC6',.F.))
+
+		SC6->(dbdelete())
+		SC6->(MsUnLock())
+	Endif
+	SC6->(dbgotop())
+	If !dbseek(xfilial("SC6")+cC6_NUM)
+		//se nao existir mais registro deleta o restante
+		dbselectarea("SC5")
+		SC5->(dbSetOrder(1))
+
+		If dbseek(xfilial("SC5")+cC6_NUM)
+			SC5->(RecLock('SC5',.F.))
+			SC5->(dbdelete())
+			SC5->(MsUnLock())
+
+		Endif
+	else
+		sRet:='1'
+
+
+	Endif
+
+
+return sRet
+
 
 
 static function incpedido(cNumero)
@@ -217,10 +322,12 @@ static function incpedido(cNumero)
 		{"C6_ENTREG" ,sTOD((cAlias2)->DATA_ENTREGA)   ,Nil},; // Data da Entrega
 		{"C6_TIRADAS"    ,(cAlias2)->tiradas         ,Nil},; // Cliente
 		{"C6_MTROLO"    ,(cAlias2)->metragem_linear         ,Nil},; // Cliente
+		{"C6_DPD"    ,(cAlias2)->DPDCLIENTE        ,Nil},; // Cliente
 		{"C6_TUBETE"    ,(cAlias2)->DIAMETRO_INTERNO        ,Nil},; // Cliente
 		{"C6_EMBOBIN"    ,(cAlias2)->sentido_rebob        ,Nil},; // Cliente
 		{"C6_EMBALA"    ,(cAlias2)->embalagem        ,Nil},; // Cliente
-		{"C6_NUMPCOM" ,cNUMPCOM	,Nil},; // pEDIDO CLIENTE
+		{"C6_NUMPCOM" ,cNUMPCOM	,Nil},; // pEDIDO COMPRA
+		{"C6_PEDCLI" ,cNUMPCOM	,Nil},; // pEDIDO CLIENTE
 		{"C6_ITEMPC" ,cITEMPC	,Nil},;
 			{"C6_LOJA"   ,"01"                        ,Nil}}) // Classificação Fiscal
 
@@ -323,7 +430,7 @@ static function CRIASB1(cGrupo, nLARGCR)
 	dbSelectArea('SBM')
 	SBM->(DbSetOrder(1))
 	SBM->(DBSEEK(XFILIAL('SBM')+cGrupo))
-	cB1_DESC := SBM->BM_DESC + CValToChar(nLARGCR) + ' MM'
+	cB1_DESC :=alltrim(SBM->BM_DESC)+' '+ CValToChar(nLARGCR) + ' MM'
 //	 {"B1_COD"     	,cB1_COD	    	,Nil},;
 
 	aVetor:= {	{"B1_COD"     	,cB1_COD	    	,Nil},;
@@ -347,7 +454,7 @@ static function CRIASB1(cGrupo, nLARGCR)
 		cmsg:="Verificar no SIGAADV o log "+NomeAutoLog()+CHR(13)
 		cMsgErro:=memoread (NomeAutoLog())
 		conout(cMsg)
-		
+
 		conout(cMsgErro)
 		return ''
 	Endif

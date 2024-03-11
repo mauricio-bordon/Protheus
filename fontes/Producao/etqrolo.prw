@@ -45,7 +45,7 @@ user function etqrolo()
 
 
 		BeginSql alias cAlias
-		SELECT D3_DTVALID,C6_PEDCLI,D3_EMISSAO,B1_COD,B1_DESC,D3_UM,ZD3_MTROLO,D3_LOTECTL,ZD3_ROLO,C6_CLI,A1_NOME
+		SELECT D3_DTVALID,C6_PEDCLI,C6_DPD,D3_EMISSAO,B1_COD,B1_DESC,D3_UM,ZD3_MTROLO,D3_LOTECTL,ZD3_ROLO,C6_CLI,A1_NOME
 		FROM %TABLE:SD3% SD3
 		INNER JOIN %TABLE:ZD3% ZD3
 		ON ZD3_NUMSEQ=D3_NUMSEQ
@@ -70,14 +70,15 @@ user function etqrolo()
 
 		WHILE (cAlias)->(!EOF())
 			cStr:=cStrEtq
-			cStr := STRTRAN(cStr, "%B1_COD%", SB1->B1_COD)
-			cStr := STRTRAN(cStr, "%B1_DESC%", SB1->B1_DESC)
-			cStr := STRTRAN(cStr, "%D3_UM%", SD3->D3_UM)
+			cStr := STRTRAN(cStr, "%B1_COD%", alltrim(SB1->B1_COD))
+			cStr := STRTRAN(cStr, "%B1_DESC%", alltrim(SB1->B1_DESC))
+			cStr := STRTRAN(cStr, "%D3_UM%", alltrim(SD3->D3_UM))
 			cStr := STRTRAN(cStr, "%D3_EMISSAO%", dtoc(SD3->D3_EMISSAO))
 			cStr := STRTRAN(cStr, "%D3_DTVALID%", dtoc(SD3->D3_DTVALID))
-			cStr := STRTRAN(cStr, "%D3_LOTECTL%", SD3->D3_LOTECTL)
-			cStr := STRTRAN(cStr, "%C6_PEDCLI%", (cAlias)->C6_PEDCLI)
-			cStr := STRTRAN(cStr, "%A1_NOME%", (cAlias)->A1_NOME)
+			cStr := STRTRAN(cStr, "%D3_LOTECTL%", alltrim(SD3->D3_LOTECTL))
+			cStr := STRTRAN(cStr, "%C6_PEDCLI%", alltrim((cAlias)->C6_PEDCLI))
+			cStr := STRTRAN(cStr, "%C6_DPD%", alltrim((cAlias)->C6_DPD))
+			cStr := STRTRAN(cStr, "%A1_NOME%", alltrim((cAlias)->A1_NOME))
 			cStr := STRTRAN(cStr, "%ZD3_ROLO%", transform((cAlias)->ZD3_ROLO , "@E 999"))
 			cStr := STRTRAN(cStr, "%ZD3_MTROLO%", transform((cAlias)->ZD3_MTROLO, "@E 999"))
 

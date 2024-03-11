@@ -88,7 +88,7 @@ conout("Print saida")
 
 oJson["chave"]:= "CoatIndu"
 oJson["impressao"]:= cSaida
-oJson["ip"]:= "192.168.2.238"
+oJson["ip"]:= "192.168.2.229"
 
 cJson:=oJson:ToJson()
 
