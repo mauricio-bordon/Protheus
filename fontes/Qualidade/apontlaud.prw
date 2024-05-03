@@ -169,7 +169,7 @@ static function valida(c2Produto)
 	cGrupo:=substr(c2Produto,3,4)
 	// grupo pex considera final 0810
 	if substr(cGrupo,1,2)=='80'
-
+	//7998
 		if cGrupo=="8015"
 		cProdutpai:='PI80090810'
 		cTipo:="PEX"
@@ -181,6 +181,14 @@ static function valida(c2Produto)
 		//if ndiamE>=350 .and. ndiamE<=450
 		ndiamEMin:=350
 		ndiamEMax:=700
+	 endif
+	 
+	 if cGrupo=="7998"
+	cProdutpai:='PI'+cGrupo+'0670'
+		cTipo:="PEX"
+		ndiamEMin:=350
+		ndiamEMax:=700
+	
 	else
 		cProdutpai:='PI'+cGrupo+'0665'
 		cTipo:="SELO"

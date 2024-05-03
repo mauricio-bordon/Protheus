@@ -89,7 +89,7 @@ User Function GeraB1()
 		if M->B1_TIPO$"P3"
 			M->B1_LOCALIZ 	:= 'S'
 			M->B1_RASTRO 	:= 'L'
-
+			M->B1_AGREGCU	:= '1'
 		ENDIF
 
 

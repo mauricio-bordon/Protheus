@@ -101,7 +101,7 @@ user function etqrolo()
 	END
 
 // SE O PRODUTO FOR MP IMPRIME E FABRICACAO IMPRIME
-	IF SD3->D3_TIPO$"MP P3" .AND. SD3->D3_CF$"DE6 DE4"
+	IF SD3->D3_TIPO$"MP P3 MC CO" .AND. SD3->D3_CF$"DE6 DE4"
 
 		CURDIR( 'etq' )
 		cStrEtq := MemoRead( "etq_rolo_mp.txt" )

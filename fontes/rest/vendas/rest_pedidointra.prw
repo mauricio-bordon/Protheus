@@ -164,6 +164,7 @@ static function incpedido(cNumero)
         SELECT *
         FROM PEDIDOS
         where CODIGO = %exp:cNumero%
+		
 	ENdSql
 
 	if (caliasCabec)->(eof())
@@ -234,6 +235,7 @@ static function incpedido(cNumero)
 			SELECT *			
             FROM PEDIDO_ITENS 
 			WHERE CODIGO = %EXP:cNumero% 
+			AND DELETED_AT is null
 	ENdSql
 	aItens:={}
 	while (cAlias2)->(!eof())

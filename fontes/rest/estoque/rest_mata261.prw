@@ -247,7 +247,9 @@ wsmethod get ws2 wsservice Material_mov
 		if len(aDados) == 1
 			cLote := aDados[1]
 		elseif len(aDados) == 2
-			cLote := aDados[1]
+		conout('Produto sem lote')
+			cProduto := aDados[1]
+			cLote:=""
 			nQuant := val(strtran(strtran(aDados[2],'.',''),',','.'))
 		elseif len(aDados) == 3
 			cProduto := aDados[1]
@@ -311,7 +313,11 @@ static function getLote(cLote, cProduto, nQuant)
 	Local aRmaterial := {}
 	Local cWhere := ''
 
-	cWhere := " BF_LOTECTL = '"+cLote+"' "
+	//conout('Lote->'+cLote+' Produto->'+cProduto+' nQuant->'+Transform(nQuant, "@E 999,999,999.999"))
+	
+	if !empty(cLote)
+	cWhere := " AND BF_LOTECTL = '"+cLote+"' "
+	endif
 	if !empty(cProduto)
 		cWhere += " AND BF_PRODUTO = '"+cProduto+"' "
 	ENDIF
@@ -325,7 +331,7 @@ static function getLote(cLote, cProduto, nQuant)
 	FROM %TABLE:SBF% BF INNER JOIN %TABLE:SB1%  B1 ON B1.B1_COD=BF.BF_PRODUTO
 	WHERE BF.%NOTDEL% AND BF_FILIAL = %XFILIAL:SBF%
         AND B1.%NOTDEL% AND B1_FILIAL = %XFILIAL:SB1%
-		AND %EXP:cWhere%
+		%EXP:cWhere%
 	ORDER BY 1, BF_LOCAL, BF_LOCALIZ
 	EndSQL
 

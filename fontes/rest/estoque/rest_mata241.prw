@@ -117,14 +117,14 @@ wsmethod post ws2 wsservice ws_mata241
 	cLote:=oJson['LOTE']
 	cLOCLZ:=oJson['LOCALIZACAO']
 	nQTD:= oJson['QUANTIDADE']
-	cCC:= '500' //oJson['CCUSTO']
+	//cCC:= '500' //oJson['CCUSTO']
+			//{"D3_CC" ,cCC, NIL},;
 
 	conout('Executando MSExecAuto MATA241.')
 	lMsErroAuto := .F.
 	_cDocSeq := GetSxeNum("SD3","D3_DOC")
         _aCab1 := {{"D3_DOC" ,_cDocSeq, NIL},;
-			{"D3_TM" ,'505' , NIL},;
-			{"D3_CC" ,cCC, NIL},;
+			{"D3_TM" ,'506' , NIL},;
 			{"D3_EMISSAO" ,ddatabase, NIL}}
 
 	aVetor:={    {"D3_COD",cCod,NIL},; //COD DO PRODUTO

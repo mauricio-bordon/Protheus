@@ -308,9 +308,9 @@ USER FUNCTION ORCSIINTRA(sA1_COD)
 	SCODVEND:=POSICIONE('SA1', 1, XFILIAL('SA1')+codcliente,"A1_VEND")
 
 	cAssunto:=" TESTE - Inducoat - Carta Proposta"
-	cMensagem:="Prezado(a),<br> "+ALLTRIM(POSICIONE('SA1', 1, XFILIAL('SA1')+sA1_COD, 'A1_CONTATO'))
-	cMensagem+="<br><br>Conforme solicitado, segue a proposta comercial."
-	cMensagem+="<br>Em caso de dúvidas, pedimos a gentileza de entrar em contato com o representante comercial responsável:"+ALLTRIM(POSICIONE('SA3', 1, XFILIAL('SA3')+SCODVEND,"A3_NOME"))
+	cMensagem:="Olá "+ALLTRIM(POSICIONE('SA1', 1, XFILIAL('SA1')+sA1_COD, 'A1_CONTATO'))+",<br>"
+	cMensagem+="<br><br>Em anexo a carta proposta."
+	cMensagem+="<br>Em caso de dúvidas, pedimos a gentileza de entrar em contato com o representante comercial responsável: "+ALLTRIM(POSICIONE('SA3', 1, XFILIAL('SA3')+SCODVEND,"A3_NOME"))
 	cMensagem+="<br><br>Atenciosamente,"
 	cMensagem+="<br>Equipe Inducoat "
 	cMensagem+="<br><br><br><i>E-mail enviado automaticamente via sistema, favor não responder. </i> "
@@ -343,12 +343,21 @@ static function prnTCV(nLinAtu)
 	aAdd(aInfo,{"Prazo de entrega (dias):"		, "À confirmar após a confirmação do pedido"})
 	_cCondPag := POSICIONE('SE4', 1, XFILIAL('SE4')+SCONDVEND,"E4_DESCRI")
 	aAdd(aInfo,{"Condição de pagamento:"		, _cCondPag})
-	aAdd(aInfo,{"Frete:"						, "Posto São Paulo"})
+
+	sA1_TPFRET := POSICIONE('SA1', 1, XFILIAL('SA1')+codcliente,"A1_TPFRET")
+
+	if sA1_TPFRET=='C'
+		aAdd(aInfo,{"Frete:"						, "CIF (Posto São Paulo)"})
+	else
+		aAdd(aInfo,{"Frete:"						, "FOB"})
+
+	endif
+
 	aAdd(aInfo,{"Observações:"					, "Para o cumprimento dos preços informados acima, precisamos que o pedido"})
 	aAdd(aInfo,{""								, "seja emitido dentro das condições comercias descritas nesta carta proposta. "})
 	if lOBSERVACAO
-	aAdd(aInfo,{""								, "Para produto com impressão dedicada, o Material/Descrição pode sofrer alteração."})
-	endif	
+		aAdd(aInfo,{""								, "Para produto com impressão dedicada, o Material/Descrição pode sofrer alteração."})
+	endif
 	aAdd(aInfo,{""								, ""})
 	aAdd(aInfo,{"Tolerância de Variação:"		,"Considerar variação de 10% para mais ou para menos entre a quantidade "})
 	aAdd(aInfo,{""								, "solicitada e a quantidade produzida."})

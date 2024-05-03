@@ -182,14 +182,37 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 
 //se todos os rolos foram colocado em pallet envia email sobre o peso
 	if lPallet
+	cHTML:=""
+	nPallet:=0
+	nPesoBrt:=0
+	nPesoLiq:=0
+	DbSelectArea('ZD2')
+	ZD2->(DBSETORDER(1))
+	ZD2->(DBSEEK(XFILIAL('ZD2')+cOp))
+	While ZD2->ZD2_OP == cOp
+	nPallet:=nPallet+1
+	nPesoBrt:=nPesoBrt+ZD2->ZD2_PESOBR
+	nPesoLiq:=nPesoLiq+ZD2->ZD2_PESOLI 
+	
+
+	ZD2->(dbSkip())
+	enddo
+	
+	cHTML:="Ordem finaliza:<br>"
+	cHTML+="Quantidade de PALLETS: <b>"+str(nPallet)+"</b><br>"
+	cHTML+="Peso Liquido: <b>"+str(nPesoLiq)+"</b><br>"
+	cHTML+="Peso Bruto: <b>"+str(nPesoBrt)+"</b><br>"
+
 	//Alert()
-	//cAssunto:="Finalizado op"
-	//u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )	
+	c_ends:="vandeir.aniceto@inducoat.com.br, gabriela.battistini@inducoat.com.br"
+	cAssunto:="Finalizado  OP "+cOp
+	u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )	
 
 	ENDIF
 
 
 RETURN
+
 
 static FUNCTION selrolos()
 	Local cInput, nRolos, i := 0
