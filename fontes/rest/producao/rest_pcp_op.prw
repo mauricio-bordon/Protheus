@@ -12,6 +12,7 @@ wsrestful ws_pcp_op description "WS para Ordens de Producao "
 	WSDATA maquina AS CHARACTER OPTIONAL
 	WSDATA numero  AS CHARACTER OPTIONAL
 	WSDATA item  AS CHARACTER OPTIONAL
+	WSDATA cOP  AS CHARACTER OPTIONAL
 	WSDATA sequencia  AS CHARACTER OPTIONAL
 	WSDATA report AS CHARACTER OPTIONAL
 	WSDATA aQueryString AS ARRAY OPTIONAL
@@ -24,8 +25,12 @@ wsrestful ws_pcp_op description "WS para Ordens de Producao "
 	wsmethod get ws2;
 		description "dados Ordem" ;
 		wssyntax "/ws_pcp_op/v1/op/{numero}/{item}/{sequencia}" ;
-		path "/ws_pcp_op/v1/op/{numero}/{item}/{sequencia}"	
+		path "/ws_pcp_op/v1/op/{numero}/{item}/{sequencia}"
 
+	wsmethod post ws3;
+		description "OP climpeza de linha post";
+		wssyntax "/ws_pcp_op/setlimpeza/{cOP}";
+		path "/ws_pcp_op/setlimpeza/{cOP}"
 
 end wsrestful
 
@@ -72,7 +77,7 @@ static function getOps(cMaquina)
 
 	BeginSQL alias cAlias
 	SELECT C2_NUM, C2_ITEM, C2_SEQUEN, C2_PRODUTO, RTRIM(B1_DESC) AS DESCRICAO,   
-	C2_MAQUINA, C2_PRIORID, C2_UM, C2_QUANT, C2_QUJE
+	C2_MAQUINA, C2_PRIORID, C2_UM, C2_QUANT, C2_QUJE,C2_LIMPEZA
 	FROM %TABLE:SB1% B1  INNER JOIN  %TABLE:SC2% C2 ON B1.B1_COD=C2.C2_PRODUTO
 		LEFT JOIN %TABLE:SH1% H1 ON H1.H1_CODIGO = C2_MAQUINA 
 			AND H1.D_E_L_E_T_<>'*' AND H1_FILIAL = %XFILIAL:SH1%
@@ -99,6 +104,7 @@ static function getOps(cMaquina)
 		aItem[nPos]['qtd_produzida']:= (CALIAS)->C2_QUJE
 		aItem[nPos]['maquina']		:= alltrim((cAlias)->C2_MAQUINA)
 		aItem[nPos]['prioridade']	:= (CALIAS)->C2_PRIORID
+		aItem[nPos]['limpeza']	:= (CALIAS)->C2_LIMPEZA
 		(cAlias)->(dbSkip())
 	enddo
 	(cAlias)->(DbClosearea())
@@ -130,17 +136,56 @@ wsmethod get ws2 wsservice ws_pcp_op
 	::SetResponse(wrk)
 
 
-	
+
 	FreeObj(wrk)
 	lRet := .T.
 
 return lRet
 
+
+
+wsmethod post ws3 wsservice ws_pcp_op
+	local lRet as logical
+	Local cBody := ::getContent()
+	local oJson
+
+	conout('OP PASSSANDO')
+
+	self:SetContentType("application/json")
+
+	oJson := JsonObject():new()
+	oJson:fromJSON(cBody)
+
+	conout('OP PASSSANDO')
+	conout(::cOp)
+	conout(cUserName)
+
+	lRet:= setLimpeza(::cOp,cUserName)
+
+	conout('Passou')
+
+	if lRet
+		self:setStatus(200)
+		//wrk:set(aJson)
+		::SetResponse('{ "message": "Registro realizado com sucesso","detailedMessage": "Registro realizado com sucesso"}')
+
+	else
+		self:setStatus(400)
+		//wrk:set(aJson)
+		::SetResponse('{ "message": "Erro","detailedMessage": "Registro de limpeza de linha nao realizado"}')
+		lRet:=.T.
+
+	endif
+
+
+return lRet
+
+
 static function getOp(cNumero, cItem, cSequencia)
 	Local cAlias, cLotectl
 	Local aItem := {}, aItem2 := {}, aLotes := {}
 
-	
+
 	cAlias := getNextAlias()
 
 
@@ -198,25 +243,45 @@ static function getOp(cNumero, cItem, cSequencia)
 
 	cAlias := getnextalias()
 
-		BeginSql alias CALIAS
+	BeginSql alias CALIAS
                 SELECT MAX(D3_LOTECTL) AS LOTEMAX
                 FROM %TABLE:SD3%
                 WHERE D3_FILIAL = %XFILIAL:SD3% AND %NOTDEL%
                 AND D3_OP = %EXP:cNumero+cItem+cSequencia%
                 AND D3_CF = 'PR0'
                 AND D3_ESTORNO <> 'S'
-		EndSql
-		if (CALIAS)->(EOF())
-			nSeqOp := 0
-		else
-			nSeqOp := VAL( SUBSTR((CALIAS)->LOTEMAX,12,3) )
-		endif
-		(CALIAS)->(DBCLOSEAREA())
-		nSeqOp++
-		cLotectl := alltrim(cNumero+cItem+cSequencia) +  STRZERO(nSeqOp, 3)
+	EndSql
+	if (CALIAS)->(EOF())
+		nSeqOp := 0
+	else
+		nSeqOp := VAL( SUBSTR((CALIAS)->LOTEMAX,12,3) )
+	endif
+	(CALIAS)->(DBCLOSEAREA())
+	nSeqOp++
+	cLotectl := alltrim(cNumero+cItem+cSequencia) +  STRZERO(nSeqOp, 3)
 
 	aItem['proximo_lote']	:= cLotectl
 //	json_dbg(aItem)
 
 return aItem
 
+
+static function setLimpeza(cOP,cUser)
+	local lRet:=.T.
+	local slog:=dToS(Date()) + ";" +Time()+";"+cUser
+	conout('OP 1')
+	conout(slog)
+	dbSelectArea("SC2")
+	SC2->(DBSETORDER(1))
+	SC2->(DBSEEK(XFILIAL('SC2')+cOP))
+
+	conout('OP PASSSANDO 2')
+	IF SC2->(FOUND())
+		SC2->(RecLock("SC2", .F. ))
+		SC2->C2_LIMPEZA := slog
+		SC2->(MSUNLOCK())
+	else
+		lRet:=.F.
+	endif
+
+return lRet

@@ -133,6 +133,8 @@ user function etqrolo()
 		FERASE("c:\windows\temp\etq_rolo_mp.prn" )
 		MemoWrite("c:\windows\temp\etq_rolo_mp.prn", cStrEtq)
 
+		MemoWrite("c:\Relato\"+alltrim(SB1->B1_COD)+"_"+alltrim(SD3->D3_LOTECTL)+".prn", cStrEtq)
+
 		Copy File "c:\windows\temp\etq_rolo_mp.prn" To LPT1
 
 	ENDIF

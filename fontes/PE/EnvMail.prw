@@ -15,7 +15,7 @@ Local cMailDest   := Alltrim(cDestino)
 Local lConnect    := .f.
 Local lEnv        := .f.
 Local lFim        := .f.
-lOCAL cAmbiente:=GetEnvServer()
+lOCAL cAmbiente:=Upper(GetEnvServer())
 //Local cMailFrom   := cMailFrom 
 //sempre o email de autenticaçao
 conout("------------ Enviando email --------------")

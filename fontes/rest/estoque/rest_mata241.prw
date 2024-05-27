@@ -105,7 +105,7 @@ wsmethod post ws2 wsservice ws_mata241
 	Local oJson
 	//Local cObs:=''
 	Local cBody := ::getContent()
-	Local cCod,cLOCAL,cLOCLZ,nQTD,cCC
+	Local cCod,cLOCAL,cLOCLZ,nQTD
 	Private cErrRest := ''
 
 	oJson := JsonObject():new()
@@ -118,14 +118,26 @@ wsmethod post ws2 wsservice ws_mata241
 	cLOCLZ:=oJson['LOCALIZACAO']
 	nQTD:= oJson['QUANTIDADE']
 	//cCC:= '500' //oJson['CCUSTO']
-			//{"D3_CC" ,cCC, NIL},;
+	//{"D3_CC" ,cCC, NIL},;
+
+	//valida caso seja PI PA e MP não permite
+	//Classificacao Automatica
+	if  Substr(cCod,1,2)  $ ( "PA_PI_MP")
+
+		::SetResponse('{ "message": "Material nao permitido","detailedMessage": "Tipo de material nao permitido"}')
+
+		self:setStatus(400)
+
+		return .T.
+	endif
+
 
 	conout('Executando MSExecAuto MATA241.')
 	lMsErroAuto := .F.
 	_cDocSeq := GetSxeNum("SD3","D3_DOC")
-        _aCab1 := {{"D3_DOC" ,_cDocSeq, NIL},;
-			{"D3_TM" ,'506' , NIL},;
-			{"D3_EMISSAO" ,ddatabase, NIL}}
+	_aCab1 := {{"D3_DOC" ,_cDocSeq, NIL},;
+		{"D3_TM" ,'506' , NIL},;
+		{"D3_EMISSAO" ,ddatabase, NIL}}
 
 	aVetor:={    {"D3_COD",cCod,NIL},; //COD DO PRODUTO
 	{"D3_QUANT",nQTD,NIL},;   //QUANTIDADE
@@ -134,10 +146,10 @@ wsmethod post ws2 wsservice ws_mata241
 	{"D3_LOCALIZ",cLOCLZ,NIL}}//,; //LOCALIZACAO
 	//{"D3_OBSROLO",cObs,NIL}}  //CENTRO DE CUSTO
 
-	    _atotitem := {}
-		aadd(_atotitem,aVetor)
-		lMsErroAuto := .F.
-		MSExecAuto({|x,y,z| MATA241(x,y,z)},_aCab1,_atotitem,3)
+	_atotitem := {}
+	aadd(_atotitem,aVetor)
+	lMsErroAuto := .F.
+	MSExecAuto({|x,y,z| MATA241(x,y,z)},_aCab1,_atotitem,3)
 
 	conout(aVetor)
 	If lMsErroAuto
