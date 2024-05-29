@@ -73,9 +73,9 @@ STATIC FUNCTION PRINTCAIX(cOP)
 
 	BeginSql alias CALIAS
 		SELECT ZD3_OP,ZD3_COD,ZD3_LOTE,ZD3_CAIXA,COUNT(ZD3_MTROLO) AS QTDROLO,SUM(ZD3_MTROLO) AS TOTAL
-		FROM %TABLE:ZD3% D3 
-		WHERE ZD3_FILIAL = %XFILIAL:ZD3% 
-		AND D3.%NOTDEL% 
+		FROM %TABLE:ZD3% D3
+		WHERE ZD3_FILIAL = %XFILIAL:ZD3%
+		AND D3.%NOTDEL%
 		AND ZD3_OP=%EXP:cOP%
 		AND D_E_L_E_T_<>'*'
 		GROUP BY ZD3_OP,ZD3_COD,ZD3_LOTE,ZD3_CAIXA
@@ -129,8 +129,8 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 
 	BeginSql alias CALIAS
 		SELECT  ZD3_COD, ZD3_LOTE, ZD3_MTROLO AS METROS, SUM(ZD3_MTROLO) AS totalMT, COUNT(*) as rolos
-				FROM  %TABLE:ZD3% D3 
-				WHERE ZD3_FILIAL = %XFILIAL:ZD3% AND D3.%NOTDEL% 
+				FROM  %TABLE:ZD3% D3
+				WHERE ZD3_FILIAL = %XFILIAL:ZD3% AND D3.%NOTDEL%
 				AND ZD3_OP = %EXP:cOp%
                 AND ZD3_PALLET =  %EXP:cPallet%
             GROUP BY ZD3_COD, ZD3_MTROLO, ZD3_LOTE
@@ -165,14 +165,14 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	ZD3->(dbSetOrder(1)) //ZT0_FILIAL+ZT0_NUMOP+ZT0_ITEM
 	ZD3->(dbSeek(xFilial("ZD3")+cOP))
 
-*/	
+*/
 		ZD3->( dbGoTop() )
 
 	Do while ZD3->(!eof())  .And. ZD3->ZD3_OP = cOP
 		//se existir rolo sem pallet aguarda.
 		if EMPTY(alltrim(ZD3->ZD3_PALLET))
 			lPallet:=.F.
-			
+
 			return
 		endif
 		ZD3->(dbSkip())
@@ -192,12 +192,12 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	While ZD2->ZD2_OP == cOp
 	nPallet:=nPallet+1
 	nPesoBrt:=nPesoBrt+ZD2->ZD2_PESOBR
-	nPesoLiq:=nPesoLiq+ZD2->ZD2_PESOLI 
-	
+	nPesoLiq:=nPesoLiq+ZD2->ZD2_PESOLI
+
 
 	ZD2->(dbSkip())
 	enddo
-	
+
 	cHTML:="Ordem finaliza:<br>"
 	cHTML+="Quantidade de PALLETS: <b>"+str(nPallet)+"</b><br>"
 	cHTML+="Peso Liquido: <b>"+str(nPesoLiq)+"</b><br>"
@@ -206,7 +206,7 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	//Alert()
 	c_ends:="vandeir.aniceto@inducoat.com.br, gabriela.battistini@inducoat.com.br"
 	cAssunto:="Finalizado  OP "+cOp
-	u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )	
+	u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )
 
 	ENDIF
 
@@ -321,8 +321,6 @@ STATIC Function MNTPLTSI()
 		cCliente:= SC5->C5_CLIENTE
 	ENDIF
 
-
-
 	DEFINE MSDIALOG _oPT00005 FROM  50, 050 TO 250,500 TITLE OemToAnsi('Novo Pallet') PIXEL
 
 	@ 010,005 Say OemToAnsi("Cliente: ") Size 040,030
@@ -357,20 +355,22 @@ STATIC Function MNTPLTSI()
 			ZD3->( dbSkip() )
 		Enddo
 
-		SC2->(RECLOCK('SC2',.F.))
-		SC2->C2_NPLTPRX := NPLTNEXT
-		SC2->(MsUnlock())
+		if nCt > 0
+			SC2->(RECLOCK('SC2',.F.))
+			SC2->C2_NPLTPRX := NPLTNEXT
+			SC2->(MsUnlock())
 
-		DbSelectArea('ZD2')
-		ZD2->(RECLOCK('ZD2',.T.))
-		ZD2->ZD2_FILIAL := XFILIAL('ZD2')
-		ZD2->ZD2_OP 	:= cOP
-		ZD2->ZD2_PALLET := strzero(nPltNext,3)
-		ZD2->ZD2_CODCLI := cCliente //TODO INFORMAR CLIENTE
-		ZD2->ZD2_LOJCLI	:= cLojacli // TODO INFORMAR LOJA CLIENTE
-		ZD2->ZD2_PESOLI := nPesoLiq	//todo informar peso liquido
-		ZD2->ZD2_PESOBR := nPesoBruto	//todo informar peso bruto
-		ZD2->(MsUnlock())
+			DbSelectArea('ZD2')
+			ZD2->(RECLOCK('ZD2',.T.))
+			ZD2->ZD2_FILIAL := XFILIAL('ZD2')
+			ZD2->ZD2_OP 	:= cOP
+			ZD2->ZD2_PALLET := strzero(nPltNext,3)
+			ZD2->ZD2_CODCLI := cCliente //TODO INFORMAR CLIENTE
+			ZD2->ZD2_LOJCLI	:= cLojacli // TODO INFORMAR LOJA CLIENTE
+			ZD2->ZD2_PESOLI := nPesoLiq	//todo informar peso liquido
+			ZD2->ZD2_PESOBR := nPesoBruto	//todo informar peso bruto
+			ZD2->(MsUnlock())
+		endif
 
 	END TRANSACTION
 
@@ -469,13 +469,13 @@ static Function ETQSIPLT(CORDEM,cItemop, CCOD,cLocal, CLOTECTL, cCliente, aItens
 	//verifica se existe DPD para o produto
 	cDPD:=alltrim(POSICIONE('SC6',7,XFILIAL('SC6')+CORDEM+cItemop,"C6_DPD"))
 	cPedCli:=alltrim(POSICIONE('SC6',7,XFILIAL('SC6')+CORDEM+cItemop,"C6_PEDCLI"))
-	
+
 	cStr := STRTRAN(cStr, "%DESC%", alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+cCod,"B1_DESC")) )
 	cStr := STRTRAN(cStr, "%DESC%", alltrim(POSICIONE('SB1',1,XFILIAL('SB1')+cCod,"B1_DESC")))
 	cStr := STRTRAN(cStr, "%COD%", alltrim(cCOD) )
  	cStr := STRTRAN(cStr, "%DPD%", alltrim(cDPD) )
 	cStr := STRTRAN(cStr, "%PEDCLI%", alltrim(cPedCli) )
-	
+
 	cStr := STRTRAN(cStr, "%LOTE%", alltrim(cLOTECTL) )
 	cStr := STRTRAN(cStr, "%BARCODE%", alltrim(cLOTECTL) )
 	cStr := STRTRAN(cStr, "%CLIENTE%", alltrim(POSICIONE('SA1',1,XFILIAL('SA1')+cCliente,"A1_NOME")) )
@@ -566,4 +566,3 @@ sTATIC Function TMATA265(CLOTECTL,cLocal)
 		RETURN .F.
 	ENDIF
 Return .T.
-
