@@ -26,11 +26,11 @@ ZQ0->(dbSeek(xFilial("ZQ0")+cNum+cItem+cSeq))
 
 Do while ZQ0->(!eof())  .And. ZQ0->ZQ0_OP = cNum+cItem+cSeq
 	//If Alltrim(ZQ0->ZQ0_OP) = Alltrim(cNum+cItem+cSeq)
-		
+
 		ZQ0->(RecLock("ZQ0", .F.))
 		ZQ0->(DbDelete())
 		ZQ0->(MsUnLock())
-		
+
 	//Endif
 	ZQ0->(dbSkip())
 Enddo
@@ -41,8 +41,6 @@ cAssunto:="Ordem "+cNum+cItem+cSeq+" removida. "
 cHTML:="Ordem "+cNum+cItem+cSeq+"<br>Produto "+SB1->B1_DESC+"<br>Removido por "+cusername
 //Envia email para o pcp avisado que o email foi excluida
 c_ends:="pcp@inducoat.com.br;ti@inducoat.com.br"
-u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )	
-
-
+//u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )
 
 Return
