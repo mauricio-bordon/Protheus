@@ -1,8 +1,8 @@
 user function etqrolom2()
 	local cStrEtq
-	
+
 // SE O PRODUTO FOR PI IMPRIME E FABRICACAO IMPRIME
-	//IF SH6->H6_PRODUTO$"PI_PA" 
+	//IF SH6->H6_PRODUTO$"PI_PA"
 
 		CURDIR( 'etq' )
 		cStrEtq := MemoRead( "etq_rolo_pi2.txt" )
@@ -16,10 +16,17 @@ user function etqrolom2()
 		cStrEtq := STRTRAN(cStrEtq, "%D3_QUANT%", transform(SH6->H6_QTDPROD, "@E 999,999.999"))
 		cStrEtq := STRTRAN(cStrEtq, "%D3_EMISSAO%", dtoc(SH6->H6_DTPROD))
 		cStrEtq := STRTRAN(cStrEtq, "%D3_LOTECTL%", SH6->H6_LOTECTL)
-		cStrEtq := STRTRAN(cStrEtq, "%OBS%", SH6->H6_OBSERVA)
+
+		if left(SB1->B1_COD, 2) == "PA"
+			//a observação é de uso interno da produção; não deve ser impressa no caso de PA
+			cStrEtq := STRTRAN(cStrEtq, "%OBS%", " ")
+		else
+			cStrEtq := STRTRAN(cStrEtq, "%OBS%", SH6->H6_OBSERVA)
+		endif
+
 	    cStrEtq := STRTRAN(cStrEtq, "%BARRAS%", alltrim(SB1->B1_COD)+';'+alltrim(SH6->H6_LOTECTL)+';'+alltrim(transform(SH6->H6_QTDPROD, "@E 999,999.999")))
 
-//imprime 2 etq		
+//imprime 2 etq
 //cStrEtq += cStrEtq +chr(10)+chr(13)
 
 		cPort := 'LPT1' // prnLPTPort()
@@ -51,7 +58,7 @@ user function etqpim2(cLote)
     AAdd(aHeader, "User-Agent: Chrome/65.0 (compatible; Protheus " + GetBuild() + ")")
 
 // SE O PRODUTO FOR PI IMPRIME E FABRICACAO IMPRIME
-	//IF SH6->H6_PRODUTO$"PI_PA" 
+	//IF SH6->H6_PRODUTO$"PI_PA"
 	dbselectarea("SH6")
 	SH6->(dbSetOrder(5))
 	If dbseek(xfilial("SH6")+cLote)
@@ -64,7 +71,7 @@ user function etqpim2(cLote)
 		//SC2 C2_MAQUINA
 		dbSelectArea("SC2")
 		dbSeek(xFilial("SC2")+alltrim(SH6->H6_OP))
-		
+
 		//SH1 H1_IPPRINT
 		//busca o ip da impressora no recurso.
 		dbSelectArea("SH1")
