@@ -41,6 +41,6 @@ cAssunto:="Ordem "+cNum+cItem+cSeq+" removida. "
 cHTML:="Ordem "+cNum+cItem+cSeq+"<br>Produto "+SB1->B1_DESC+"<br>Removido por "+cusername
 //Envia email para o pcp avisado que o email foi excluida
 c_ends:="pcp@inducoat.com.br;ti@inducoat.com.br"
-//u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )
+u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )
 
 Return
