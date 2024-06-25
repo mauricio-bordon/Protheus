@@ -13,7 +13,7 @@ user function calcPI(cPrefixo)
 	local nQtdProd := 0 //calcular cada largura de produto individualmente
 	local nQtdPIAtual := 0 //quantidade já gerada para o PI
 	Local cProduto := ''
-	Local cCodPI := M->C2_PRODUTO
+	Local cCodPI := ''
 	Local nLargPI := 0
 	Local nLargPA := 0
 	Local nCarreiras := 0
