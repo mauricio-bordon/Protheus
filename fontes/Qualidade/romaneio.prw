@@ -84,10 +84,10 @@ USER FUNCTION romaneio(cOrigem)
 
 		//oPrinter:Line( n_line, 045, n_line,2275 )
 		oPrinter:Say( nLine, nColIni+900, 'ROMANEIO' , oFont3B)
-		
-		
-		
-		
+
+
+
+
 		nLine += nIncLine * 2
 		oPrinter:Say( nLine, nColIni,'Cliente: ', oFont1B)
 		oPrinter:Say( nLine, nColIni+160, ALLTRIM(POSICIONE('SA1', 1, XFILIAL('SA1')+SF2->F2_CLIENTE, 'A1_NOME')) , oFont1)
@@ -96,7 +96,7 @@ USER FUNCTION romaneio(cOrigem)
 		oPrinter:Say( nLine, nColIni+250, alltrim(SF2->F2_DOC) , oFont1)
 		nLine += nIncLine * 2
 		While SF2->F2_FILIAL=SD2->D2_FILIAL .And. SD2->D2_DOC+SD2->D2_SERIE == cNota
-		
+
 		oPrinter:Line( nLine, nColIni, nLine,nColFim )
 		nLine += nIncLine * 2
 		oPrinter:Say( nLine, nColIni, 'Produto: '+ POSICIONE('SB1', 1, XFILIAL('SB1')+SD2->D2_COD, 'B1_DESC') + '.' , oFont1B)
@@ -104,7 +104,7 @@ USER FUNCTION romaneio(cOrigem)
 		oPrinter:Say( nLine, nColIni+1700,'Data Fabricação: ', oFont1B)
 		oPrinter:Say( nLine, nColIni+2000,DTOC(SD2->D2_DFABRIC)  , oFont1)
 		nLine += nIncLine * 2
-	
+
 		oPrinter:Say( nLine, nColIni+1700,'Quantidade: ', oFont1B)
 		oPrinter:Say( nLine, nColIni+1920,TRANSFORM(SD2->D2_QUANT,"@E 999,999.99")  , oFont1)
 		oPrinter:Say( nLine, nColIni+2100,SD2->D2_UM  , oFont1)
@@ -148,7 +148,7 @@ USER FUNCTION romaneio(cOrigem)
 		next
 
 		nLine += nIncLine
-		
+
 		SD2->(dbSkip())
 	Enddo
 
@@ -156,7 +156,7 @@ USER FUNCTION romaneio(cOrigem)
 		nLine := 2950
 		oPrinter:Line( nLine, nColIni, nLine,nColFim )
 		nLine += nIncLine
-		oPrinter:Say( nLine, 600, 'Rua Pedro Bassi, 576 - Louveira - SP - 13294-008 (19) 3167-0700', oFont1b)
+		oPrinter:Say( nLine, 600, 'Rua Fortunato Garcia Braga, 495 - Jundiai - SP - 13213-334 (19) 3167-0700', oFont1b)
 
 		oPrinter:EndPage()
 
@@ -174,11 +174,11 @@ Static Function getitens(cLote)
 	cAlias := getNextAlias()
 
 	BEGINSQL ALIAS cAlias
-		SELECT ZD3_COD,ZD3_LOTE,ZD3_PALLET,ZD3_CAIXA,ZD3_MTROLO,COUNT(ZD3_MTROLO) ROLOS 
+		SELECT ZD3_COD,ZD3_LOTE,ZD3_PALLET,ZD3_CAIXA,ZD3_MTROLO,COUNT(ZD3_MTROLO) ROLOS
 		FROM %TABLE:ZD3%
 		where ZD3_LOTE=%EXP:cLote%
 		AND D_E_L_E_T_<>'*'
-		GROUP BY ZD3_COD,ZD3_LOTE,ZD3_PALLET,ZD3_CAIXA,ZD3_MTROLO 
+		GROUP BY ZD3_COD,ZD3_LOTE,ZD3_PALLET,ZD3_CAIXA,ZD3_MTROLO
 
 	ENDSQL
 
