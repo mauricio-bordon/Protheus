@@ -8,10 +8,16 @@ user function C2PROD02()
 	Local cPrefixo := ''
 	Local cInfo := ''
 	Local aInfo := {}
-	Local cCodPI := M->C2_PRODUTO
+	Local cCodPI := alltrim(M->C2_PRODUTO)
+	Local nLargCrt  := getmv('IC_PIFXCRT') // Largura padrão utilizada no corte - default 645
 
 	//se não for PI, ignorar (retornar a mesma quantidade que já está no campo C2_QUANT)
 	if substr(cCodPI, 1, 2) != 'PI'
+		return M->C2_QUANT
+	endif
+
+	//cálculo apenas para PI's com largura padrão
+	if cCodPI != substr(cCodPI, 1, 6) + strzero(nLargCrt, 4)
 		return M->C2_QUANT
 	endif
 

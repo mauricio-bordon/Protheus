@@ -174,7 +174,7 @@ USER FUNCTION laudo(cOrigem)
 		nLine := 2950
 		oPrinter:Line( nLine, nColIni, nLine,nColFim )
 		nLine += nIncLine
-		oPrinter:Say( nLine, 600, 'Rua Pedro Bassi, 576 - Louveira - SP - 13294-008 (19) 3167-0700', oFont1b)
+		oPrinter:Say( nLine, 600, 'Rua Fortunato Garcia Braga, 495 - Jundiai - SP - 13213-334 (19) 3167-0700', oFont1b)
 
 		oPrinter:EndPage()
 
@@ -198,7 +198,7 @@ Static Function getensaios(cLote)
 	BEGINSQL ALIAS cAlias
                 SELECT D3_OP
                 FROM %TABLE:SD3%
-                WHERE D3_FILIAL = %XFILIAL:SD3% 
+                WHERE D3_FILIAL = %XFILIAL:SD3%
 				AND D_E_L_E_T_ <> '*'
 				AND D3_CF='PR0'
                 AND D3_LOTECTL = %EXP:cLote%
@@ -220,10 +220,10 @@ Static Function getensaios(cLote)
 	BEGINSQL ALIAS cAlias
                 SELECT *
                 FROM %TABLE:ZQ0%
-                WHERE ZQ0_FILIAL = %XFILIAL:ZQ0% 
+                WHERE ZQ0_FILIAL = %XFILIAL:ZQ0%
 				AND D_E_L_E_T_ <> '*'
 				AND ZQ0_OP=%EXP:cOP%
-                
+
 	ENDSQL
 
 
@@ -232,13 +232,13 @@ Static Function getensaios(cLote)
 		//unidade de medida de espessura se diferencia para Grupo 9 Selo e grupo 8 PEX
 		//cOP:=(cAlias)->D3_OP
 		IF alltrim((CALIAS)->ZQ0_ENSAIO)=='Espessura'
-			
-			IF SB1->B1_GRUPO$'PA9' 
+
+			IF SB1->B1_GRUPO$'PA9'
 			aAdd(aEnsaios,{'Espessura Total','µm',alltrim((CALIAS)->ZQ0_RESULT),(CALIAS)->ZQ0_ESPCIF})
 			ELSE
 			aAdd(aEnsaios,{'Espessura Total','mm',alltrim((CALIAS)->ZQ0_RESULT),(CALIAS)->ZQ0_ESPCIF})
 			ENDIF
-			
+
 		elseif alltrim((CALIAS)->ZQ0_ENSAIO)=='LarguraMin'
 			cLargura:=alltrim((CALIAS)->ZQ0_RESULT)+' mín'
 
