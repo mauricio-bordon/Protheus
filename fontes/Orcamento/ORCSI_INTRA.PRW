@@ -117,9 +117,9 @@ USER FUNCTION ORCSIINTRA(sA1_COD)
 	cAlias := getNextAlias()
 
 	BEGINSQL alias CALIAS
-		
-				
-		SELECT CLIENTE,LARGURA_CORTE,BM_DESC,PRECO_BASE,ICMS,BM_IPI,QUANTIDADE_COMPRA,METROS_LINEARES,NUM_ROLOS,OBSERVACAO 
+
+
+		SELECT CLIENTE,LARGURA_CORTE,BM_DESC,PRECO_BASE,ICMS,BM_IPI,QUANTIDADE_COMPRA,METROS_LINEARES,NUM_ROLOS,OBSERVACAO
 		FROM PRODUTOCLIENTE
 		INNER JOIN SBM010 BM
 		ON BM_GRUPO=PRODUTO
@@ -127,7 +127,7 @@ USER FUNCTION ORCSIINTRA(sA1_COD)
 		AND DELETED_AT IS NULL
 		AND CLIENTE=%EXP:sA1_COD%
 		AND PROPOSTA='S'
-		
+
 	ENDSQL
 
 	nColItem 	:=  80
@@ -204,7 +204,7 @@ USER FUNCTION ORCSIINTRA(sA1_COD)
 		cObs2 += " totalizando: "+alltrim(transform(nMtTirada, "@E 999,999.999"))+" mt "+Chr(13)+Chr(10)
 		nMultLine := 2
 		cObsSobra := ''
-		
+
 		if nFxSobra > 0
 			cObsSobra := CValToChar((CALIAS)->ZV1_NROLOS)+ " faixas de "+CValToChar((calias)->ZV1_LARGCR)+ " mm e 1 faixa de "+ CValToChar(nFxSobra) +"mm"
 			cObs2 += cObsSobra+Chr(13)+Chr(10)
@@ -227,7 +227,7 @@ USER FUNCTION ORCSIINTRA(sA1_COD)
 		oPrinter:SayAlign(nLine, nColPos, 'MT', oFont1, nColUn, nIncLine * nMultLine, , PAD_CENTER, 0)
 		nColPos += nColUn
 		nColOBSProd:=nColPos
-		oPrinter:SayAlign(nLine, nColPos, (calias)->BM_DESC, oFont1, nColMatDesc, nIncLine * nMultLine, , PAD_LEFT, 0)
+		oPrinter:SayAlign(nLine, nColPos, (calias)->BM_DESC, oFont3, nColMatDesc, nIncLine * nMultLine, , PAD_LEFT, 0)
 		nColPos += nColMatDesc
 
 		//oPrinter:SayAlign(nLine, nColPos, oTpImpr[(calias)->ZV1_TPIMPR], oFont1, nColTpSelo, nIncLine * nMultLine, , PAD_CENTER, 0)
@@ -396,4 +396,3 @@ static function diasemext(dData)
 	lOcal aDias := {'Domingo', 'Segunda-Feira', 'Terça-Feira', 'Quarta-Feira', 'Quinta-Feira', 'Sexta-Feira', 'Sábado'}
 
 return aDias[nDow]
-
