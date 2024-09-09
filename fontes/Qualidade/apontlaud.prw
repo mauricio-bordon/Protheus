@@ -19,7 +19,7 @@ user function apontlaud()
 	BEGINSQL ALIAS CALIAS
                 SELECT *
                 FROM %TABLE:ZQ0%
-                WHERE ZQ0_FILIAL = %XFILIAL:ZQ0% 
+                WHERE ZQ0_FILIAL = %XFILIAL:ZQ0%
 				AND D_E_L_E_T_ <> '*'
                 AND ZQ0_OP = %EXP:cOP%
 	ENDSQL
@@ -51,7 +51,7 @@ user function apontlaud()
 			    ZQ0->(dbdelete())
 			ZQ0->(MsUnLock())
             (CALIAS)->(dbskip())
-            
+
 		ENDDO
 
    	ENDIF
@@ -67,7 +67,7 @@ user function apontlaud()
 	oSay1:= tSay():New(35,10,{||"Ordem: "+SC2->C2_NUM+" Item: "+SC2->C2_ITEM+" Sequencia:"+SC2->C2_SEQUEN},oDlg,,,,,,.T.,,,)
 
 	oSay2:= tSay():New(50,10,{||"Espessura Total"},oDlg,,,,,,.T.,,,)
-	oGet2:= TGet():New(50,80,, oDlg, 60,10,'@E 999.99',,,,,,,.T.,,.T.,,,,,.F.,,,'nesp')
+	oGet2:= TGet():New(50,80,, oDlg, 60,10,'@E 9.999',,,,,,,.T.,,.T.,,,,,.F.,,,'nesp')
 	oGet2:bSetGet := {|u| If(PCount()>0,nesp:=u,nesp) }
 
 	oSay3:= tSay():New(65,10,{||"Largura Min"},oDlg,,,,,,.T.,,,)
@@ -106,7 +106,7 @@ user function apontlaud()
 		ZQ0_FILIAL := xFilial('ZQ0')
 		ZQ0_OP:= cOP
 		ZQ0_ENSAIO:= 'Espessura'
-		ZQ0_RESULT:= transform(nesp,"@E 999.9")
+		ZQ0_RESULT:= transform(nesp,"@E 9.999")
 		ZQ0_ESPCIF:= cEspespc
 		ZQ0->(MSUNLOCK())
 
@@ -173,22 +173,22 @@ static function valida(c2Produto)
 		if cGrupo=="8015"
 		cProdutpai:='PI80090810'
 		cTipo:="PEX"
-		
+
 		else
 		cProdutpai:='PI'+cGrupo+'0810'
 		cTipo:="PEX"
-		endif	
+		endif
 		//if ndiamE>=350 .and. ndiamE<=450
 		ndiamEMin:=350
 		ndiamEMax:=700
 	 endif
-	 
+
 	 if cGrupo=="7998"
 	cProdutpai:='PI'+cGrupo+'0670'
 		cTipo:="PEX"
 		ndiamEMin:=350
 		ndiamEMax:=700
-	
+
 	else
 		cProdutpai:='PI'+cGrupo+'0665'
 		cTipo:="SELO"
@@ -200,7 +200,7 @@ static function valida(c2Produto)
 
 // Retorna as especificações
 	BEGINSQL ALIAS CALIAS
-		SELECT QP6_PRODUT,QP1_DESCPO,QP7_NOMINA,QP7_LIE,QP7_LSE 
+		SELECT QP6_PRODUT,QP1_DESCPO,QP7_NOMINA,QP7_LIE,QP7_LSE
 		FROM %TABLE:QP6% QP6
 		INNER JOIN %TABLE:QP7% QP7
 		ON QP7_PRODUT=QP6_PRODUT
@@ -210,7 +210,7 @@ static function valida(c2Produto)
 		where QP6.D_E_L_E_T_<>'*'
 		AND QP7.D_E_L_E_T_<>'*'
 		AND QP1.D_E_L_E_T_<>'*'
-		AND QP6_PRODUT=%EXP:cProdutpai%  
+		AND QP6_PRODUT=%EXP:cProdutpai%
 		AND QP6_REVI= (SELECT MAX(QP6_REVI) FROM QP6010 WHERE D_E_L_E_T_<>'*' AND QP6_PRODUT=%EXP:cProdutpai% )
 	ENDSQL
 
