@@ -204,7 +204,7 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 	cHTML+="Peso Bruto: <b>"+str(nPesoBrt)+"</b><br>"
 
 	//Alert()
-	c_ends:="vandeir.aniceto@inducoat.com.br, gabriela.battistini@inducoat.com.br"
+	c_ends:="ti@inducoat.com.br, gabriela.battistini@inducoat.com.br"
 	cAssunto:="Finalizado  OP "+cOp
 	u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )
 
