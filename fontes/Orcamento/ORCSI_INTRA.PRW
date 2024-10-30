@@ -23,6 +23,7 @@ USER FUNCTION ORCSIINTRA(sA1_COD)
 	Local dHoje:=Date()
 	Local aArquivos := {}
 	Local lRet:=.T.
+	Local nprecoBase25
 	Private codcliente:=sA1_COD
 	Private lOBSERVACAO:=.F.
 	//Declarando as fontes
@@ -196,74 +197,106 @@ USER FUNCTION ORCSIINTRA(sA1_COD)
 	WHILE (CALIAS)->(!EOF())
 		nColPos 	:=  nColIni
 		nMultLine := 2
-		//nFxSobra := (calias)->ZV1_LARGPI - (calias)->ZV1_LARGCR * (CALIAS)->ZV1_NROLOS
-		/*
-		cObs2 := ''
-		nMtTirada := (CALIAS)->ZV1_NROLOS * (CALIAS)->ZV1_MTLIN
-		cObs2 := 'Pedido mínimo/múltiplo são: '+CValToChar((CALIAS)->ZV1_NROLOS)+ " faixas de "+CValToChar((calias)->ZV1_LARGCR)+ " mm com "+alltrim(transform((calias)->ZV1_MTLIN, "@E 99,999"))+" mt,"+Chr(13)+Chr(10)
-		cObs2 += " totalizando: "+alltrim(transform(nMtTirada, "@E 999,999.999"))+" mt "+Chr(13)+Chr(10)
-		nMultLine := 2
-		cObsSobra := ''
-
-		if nFxSobra > 0
-			cObsSobra := CValToChar((CALIAS)->ZV1_NROLOS)+ " faixas de "+CValToChar((calias)->ZV1_LARGCR)+ " mm e 1 faixa de "+ CValToChar(nFxSobra) +"mm"
-			cObs2 += cObsSobra+Chr(13)+Chr(10)
-			nMultLine++
-		endif
-		*/
-		//	cZV1Obs := alltrim(POSICIONE('ZV1',1,XFILIAL('ZV1')+ZV0->ZV0_CODIGO+ZV0->ZV0_REVI+(CALIAS)->ZV1_ITEM,"ZV1_OBS"))
-		//	_nObsSize := oPrinter:GetTextWidth( cZV1Obs, oFont4,0)
-		//	if !empty(cZV1Obs)
-		//		cObs2 += cZV1Obs
-//			nMultLine++
-//		endif
-		//incrementa
-//		oPrinter:SayAlign(nLine, nColPos, '-', oFont1, nColItem, nIncLine * nMultLine, , PAD_CENTER, 0)
 		nColPos += nColItem
-		//QUANTIDADE
-		//oPrinter:SayAlign(nLine, nColPos, transform((calias)->ZV1_MTTOT, "@E 9,999,999"), oFont1, nColQtdVol, nIncLine  * nMultLine, , PAD_CENTER, 0)
-		//nColPos += nColQtdVol
-
-		oPrinter:SayAlign(nLine, nColPos, 'MT', oFont1, nColUn, nIncLine * nMultLine, , PAD_CENTER, 0)
-		nColPos += nColUn
-		nColOBSProd:=nColPos
-		oPrinter:SayAlign(nLine, nColPos, (calias)->BM_DESC, oFont3, nColMatDesc, nIncLine * nMultLine, , PAD_LEFT, 0)
-		nColPos += nColMatDesc
-
-		//oPrinter:SayAlign(nLine, nColPos, oTpImpr[(calias)->ZV1_TPIMPR], oFont1, nColTpSelo, nIncLine * nMultLine, , PAD_CENTER, 0)
-		//nColPos += nColTpSelo
-
-		////oPrinter:SayAlign(nLine, nColPos,  cvaltochar((calias)->ZV1_CORES) , oFont1, nColCores, nIncLine * nMultLine, , PAD_CENTER, 0)
-		//nColPos += nColCores
-
-		oPrinter:SayAlign(nLine, nColPos,  transform((calias)->LARGURA_CORTE, "@E 999.99"), oFont1, nColLargFx, nIncLine * nMultLine, , PAD_CENTER, 0)
-		nColPos += nColLargFx
-
-		oPrinter:SayAlign(nLine, nColPos,  'R$ '+transform((calias)->PRECO_BASE, "@E 999.9999"), oFont1, nColPrcLiq, nIncLine * nMultLine, , PAD_CENTER, 0)
-		nColPos += nColPrcLiq
-
-		// calcular impostos
-		nFatIcms:=(100-(calias)->ICMS)/100
-		nPrecoImpostos := ( (calias)->PRECO_BASE / nFatIcms ) /  0.9075
-		nPrecoImpostos:= NoRound(nPrecoImpostos, 4)
-		oPrinter:SayAlign(nLine, nColPos,  'R$ '+transform(nPrecoImpostos, "@E 999.9999"), oFont1, nColPrcImp, nIncLine * nMultLine, , PAD_CENTER, 0)
-		nColPos += nColPrcImp
-
-		oPrinter:SayAlign(nLine, nColPos, TRANSFORM((CALIAS)->BM_IPI, "@E 999.99")+' %', oFont1, nColIPI, nIncLine * nMultLine, , PAD_CENTER, 0)
-		nColPos += nColIPI
 
 		nMtTirada := (CALIAS)->NUM_ROLOS * (CALIAS)->METROS_LINEARES
+
 		if (calias)->QUANTIDADE_COMPRA>nMtTirada
+
+
+			oPrinter:SayAlign(nLine, nColPos, 'MT', oFont1, nColUn, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColUn
+			nColOBSProd:=nColPos
+			oPrinter:SayAlign(nLine, nColPos, (calias)->BM_DESC, oFont3, nColMatDesc, nIncLine * nMultLine, , PAD_LEFT, 0)
+			nColPos += nColMatDesc
+
+			oPrinter:SayAlign(nLine, nColPos,  transform((calias)->LARGURA_CORTE, "@E 999.99"), oFont1, nColLargFx, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColLargFx
+
+			oPrinter:SayAlign(nLine, nColPos,  'R$ '+transform((calias)->PRECO_BASE, "@E 999.9999"), oFont1, nColPrcLiq, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColPrcLiq
+
+			// calcular impostos
+			nFatIcms:=(100-(calias)->ICMS)/100
+			nPrecoImpostos := ( (calias)->PRECO_BASE / nFatIcms ) /  0.9075
+			nPrecoImpostos:= NoRound(nPrecoImpostos, 4)
+			oPrinter:SayAlign(nLine, nColPos,  'R$ '+transform(nPrecoImpostos, "@E 999.9999"), oFont1, nColPrcImp, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColPrcImp
+
+			oPrinter:SayAlign(nLine, nColPos, TRANSFORM((CALIAS)->BM_IPI, "@E 999.99")+' %', oFont1, nColIPI, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColIPI
+
+
+
 
 			oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform((calias)->QUANTIDADE_COMPRA, "@E 9,999,999"))+" mt - "+' R$ '+transform(nPrecoImpostos, "@E 999.9999"), oFont1, nColObs, nIncLine * nMultLine, , PAD_LEFT, 0)
 
 		else
-			oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform((calias)->QUANTIDADE_COMPRA, "@E 9,999,999"))+" mt - "+' R$ '+transform(((nPrecoImpostos*1.25)), "@E 999.9999"), oFont1, nColObs, nIncLine * nMultLine, , PAD_LEFT, 0)
+			//caso seja 1 tirada
+
+			// tirada com acrescimo de 25%
+			oPrinter:SayAlign(nLine, nColPos, 'MT', oFont1, nColUn, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColUn
+			nColOBSProd:=nColPos
+			oPrinter:SayAlign(nLine, nColPos, (calias)->BM_DESC, oFont3, nColMatDesc, nIncLine * nMultLine, , PAD_LEFT, 0)
+			nColPos += nColMatDesc
+
+			oPrinter:SayAlign(nLine, nColPos,  transform((calias)->LARGURA_CORTE, "@E 999.99"), oFont1, nColLargFx, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColLargFx
+			nprecoBase25:=(calias)->PRECO_BASE*1.25
+			oPrinter:SayAlign(nLine, nColPos,  'R$ '+transform(nprecoBase25, "@E 999.9999"), oFont1, nColPrcLiq, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColPrcLiq
+
+			// calcular impostos
+			nFatIcms:=(100-(calias)->ICMS)/100
+			nPrecoImpostos := ( nprecoBase25 / nFatIcms ) /  0.9075
+			nPrecoImpostos:= NoRound(nPrecoImpostos, 4)
+			oPrinter:SayAlign(nLine, nColPos,  'R$ '+transform(nPrecoImpostos, "@E 999.9999"), oFont1, nColPrcImp, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColPrcImp
+
+			oPrinter:SayAlign(nLine, nColPos, TRANSFORM((CALIAS)->BM_IPI, "@E 999.99")+' %', oFont1, nColIPI, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColIPI
+
+
+
+
+			oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform((calias)->QUANTIDADE_COMPRA, "@E 9,999,999"))+" mt - "+' R$ '+transform(((nPrecoImpostos)), "@E 999.9999"), oFont1, nColObs, nIncLine * nMultLine, , PAD_LEFT, 0)
 
 			nLine += nIncLIne
 
-			oPrinter:SayAlign(nLine, 1350, "Desconto de 25% para pedidos acima de ", oFont1, nColObs, nIncLine * nMultLine,COR_RED , PAD_LEFT, 0)
-			oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform(nMtTirada*2, "@E 9,999,999"))+" mt - "+'R$ '+transform(nPrecoImpostos, "@E 999.9999"), oFont1, nColObs, nIncLine * nMultLine,COR_RED , PAD_LEFT, 0)
+
+			// tirada com valor normal
+			nColPos 	:=  nColIni
+			nColPos += nColItem
+
+			oPrinter:SayAlign(nLine, nColPos, 'MT', oFont1, nColUn, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColUn
+			nColOBSProd:=nColPos
+			oPrinter:SayAlign(nLine, nColPos, (calias)->BM_DESC, oFont3, nColMatDesc, nIncLine * nMultLine, , PAD_LEFT, 0)
+			nColPos += nColMatDesc
+
+			oPrinter:SayAlign(nLine, nColPos,  transform((calias)->LARGURA_CORTE, "@E 999.99"), oFont1, nColLargFx, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColLargFx
+
+			oPrinter:SayAlign(nLine, nColPos,  'R$ '+transform((calias)->PRECO_BASE, "@E 999.9999"), oFont1, nColPrcLiq, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColPrcLiq
+
+			// calcular impostos
+			nFatIcms:=(100-(calias)->ICMS)/100
+			nPrecoImpostos := ( (calias)->PRECO_BASE / nFatIcms ) /  0.9075
+			nPrecoImpostos:= NoRound(nPrecoImpostos, 4)
+			oPrinter:SayAlign(nLine, nColPos,  'R$ '+transform(nPrecoImpostos, "@E 999.9999"), oFont1, nColPrcImp, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColPrcImp
+
+			oPrinter:SayAlign(nLine, nColPos, TRANSFORM((CALIAS)->BM_IPI, "@E 999.99")+' %', oFont1, nColIPI, nIncLine * nMultLine, , PAD_CENTER, 0)
+			nColPos += nColIPI
+
+
+
+
+
+			//oPrinter:SayAlign(nLine, 1350, "Desconto de 25% para pedidos acima de ", oFont1, nColObs, nIncLine * nMultLine,COR_RED , PAD_LEFT, 0)
+			oPrinter:SayAlign(nLine, nColPos, " "+alltrim(transform(nMtTirada*2, "@E 9,999,999"))+" mt - "+'R$ '+transform(nPrecoImpostos, "@E 999.9999")+'  25% Desconto', oFont1, nColObs, nIncLine * nMultLine,COR_RED , PAD_LEFT, 0)
 
 
 		endif
@@ -315,7 +348,7 @@ USER FUNCTION ORCSIINTRA(sA1_COD)
 	cMensagem+="<br>Equipe Inducoat "
 	cMensagem+="<br><br><br><i>E-mail enviado automaticamente via sistema, favor não responder. </i> "
 
-	cPara:="vandeir.aniceto@inducoat.com.br, gabriela.battistini@inducoat.com.br"
+	cPara:="ti@inducoat.com.br, gabriela.battistini@inducoat.com.br"
 	aadd(aArquivos,cPathInServer+cFileName+'.pdf')
 	GPEMail(cAssunto,cMensagem,cPara,aArquivos)
 

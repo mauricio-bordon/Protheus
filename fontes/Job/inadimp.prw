@@ -65,7 +65,7 @@ user function inadimp()
 		cHTML+='</html>'
 
 		//colocar em teste
-		c_ends:="financeiro@inducoat.com.br; vandeir.aniceto@inducoat.com.br"
+		c_ends:="financeiro@inducoat.com.br; ti@inducoat.com.br"
 
 		u_EnvMail( cAssunto, cHTML, c_ends, 'sistema@inducoat.com.br' )	
 
