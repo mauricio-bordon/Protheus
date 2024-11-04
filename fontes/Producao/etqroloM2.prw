@@ -10,7 +10,6 @@ user function etqrolom2()
 	dbSelectArea("SB1")
 	dbSeek(xFilial("SB1")+SH6->H6_PRODUTO)
 
-<<<<<<< Updated upstream
 		cStrEtq := STRTRAN(cStrEtq, "%B1_COD%", SB1->B1_COD)
 		cStrEtq := STRTRAN(cStrEtq, "%B1_DESC%", SB1->B1_DESC)
 		cStrEtq := STRTRAN(cStrEtq, "%D3_UM%", SB1->B1_UM)
@@ -26,16 +25,6 @@ user function etqrolom2()
 		endif
 
 	    cStrEtq := STRTRAN(cStrEtq, "%BARRAS%", alltrim(SB1->B1_COD)+';'+alltrim(SH6->H6_LOTECTL)+';'+alltrim(transform(SH6->H6_QTDPROD, "@E 999,999.999")))
-=======
-	cStrEtq := STRTRAN(cStrEtq, "%B1_COD%", SB1->B1_COD)
-	cStrEtq := STRTRAN(cStrEtq, "%B1_DESC%", SB1->B1_DESC)
-	cStrEtq := STRTRAN(cStrEtq, "%D3_UM%", SB1->B1_UM)
-	cStrEtq := STRTRAN(cStrEtq, "%D3_QUANT%", transform(SH6->H6_QTDPROD, "@E 999,999.999"))
-	cStrEtq := STRTRAN(cStrEtq, "%D3_EMISSAO%", dtoc(SH6->H6_DTPROD))
-	cStrEtq := STRTRAN(cStrEtq, "%D3_LOTECTL%", SH6->H6_LOTECTL)
-	cStrEtq := STRTRAN(cStrEtq, "%OBS%", SH6->H6_OBSERVA)
-	cStrEtq := STRTRAN(cStrEtq, "%BARRAS%", alltrim(SB1->B1_COD)+';'+alltrim(SH6->H6_LOTECTL)+';'+alltrim(transform(SH6->H6_QTDPROD, "@E 999,999.999")))
->>>>>>> Stashed changes
 
 //imprime 2 etq
 //cStrEtq += cStrEtq +chr(10)+chr(13)
