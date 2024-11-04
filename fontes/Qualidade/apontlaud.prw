@@ -171,24 +171,24 @@ static function valida(c2Produto)
 	if substr(cGrupo,1,2)=='80'
 	//7998
 		if cGrupo=="8015"
-		cProdutpai:='PI80090810'
-		cTipo:="PEX"
-
+			cProdutpai:='PI80090810'
+			cTipo:="PEX"
 		else
-		cProdutpai:='PI'+cGrupo+'0810'
-		cTipo:="PEX"
+			cProdutpai:='PI'+cGrupo+'0810'
+			cTipo:="PEX"
 		endif
-		//if ndiamE>=350 .and. ndiamE<=450
 		ndiamEMin:=350
 		ndiamEMax:=700
-	 endif
-
-	 if cGrupo=="7998"
-	cProdutpai:='PI'+cGrupo+'0670'
+	elseif cGrupo=="7998"
+		cProdutpai:='PI'+cGrupo+'0670'
 		cTipo:="PEX"
 		ndiamEMin:=350
 		ndiamEMax:=700
-
+	elseif cGrupo=="8112"
+		cProdutpai:='PI'+cGrupo+'0665'
+		cTipo:="PEX"
+		ndiamEMin:=350
+		ndiamEMax:=700
 	else
 		cProdutpai:='PI'+cGrupo+'0665'
 		cTipo:="SELO"
