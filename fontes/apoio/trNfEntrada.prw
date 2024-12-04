@@ -16,6 +16,7 @@ end wsrestful
 wsmethod post ws1 wsservice TrfNfEnt
 	Local cBody := ::getContent()
 	Local lRet := .F.
+	Local oJsonRet
 
 	oJsonRet := transferir(cBody)
 
@@ -31,25 +32,30 @@ wsmethod post ws1 wsservice TrfNfEnt
 
 	FreeObj(oJsonRet)
 
+	RESET ENVIRONMENT
+
 return lRet
 
 user function tstTrf()
 	local cBody
+	local oJsonRet
 
 	cBody := '{"PLANILHA":{"1":{"A":1,"B":"2303528836","C":"HSCO","D":23.0,"E":"675MM","F":6,"G":"9000MTR","H":193.1,"I":"0003194393","J":"MP001001000002"},"2":{"A":2,"B":"2303528864","C":"HSCO","D":23.0,"E":"675MM","F":6,"G":"9100MTR","H":195.1,"I":"0003194419","J":"MP001001000002"},"3":{"A":119,"B":"2303536867","C":"EP201","D":12.0,"E":"675MM","F":6,"G":"18050MTR","H":199.1,"I":"0003200768","J":"MP0200000003"},"4":{"A":120,"B":"2303528864","C":"EP201","D":12.0,"E":"675MM","F":6,"G":"18050MTR","H":201.1,"I":"0003200760","J":"MP0200000003"}}}'
 
 	oJsonRet := transferir(cBody)
 
-	alert(oJsonRet['code'])
-	alert(oJsonRet['detailedMessage'])
+	conout(oJsonRet['code'])
+	conout(oJsonRet['detailedMessage'])
 
 	FreeObj(oJsonRet)
+
+	RESET ENVIRONMENT
 
 return
 
 static function transferir(cBody)
 	Local oJsonPost := JsonObject():new()
-	Local oJson
+	Local oJsonPlan
 	Local oJsonCols
 
 	Local nLinhas, nI, nJ, nPosFld, nTransf
@@ -57,9 +63,6 @@ static function transferir(cBody)
 	Local aLinha := {}
 	Local aLinhas := {}
 	Local aLinhas2 := {}
-	Local aAuto := {} //Cabecalho e itens
-	Local nOpcAuto := 3 // Inclusao
-	Local cDocSD3 := ""
 
 	Local aNota, aHeadNF, aRowsNF, aRowNF, aRowsPlan
 
@@ -72,8 +75,9 @@ static function transferir(cBody)
 	Local nSeqLote
 	Local cLotectl
 
+	Local cNF, cSerie, cCodFor, cLojaFor
+
 	local bError //tratamento de erro
-	local aLog
 
 	private cError := ''
 	private lError := .F.
@@ -99,16 +103,22 @@ static function transferir(cBody)
 
 		oJsonPost:FromJson(cBody)
 
-		oJson := oJsonPost['PLANILHA']
+		oJsonPlan := oJsonPost['PLANILHA']
+
+		cNF := oJsonPost['NF']
+		cSerie := oJsonPost['SERIE']
+		cCodFor := oJsonPost['CODFOR']
+		cLojaFor := oJsonPost['LOJAFOR']
+
+		conout('NF ' + cNF + ' SERIE: ' + cSerie + ' CODFOR: ' + cCodFor + ' LOJAFOR: ' + cLojaFor)
 
 		//FreeObj(oJsonPost)
 
-		aRowsPlan := oJson:GetNames();
+		aRowsPlan := oJsonPlan:GetNames();
 
 		nLinhas := len(aRowsPlan)
 
-		//aNota := getNfEntr("000857", "1", "000037", "01")
-		aNota := getNfEntr("000000123", "123", "000037", "01")
+		aNota := getNfEntr(cNF, cSerie, cCodFor, cLojaFor)
 		aHeadNF := aNota[1]
 		aRowsNF := aNota[2]
 
@@ -124,7 +134,7 @@ static function transferir(cBody)
 			cItem := "00"
 
 			for nI := 2 to nLinhas //Pula a primeira linha que é o cabeçalho da planilha
-				oJsonCols := oJson[aRowsPlan[nI]]
+				oJsonCols := oJsonPlan[aRowsPlan[nI]]
 
 				cD3_COD := AllTrim(oJsonCols['J'])
 				cLoteForn := AllTrim(oJsonCols['B'])
@@ -160,14 +170,14 @@ static function transferir(cBody)
 				aadd(aLinha, {"D3_COD", fldVal(aHeadNF, aRowNF, 'B1_COD'), Nil}) //Cod Produto origem
 				aadd(aLinha, {"D3_DESCRI", fldVal(aHeadNF, aRowNF, 'B1_DESC'), Nil}) //descr produto origem
 				aadd(aLinha, {"D3_UM", fldVal(aHeadNF, aRowNF, 'B1_UM'), Nil}) //unidade medida origem
-				aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B2_LOCAL'), Nil}) //armazem origem
+				aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B8_LOCAL'), Nil}) //armazem origem
 				aadd(aLinha, {"D3_LOCALIZ", fldVal(aHeadNF, aRowNF, 'BF_LOCALIZ'),Nil}) //Informar endereço origem
 
 				//Destino
 				aadd(aLinha, {"D3_COD", fldVal(aHeadNF, aRowNF, 'B1_COD'), Nil}) //cod produto destino
 				aadd(aLinha, {"D3_DESCRI", fldVal(aHeadNF, aRowNF, 'B1_DESC'), Nil}) //descr produto destino
 				aadd(aLinha, {"D3_UM", fldVal(aHeadNF, aRowNF, 'B1_UM'), Nil}) //unidade medida destino
-				aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B2_LOCAL'), Nil}) //armazem destino
+				aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B8_LOCAL'), Nil}) //armazem destino
 				aadd(aLinha, {"D3_LOCALIZ", fldVal(aHeadNF, aRowNF, 'BF_LOCALIZ'), Nil}) //Informar endereço destino
 
 				aadd(aLinha, {"D3_NUMSERI", "", Nil}) //Numero serie
@@ -233,10 +243,18 @@ static function transferir(cBody)
 	//Restaurando bloco de erro do sistema
 	ErrorBlock( bError )
 
-	//Define um ponto de recuperação, dentro do bloco de sequência, para o qual o fluxo de execução será desviado após a execução de um comando BREAK
+return execBlk(aLinhas, aLinhas2, nSeqLote)
+
+static function execBlk(aLinhas, aLinhas2, nSeqLote)
+	local aAuto := {} //Cabecalho e itens
+	local nOpcAuto := 3 // Inclusao
+	local cDocSD3 := ""
+	local nLenSD3
+	local cMsg := ''
+	local nI
+	local oJsonRet
 
 	if !lError
-
 		BEGIN TRANSACTION
 
 			/*
@@ -258,10 +276,17 @@ static function transferir(cBody)
 			TRANSFERENCIA 2
 			*/
 
-			If !lMsErroAuto
+			If lMsErroAuto
+				RollbackSX8()
+			else
 				//Cabecalho
 				aAuto := {}
+
+				//incrementar cDocSD3 manualmente
 				cDocSD3 := GetSxeNum("SD3", "D3_DOC")
+				nLenSD3 := len(cDocSD3)
+				cDocSD3 := strzero(val(cDocSD3) + 1, nLenSD3)
+
 				aadd(aAuto, {cDocSD3, dDataBase})
 
 				//Itens
@@ -271,7 +296,12 @@ static function transferir(cBody)
 
 				MSExecAuto({|x,y| mata261(x,y)}, aAuto, nOpcAuto)
 
-				putmv("IC_LOTSEQM", nSeqLote)
+				If lMsErroAuto
+					RollbackSX8()
+				else
+					ConfirmSX8()
+					putmv("IC_LOTSEQM", nSeqLote)
+				endif
 			endif
 
 			If lMsErroAuto
@@ -280,13 +310,8 @@ static function transferir(cBody)
 			endif
 
 		END TRANSACTION
-
-		//Restaurando bloco de erro do sistema
-		ErrorBlock( bError )
-
 	endif
 
-	cMsg := ''
 	If lError
 		If lMsErroAuto //erro do execauto
 			aLog := GetAutoGRLog()
@@ -303,12 +328,6 @@ static function transferir(cBody)
 		conout(cMsg)
 	endif
 
-	// if lMsErroAuto
-	// 	RollBackSX8()
-	// else
-	// 	ConfirmSX8()
-	// EndIf
-
     oJsonRet := JsonObject():new()
 
 	if lError
@@ -320,8 +339,6 @@ static function transferir(cBody)
 		oJsonRet['message'] := 'Transferencia executada com sucesso.'
 		oJsonRet['detailedMessage'] := ' '
 	endif
-
-	RESET ENVIRONMENT
 
 	conout("Finalizada a rotina de transferência")
 
@@ -346,6 +363,8 @@ static function uSeqLote
 		AND D1_DTDIGIT = %exp:dtos(ddatabase)%
 	EndSql
 
+	u_dbg_qry()
+
 	if (cAlias)->(EOF()) //Nenhuma entrada, zera sequencial diário
 		nSeqDia := 0
 	else
@@ -356,7 +375,7 @@ static function uSeqLote
 
 return nSeqDia
 
-static function getNfEntr(cNF, cSerie, cFornec, cLoja)
+static function getNfEntr(cNF, cSerie, cCodFor, cLojaFor)
 	Local cAlias := getNextAlias()
 	Local aArray := {}
 	Local aRowsNF := {}
@@ -369,8 +388,7 @@ static function getNfEntr(cNF, cSerie, cFornec, cLoja)
 		B1_DESC,
 		B1_UM,
 		D1_QUANT,
-		B2_LOCAL,
-		B2_QATU,
+		B8_LOCAL,
 		B8_SALDO,
 		B8_LOTECTL,
 		B8_DTVALID,
@@ -380,13 +398,9 @@ static function getNfEntr(cNF, cSerie, cFornec, cLoja)
 		INNER JOIN SB1010 SB1 ON B1_FILIAL = %XFILIAL:SB1%
 		AND B1_COD = D1_COD
 		AND SB1.D_E_L_E_T_ = ' '
-		INNER JOIN SB2010 SB2 ON B2_FILIAL = D1_FILIAL
-		AND B2_COD = D1_COD
-		AND B2_LOCAL = D1_LOCAL
-		AND SB2.D_E_L_E_T_ = ' '
 		INNER JOIN SB8010 SB8 ON B8_FILIAL = D1_FILIAL
 		AND B8_PRODUTO = D1_COD
-		AND B8_LOCAL = D1_LOCAL
+		AND B8_LOCAL = '02'
 		AND B8_LOTECTL = D1_LOTECTL
 		AND SB8.D_E_L_E_T_ = ' '
 		INNER JOIN SBF010 SBF ON BF_FILIAL = B8_FILIAL
@@ -397,11 +411,13 @@ static function getNfEntr(cNF, cSerie, cFornec, cLoja)
 	WHERE D1_FILIAL = %XFILIAL:SD1%
 		AND D1_DOC = %EXP:cNF%
 		AND D1_SERIE = %EXP:cSerie%
-		AND D1_FORNECE = %EXP:cFornec%
-		AND D1_LOJA = %EXP:cLoja%
+		AND D1_FORNECE = %EXP:cCodFor%
+		AND D1_LOJA = %EXP:cLojaFor%
 		AND SD1.D_E_L_E_T_ = ' '
 
 	EndSql
+
+	u_dbg_qry()
 
 	if !(cAlias)->(Eof())
 		for nI := 1 to (cAlias)->(FCount())
