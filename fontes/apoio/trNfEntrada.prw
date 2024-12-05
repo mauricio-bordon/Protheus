@@ -26,21 +26,21 @@ wsmethod post ws1 wsservice TrfNfEnt
 
 	conout("Resposta enviada")
 
-	if oJsonRet['code'] == '200'
+	if oJsonRet['success']
 		lRet := .T.
 	endif
 
 	FreeObj(oJsonRet)
 
-	RESET ENVIRONMENT
+	//RESET ENVIRONMENT
 
 return lRet
 
 user function tstTrf()
-	local cBody
-	local oJsonRet
+	Local cBody
+	Local oJsonRet
 
-	cBody := '{"PLANILHA":{"1":{"A":1,"B":"2303528836","C":"HSCO","D":23.0,"E":"675MM","F":6,"G":"9000MTR","H":193.1,"I":"0003194393","J":"MP001001000002"},"2":{"A":2,"B":"2303528864","C":"HSCO","D":23.0,"E":"675MM","F":6,"G":"9100MTR","H":195.1,"I":"0003194419","J":"MP001001000002"},"3":{"A":119,"B":"2303536867","C":"EP201","D":12.0,"E":"675MM","F":6,"G":"18050MTR","H":199.1,"I":"0003200768","J":"MP0200000003"},"4":{"A":120,"B":"2303528864","C":"EP201","D":12.0,"E":"675MM","F":6,"G":"18050MTR","H":201.1,"I":"0003200760","J":"MP0200000003"}}}'
+	cBody := '{"PLANILHA":{"1":{"A":"SL","B":"ROLL NO","C":"TYPE","D":"THICK","E":"WIDTH","F":"CORE","G":"LENGTH","H":"WEIGHT","I":"BOX NO","J":"PROD. CODE"},"2":{"A":1,"B":"2303528836","C":"HSCO","D":"23.0","E":"675MM","F":6,"G":"9000MTR","H":9999,"I":"0003194393","J":"MP001009000011 "},"3":{"A":2,"B":"2303528837","C":"HSCO","D":"23.0","E":"675MM","F":6,"G":"9000MTR","H":7874,"I":"0003194393","J":"MP001009000011 "}},"NF":"000796","SERIE":"1","CODFOR":"000040","LOJAFOR":"01", "NTRANSF":2, "LOCALIZ":"R03B05N1A"}'
 
 	oJsonRet := transferir(cBody)
 
@@ -49,38 +49,22 @@ user function tstTrf()
 
 	FreeObj(oJsonRet)
 
-	RESET ENVIRONMENT
+	//RESET ENVIRONMENT
 
 return
 
 static function transferir(cBody)
 	Local oJsonPost := JsonObject():new()
-	Local oJsonPlan
-	Local oJsonCols
+	Local oJsonPlan, oJsonCols //dados da planilha
+	Local cNF, cSerie, cCodFor, cLojaFor, nTransf, cLocaliz //dados da requisição
+	Local aLinha := {}, aLinhas := {} //dados para execblk
+	Local aNota, aHeadNF, aRowsNF, aRowNF, aRowsPlan //dados da NF de entrada
+	Local cD3_COD, cLoteForn, nD3_QUANT, cItem, nCountProd //dados da planilha
+	Local nSeqLote, cLotectl
+	Local nLinhas, nI, nJ, nPosFld
+	Local bError //tratamento de erro
 
-	Local nLinhas, nI, nJ, nPosFld, nTransf
-
-	Local aLinha := {}
-	Local aLinhas := {}
-	Local aLinhas2 := {}
-
-	Local aNota, aHeadNF, aRowsNF, aRowNF, aRowsPlan
-
-	Local cD3_COD
-	Local cLoteForn
-	Local nD3_QUANT
-	Local cItem
-	Local nQtdProd
-
-	Local nSeqLote
-	Local cLotectl
-
-	Local cNF, cSerie, cCodFor, cLojaFor
-
-	local bError //tratamento de erro
-
-	private cError := ''
-	private lError := .F.
+	private cError := '', lError := .F.
 
 	// variável de controle interno da rotina automatica que informa se houve erro durante o processamento
 	Private lMsErroAuto := .F.
@@ -109,10 +93,12 @@ static function transferir(cBody)
 		cSerie := oJsonPost['SERIE']
 		cCodFor := oJsonPost['CODFOR']
 		cLojaFor := oJsonPost['LOJAFOR']
+		cLocaliz := oJsonPost['LOCALIZ']
+		nTransf := oJsonPost['NTRANSF']
 
-		conout('NF ' + cNF + ' SERIE: ' + cSerie + ' CODFOR: ' + cCodFor + ' LOJAFOR: ' + cLojaFor)
+		conout('NF ' + cNF + ' SERIE: ' + cSerie + ' CODFOR: ' + cCodFor + ' LOJAFOR: ' + cLojaFor + ' NTRANSF: ' + cValToChar(nTransf), ' LOCALIZ: ' + cLocaliz)
 
-		//FreeObj(oJsonPost)
+		FreeObj(oJsonPost)
 
 		aRowsPlan := oJsonPlan:GetNames();
 
@@ -124,113 +110,108 @@ static function transferir(cBody)
 
 		if len(aRowsNF) == 0
 			lError := .T.
-			cError := "Nota nao encontrada."
+			cError := "Nota nao encontrada ou transferencia ja realizada."
 			break
 		endif
 
 		nSeqLote := uSeqLote()
 
-		for nTransf := 1 to 2
-			cItem := "00"
+		cItem := "00"
 
-			for nI := 2 to nLinhas //Pula a primeira linha que é o cabeçalho da planilha
-				oJsonCols := oJsonPlan[aRowsPlan[nI]]
+		for nI := 2 to nLinhas //Pula a primeira linha que é o cabeçalho da planilha
+			oJsonCols := oJsonPlan[aRowsPlan[nI]]
 
-				cD3_COD := AllTrim(oJsonCols['J'])
-				cLoteForn := AllTrim(oJsonCols['B'])
-				nD3_QUANT := oJsonCols['H']
-				cItem := prxItem(cItem)
+			cD3_COD := AllTrim(cValToChar(oJsonCols['J']))
+			cLoteForn := AllTrim(cValToChar(oJsonCols['B']))
+			nD3_QUANT := oJsonCols['H']
+			cItem := prxItem(cItem)
 
-				nPosFld := aScan(aHeadNF, "B1_COD")
+			nPosFld := aScan(aHeadNF, "B1_COD")
 
-				nQtdProd := 0
-				For nJ := 1 To len(aRowsNF)
-					if Alltrim(aRowsNF[nJ][nPosFld]) == Alltrim(cD3_COD)
-						aRowNF := aRowsNF[nJ]
-						nQtdProd := nQtdProd + 1
-					endif
-				Next nJ
-
-				if nQtdProd == 0
-					lError := .T.
-					cError := "Produto da planilha nao encontrado na NF."
-					break
+			nCountProd := 0
+			For nJ := 1 To len(aRowsNF)
+				if Alltrim(aRowsNF[nJ][nPosFld]) == Alltrim(cD3_COD)
+					aRowNF := aRowsNF[nJ]
+					nCountProd := nCountProd + 1
 				endif
+			Next nJ
 
-				if nQtdProd > 1
-					lError := .T.
-					cError := "Produto da planilha encontrado em mais de uma linha na NF."
-					break
-				endif
+			if nCountProd == 0
+				lError := .T.
+				cError := "Produto da planilha nao encontrado na NF."
+				break
+			endif
 
-				aLinha := {}
+			if nCountProd > 1
+				lError := .T.
+				cError := "Produto da planilha encontrado em mais de uma linha na NF."
+				break
+			endif
 
-				//Origem
-				aadd(aLinha, {"ITEM", cItem, Nil})
-				aadd(aLinha, {"D3_COD", fldVal(aHeadNF, aRowNF, 'B1_COD'), Nil}) //Cod Produto origem
-				aadd(aLinha, {"D3_DESCRI", fldVal(aHeadNF, aRowNF, 'B1_DESC'), Nil}) //descr produto origem
-				aadd(aLinha, {"D3_UM", fldVal(aHeadNF, aRowNF, 'B1_UM'), Nil}) //unidade medida origem
-				aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B8_LOCAL'), Nil}) //armazem origem
-				aadd(aLinha, {"D3_LOCALIZ", fldVal(aHeadNF, aRowNF, 'BF_LOCALIZ'),Nil}) //Informar endereço origem
+			aLinha := {}
 
-				//Destino
-				aadd(aLinha, {"D3_COD", fldVal(aHeadNF, aRowNF, 'B1_COD'), Nil}) //cod produto destino
-				aadd(aLinha, {"D3_DESCRI", fldVal(aHeadNF, aRowNF, 'B1_DESC'), Nil}) //descr produto destino
-				aadd(aLinha, {"D3_UM", fldVal(aHeadNF, aRowNF, 'B1_UM'), Nil}) //unidade medida destino
-				aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B8_LOCAL'), Nil}) //armazem destino
-				aadd(aLinha, {"D3_LOCALIZ", fldVal(aHeadNF, aRowNF, 'BF_LOCALIZ'), Nil}) //Informar endereço destino
+			//Origem
+			aadd(aLinha, {"ITEM", cItem, Nil})
+			aadd(aLinha, {"D3_COD", fldVal(aHeadNF, aRowNF, 'B1_COD'), Nil}) //Cod Produto origem
+			aadd(aLinha, {"D3_DESCRI", fldVal(aHeadNF, aRowNF, 'B1_DESC'), Nil}) //descr produto origem
+			aadd(aLinha, {"D3_UM", fldVal(aHeadNF, aRowNF, 'B1_UM'), Nil}) //unidade medida origem
+			aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B8_LOCAL'), Nil}) //armazem origem
+			aadd(aLinha, {"D3_LOCALIZ", cLocaliz, Nil}) //Informar endereço origem
 
-				aadd(aLinha, {"D3_NUMSERI", "", Nil}) //Numero serie
+			//Destino
+			aadd(aLinha, {"D3_COD", fldVal(aHeadNF, aRowNF, 'B1_COD'), Nil}) //cod produto destino
+			aadd(aLinha, {"D3_DESCRI", fldVal(aHeadNF, aRowNF, 'B1_DESC'), Nil}) //descr produto destino
+			aadd(aLinha, {"D3_UM", fldVal(aHeadNF, aRowNF, 'B1_UM'), Nil}) //unidade medida destino
+			aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B8_LOCAL'), Nil}) //armazem destino
+			aadd(aLinha, {"D3_LOCALIZ", cLocaliz, Nil}) //Informar endereço destino
 
-				/*
-				Transferência 1:
-					- Origem = Lote único usado na entrada
-					- Destino = Lote do fornecedor conforme a planilha
-				Transferência 2:
-					- Origem = Lote do fornecedor conforme a planilha
-					- Destino = Lote sequencial gerado
-				*/
+			aadd(aLinha, {"D3_NUMSERI", "", Nil}) //Numero serie
 
-				//Lote Origem
-				if nTransf == 1
-					aadd(aLinha, {"D3_LOTECTL", fldVal(aHeadNF, aRowNF, 'B8_LOTECTL'), Nil}) //lote único usado na entrada
-				else
-					aadd(aLinha, {"D3_LOTECTL", cLoteForn, Nil}) //Lote do fornecedor
-				endif
+			/*
+			Transferência 1:
+				- Origem = Lote único informado na entrada
+				- Destino = Lote do fornecedor conforme a planilha
+			Transferência 2:
+				- Origem = Lote do fornecedor conforme a planilha
+				- Destino = Lote sequencial gerado
+			*/
 
-				aadd(aLinha, {"D3_NUMLOTE", "", Nil}) //sublote origem
-				aadd(aLinha, {"D3_DTVALID", stod(fldVal(aHeadNF, aRowNF, 'B8_DTVALID')), Nil}) //data validade
-				aadd(aLinha, {"D3_POTENCI", 0, Nil}) // Potencia
-				aadd(aLinha, {"D3_QUANT", nD3_QUANT, Nil}) //Quantidade
-				aadd(aLinha, {"D3_QTSEGUM", 0, Nil}) //Seg unidade medida
-				aadd(aLinha, {"D3_ESTORNO", "", Nil}) //Estorno
-				aadd(aLinha, {"D3_NUMSEQ", "", Nil}) // Numero sequencia D3_NUMSEQ
+			//Lote Origem
+			if nTransf == 1
+				aadd(aLinha, {"D3_LOTECTL", fldVal(aHeadNF, aRowNF, 'B8_LOTECTL'), Nil}) //lote único usado na entrada
+			else
+				aadd(aLinha, {"D3_LOTECTL", cLoteForn, Nil}) //Lote do fornecedor
+			endif
 
-				//Lote destino
-				if nTransf == 1
-					aadd(aLinha, {"D3_LOTECTL", cLoteForn, Nil}) //Lote do fornecedor
-				else
-					nSeqLote++
-					cLotectl := dtos(ddatabase) + 'M' + strzero(nSeqLote, 3)
-					aadd(aLinha, {"D3_LOTECTL", cLotectl, Nil}) //Lote sequencial gerado
-				endif
+			aadd(aLinha, {"D3_NUMLOTE", "", Nil}) //sublote origem
+			aadd(aLinha, {"D3_DTVALID", stod(fldVal(aHeadNF, aRowNF, 'B8_DTVALID')), Nil}) //data validade
+			aadd(aLinha, {"D3_POTENCI", 0, Nil}) // Potencia
+			aadd(aLinha, {"D3_QUANT", nD3_QUANT, Nil}) //Quantidade
+			aadd(aLinha, {"D3_QTSEGUM", 0, Nil}) //Seg unidade medida
+			aadd(aLinha, {"D3_ESTORNO", "", Nil}) //Estorno
+			aadd(aLinha, {"D3_NUMSEQ", "", Nil}) // Numero sequencia D3_NUMSEQ
 
-				aadd(aLinha, {"D3_NUMLOTE", "", Nil}) //sublote destino
-				aadd(aLinha, {"D3_DTVALID", stod(fldVal(aHeadNF, aRowNF, 'B8_DTVALID')), Nil}) //validade lote destino
-				aadd(aLinha, {"D3_ITEMGRD", "", Nil}) //Item Grade
+			//Lote destino
+			if nTransf == 1
+				aadd(aLinha, {"D3_LOTECTL", cLoteForn, Nil}) //Lote do fornecedor
+			else
+				nSeqLote++
+				cLotectl := dtos(ddatabase) + 'M' + strzero(nSeqLote, 3)
+				aadd(aLinha, {"D3_LOTECTL", cLotectl, Nil}) //Lote sequencial gerado
+			endif
 
-				aadd(aLinha, {"D3_CODLAN", "", Nil}) //cat83 prod origem
-				aadd(aLinha, {"D3_CODLAN", "", Nil}) //cat83 prod destino
+			aadd(aLinha, {"D3_NUMLOTE", "", Nil}) //sublote destino
+			aadd(aLinha, {"D3_DTVALID", stod(fldVal(aHeadNF, aRowNF, 'B8_DTVALID')), Nil}) //validade lote destino
+			aadd(aLinha, {"D3_ITEMGRD", "", Nil}) //Item Grade
 
-				if nTransf == 1
-					aAdd(aLinhas, aLinha)
-				else
-					aAdd(aLinhas2, aLinha)
-				endif
+			aadd(aLinha, {"D3_CODLAN", "", Nil}) //cat83 prod origem
+			aadd(aLinha, {"D3_CODLAN", "", Nil}) //cat83 prod destino
 
-			Next nI
+			aAdd(aLinhas, aLinha)
 
-		Next nTransf
+		Next nI
+
+		FreeObj(oJsonPlan)
 
 		//Define um ponto de recuperação, dentro do bloco de sequência, para o qual o fluxo de execução será desviado após a execução de um comando BREAK
 		RECOVER
@@ -243,73 +224,38 @@ static function transferir(cBody)
 	//Restaurando bloco de erro do sistema
 	ErrorBlock( bError )
 
-return execBlk(aLinhas, aLinhas2, nSeqLote)
+return execBlk(aLinhas, nSeqLote)
 
-static function execBlk(aLinhas, aLinhas2, nSeqLote)
-	local aAuto := {} //Cabecalho e itens
-	local nOpcAuto := 3 // Inclusao
-	local cDocSD3 := ""
-	local nLenSD3
-	local cMsg := ''
-	local nI
-	local oJsonRet
+static function execBlk(aLinhas, nSeqLote)
+	Local aAuto := {} //Cabecalho e itens
+	Local nOpcAuto := 3 // Inclusao
+	Local cDocSD3 := ""
+	Local cMsg := ''
+	Local nI
+	Local oJsonRet
 
 	if !lError
-		BEGIN TRANSACTION
 
-			/*
-			TRANSFERENCIA 1
-			*/
+		//Cabecalho
+		cDocSD3 := GetSxeNum("SD3", "D3_DOC")
+		aadd(aAuto, {cDocSD3, dDataBase})
 
-			//Cabecalho
-			cDocSD3 := GetSxeNum("SD3", "D3_DOC")
-			aadd(aAuto, {cDocSD3, dDataBase})
+		//Itens
+		for nI := 1 to len(aLinhas)
+			aadd(aAuto, aLinhas[nI])
+		Next nI
 
-			//Itens
-			for nI := 1 to len(aLinhas)
-				aadd(aAuto, aLinhas[nI])
-			Next nI
+		conout('--- MSExecAuto ---')
+		conout(VarInfo("aAuto", aAuto, , .F.))
 
-			MSExecAuto({|x,y| mata261(x,y)}, aAuto, nOpcAuto)
+		MSExecAuto({|x,y| mata261(x,y)}, aAuto, nOpcAuto)
 
-			/*
-			TRANSFERENCIA 2
-			*/
-
-			If lMsErroAuto
-				RollbackSX8()
-			else
-				//Cabecalho
-				aAuto := {}
-
-				//incrementar cDocSD3 manualmente
-				cDocSD3 := GetSxeNum("SD3", "D3_DOC")
-				nLenSD3 := len(cDocSD3)
-				cDocSD3 := strzero(val(cDocSD3) + 1, nLenSD3)
-
-				aadd(aAuto, {cDocSD3, dDataBase})
-
-				//Itens
-				for nI := 1 to len(aLinhas2)
-					aadd(aAuto, aLinhas2[nI])
-				Next nI
-
-				MSExecAuto({|x,y| mata261(x,y)}, aAuto, nOpcAuto)
-
-				If lMsErroAuto
-					RollbackSX8()
-				else
-					ConfirmSX8()
-					putmv("IC_LOTSEQM", nSeqLote)
-				endif
-			endif
-
-			If lMsErroAuto
-				lError := .T.
-				DisarmTransaction()
-			endif
-
-		END TRANSACTION
+		If lMsErroAuto
+			RollbackSX8()
+			lError := .T.
+		else
+			ConfirmSX8()
+		endif
 	endif
 
 	If lError
@@ -331,12 +277,12 @@ static function execBlk(aLinhas, aLinhas2, nSeqLote)
     oJsonRet := JsonObject():new()
 
 	if lError
-		oJsonRet['code'] := '400'
+		oJsonRet['success'] := .F.
 		oJsonRet['message'] := 'Erro ao executar a transferencia.'
 		oJsonRet['detailedMessage'] := ENCODEUTF8(cMsg)
 	else
-		oJsonRet['code'] := '200'
-		oJsonRet['message'] := 'Transferencia executada com sucesso.'
+		oJsonRet['success'] := .T.
+		oJsonRet['message'] := 'Numero do documento da transferencia: ' + cDocSD3
 		oJsonRet['detailedMessage'] := ' '
 	endif
 
@@ -391,9 +337,7 @@ static function getNfEntr(cNF, cSerie, cCodFor, cLojaFor)
 		B8_LOCAL,
 		B8_SALDO,
 		B8_LOTECTL,
-		B8_DTVALID,
-		BF_QUANT,
-		BF_LOCALIZ
+		B8_DTVALID
 	FROM SD1010 SD1
 		INNER JOIN SB1010 SB1 ON B1_FILIAL = %XFILIAL:SB1%
 		AND B1_COD = D1_COD
@@ -403,11 +347,6 @@ static function getNfEntr(cNF, cSerie, cCodFor, cLojaFor)
 		AND B8_LOCAL = '02'
 		AND B8_LOTECTL = D1_LOTECTL
 		AND SB8.D_E_L_E_T_ = ' '
-		INNER JOIN SBF010 SBF ON BF_FILIAL = B8_FILIAL
-		AND BF_PRODUTO = B8_PRODUTO
-		AND BF_LOCAL = B8_LOCAL
-		AND BF_LOTECTL = B8_LOTECTL
-		AND SBF.D_E_L_E_T_ = ' '
 	WHERE D1_FILIAL = %XFILIAL:SD1%
 		AND D1_DOC = %EXP:cNF%
 		AND D1_SERIE = %EXP:cSerie%
