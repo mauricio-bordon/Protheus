@@ -224,9 +224,9 @@ static function transferir(cBody)
 	//Restaurando bloco de erro do sistema
 	ErrorBlock( bError )
 
-return execBlk(aLinhas, nSeqLote)
+return execBlk(aLinhas, nSeqLote, nTransf)
 
-static function execBlk(aLinhas, nSeqLote)
+static function execBlk(aLinhas, nSeqLote, nTransf)
 	Local aAuto := {} //Cabecalho e itens
 	Local nOpcAuto := 3 // Inclusao
 	Local cDocSD3 := ""
@@ -246,6 +246,7 @@ static function execBlk(aLinhas, nSeqLote)
 		Next nI
 
 		conout('--- MSExecAuto ---')
+		conout('Etapa ' + cValToChar(nTransf))
 		conout(VarInfo("aAuto", aAuto, , .F.))
 
 		MSExecAuto({|x,y| mata261(x,y)}, aAuto, nOpcAuto)
@@ -255,6 +256,9 @@ static function execBlk(aLinhas, nSeqLote)
 			lError := .T.
 		else
 			ConfirmSX8()
+			if nTransf == 2
+				putmv("IC_LOTSEQM", nSeqLote)
+			endif
 		endif
 	endif
 
