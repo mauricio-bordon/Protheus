@@ -60,7 +60,7 @@ static function transferir(cBody)
 	Local aLinha := {}, aLinhas := {} //dados para execblk
 	Local aNota, aHeadNF, aRowsNF, aRowNF, aRowsPlan //dados da NF de entrada
 	Local cD3_COD, cLoteForn, nD3_QUANT, cItem, nCountProd //dados da planilha
-	Local nSeqLote, cLotectl
+	Local cNextLote
 	Local nLinhas, nI, nJ, nPosFld
 	Local bError //tratamento de erro
 
@@ -96,7 +96,14 @@ static function transferir(cBody)
 		cLocaliz := oJsonPost['LOCALIZ']
 		nTransf := oJsonPost['NTRANSF']
 
-		conout('NF ' + cNF + ' SERIE: ' + cSerie + ' CODFOR: ' + cCodFor + ' LOJAFOR: ' + cLojaFor + ' NTRANSF: ' + cValToChar(nTransf), ' LOCALIZ: ' + cLocaliz)
+		conout(;
+			'NF ' + cNF +;
+			' SERIE: ' + cSerie +;
+			' CODFOR: ' + cCodFor +;
+			' LOJAFOR: ' + cLojaFor +;
+			' LOCALIZ: ' + cLocaliz +;
+			' NTRANSF: ' + cValToChar(nTransf);
+			)
 
 		FreeObj(oJsonPost)
 
@@ -113,8 +120,6 @@ static function transferir(cBody)
 			cError := "Nota nao encontrada ou transferencia ja realizada."
 			break
 		endif
-
-		nSeqLote := uSeqLote()
 
 		cItem := "00"
 
@@ -156,14 +161,14 @@ static function transferir(cBody)
 			aadd(aLinha, {"D3_DESCRI", fldVal(aHeadNF, aRowNF, 'B1_DESC'), Nil}) //descr produto origem
 			aadd(aLinha, {"D3_UM", fldVal(aHeadNF, aRowNF, 'B1_UM'), Nil}) //unidade medida origem
 			aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B8_LOCAL'), Nil}) //armazem origem
-			aadd(aLinha, {"D3_LOCALIZ", cLocaliz, Nil}) //Informar endereço origem
+			aadd(aLinha, {"D3_LOCALIZ", PadR(cLocaliz, tamsx3('D3_LOCALIZ') [1]), Nil}) //Informar endereço origem
 
 			//Destino
 			aadd(aLinha, {"D3_COD", fldVal(aHeadNF, aRowNF, 'B1_COD'), Nil}) //cod produto destino
 			aadd(aLinha, {"D3_DESCRI", fldVal(aHeadNF, aRowNF, 'B1_DESC'), Nil}) //descr produto destino
 			aadd(aLinha, {"D3_UM", fldVal(aHeadNF, aRowNF, 'B1_UM'), Nil}) //unidade medida destino
 			aadd(aLinha, {"D3_LOCAL", fldVal(aHeadNF, aRowNF, 'B8_LOCAL'), Nil}) //armazem destino
-			aadd(aLinha, {"D3_LOCALIZ", cLocaliz, Nil}) //Informar endereço destino
+			aadd(aLinha, {"D3_LOCALIZ", PadR(cLocaliz, tamsx3('D3_LOCALIZ') [1]), Nil}) //Informar endereço destino
 
 			aadd(aLinha, {"D3_NUMSERI", "", Nil}) //Numero serie
 
@@ -180,7 +185,7 @@ static function transferir(cBody)
 			if nTransf == 1
 				aadd(aLinha, {"D3_LOTECTL", fldVal(aHeadNF, aRowNF, 'B8_LOTECTL'), Nil}) //lote único usado na entrada
 			else
-				aadd(aLinha, {"D3_LOTECTL", cLoteForn, Nil}) //Lote do fornecedor
+				aadd(aLinha, {"D3_LOTECTL", PadR(cLoteForn, tamsx3('D3_LOTECTL') [1]), Nil}) //Lote do fornecedor
 			endif
 
 			aadd(aLinha, {"D3_NUMLOTE", "", Nil}) //sublote origem
@@ -193,11 +198,17 @@ static function transferir(cBody)
 
 			//Lote destino
 			if nTransf == 1
-				aadd(aLinha, {"D3_LOTECTL", cLoteForn, Nil}) //Lote do fornecedor
+				aadd(aLinha, {"D3_LOTECTL", PadR(cLoteForn, tamsx3('D3_LOTECTL') [1]), Nil}) //Lote do fornecedor
+
 			else
-				nSeqLote++
-				cLotectl := dtos(ddatabase) + 'M' + strzero(nSeqLote, 3)
-				aadd(aLinha, {"D3_LOTECTL", cLotectl, Nil}) //Lote sequencial gerado
+				if empty(cNextLote)
+					cNextLote := u_prxLotNF(getmv("IC_LOTSEQM"))
+				else
+					cNextLote := u_prxLotNF(cNextLote)
+				endif
+
+				aadd(aLinha, {"D3_LOTECTL", PadR(cNextLote, tamsx3('D3_LOTECTL') [1]), Nil}) //Lote sequencial gerado
+
 			endif
 
 			aadd(aLinha, {"D3_NUMLOTE", "", Nil}) //sublote destino
@@ -224,9 +235,9 @@ static function transferir(cBody)
 	//Restaurando bloco de erro do sistema
 	ErrorBlock( bError )
 
-return execBlk(aLinhas, nSeqLote, nTransf)
+return execBlk(aLinhas, cNextLote, nTransf)
 
-static function execBlk(aLinhas, nSeqLote, nTransf)
+static function execBlk(aLinhas, cNextLote, nTransf)
 	Local aAuto := {} //Cabecalho e itens
 	Local nOpcAuto := 3 // Inclusao
 	Local cDocSD3 := ""
@@ -249,17 +260,23 @@ static function execBlk(aLinhas, nSeqLote, nTransf)
 		conout('Etapa ' + cValToChar(nTransf))
 		conout(VarInfo("aAuto", aAuto, , .F.))
 
-		MSExecAuto({|x,y| mata261(x,y)}, aAuto, nOpcAuto)
+		BEGIN TRANSACTION
 
-		If lMsErroAuto
-			RollbackSX8()
-			lError := .T.
-		else
-			ConfirmSX8()
-			if nTransf == 2
-				putmv("IC_LOTSEQM", nSeqLote)
+			MSExecAuto({|x,y| mata261(x,y)}, aAuto, nOpcAuto)
+
+			If lMsErroAuto
+				RollbackSX8()
+				lError := .T.
+				DisarmTransaction()
+			else
+				ConfirmSX8()
+				if nTransf == 2
+					putmv("IC_LOTSEQM", cNextLote)
+				endif
 			endif
-		endif
+
+		END TRANSACTION
+
 	endif
 
 	If lError
@@ -302,29 +319,6 @@ return aRowNF[nPosFld]
 /*
 ùltima sequencia de lotes
 */
-static function uSeqLote
-	Local cAlias := getNextAlias()
-	Local nSeqDia
-
-	BeginSql alias cAlias
-		SELECT *
-		FROM %TABLE:SD1%
-		WHERE D1_FILIAL = %XFILIAL:SD1% AND %NOTDEL%
-		AND D1_DTDIGIT = %exp:dtos(ddatabase)%
-	EndSql
-
-	u_dbg_qry()
-
-	if (cAlias)->(EOF()) //Nenhuma entrada, zera sequencial diário
-		nSeqDia := 0
-	else
-		nSeqDia := getmv("IC_LOTSEQM") //existe entrada, obtem sequencia do dia
-	endif
-
-	(cAlias)->(DBCLOSEAREA())
-
-return nSeqDia
-
 static function getNfEntr(cNF, cSerie, cCodFor, cLojaFor)
 	Local cAlias := getNextAlias()
 	Local aArray := {}
