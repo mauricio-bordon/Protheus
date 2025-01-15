@@ -417,7 +417,7 @@ static function CRIASB1(cGrupo, nLARGCR)
 	conout('Codigo estruturado: '+cB1_COD)
 	dbSelectArea('SB1')
 	SB1->(DbSetOrder(1))
-	SB1->(DBSEEK(XFILIAL('SB1')+cB1_COD, .F.))
+	SB1->(DBSEEK(XFILIAL('SB1') + PadR(cB1_COD, tamsx3('B1_COD') [1]), .F.))
 	IF SB1->( !EOF() )
 		conout('Achou: '+SB1->B1_COD)
 		return cB1_COD
