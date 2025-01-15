@@ -25,7 +25,7 @@ wsrestful ws_vendasintra description "WS para incluir pedido da intra"
 	wsmethod get ws3;
 		description "Print carta proposta";
 		wssyntax "/ws_vendasintra/print/{sA1_COD}";
-		path "/ws_vendasintra/print/{sA1_COD}"	
+		path "/ws_vendasintra/print/{sA1_COD}"
 
 end wsrestful
 
@@ -67,11 +67,11 @@ wsmethod post ws2 wsservice ws_vendasintra
 	Local lok := .T.
 	//Local cBody := ::getContent()
 	local sRet:=''
-	
+
 	private cUserRest := cUsuario
 	private cMsg := ''
 
-	
+
 
 
 
@@ -97,7 +97,7 @@ wsmethod get ws3 wsservice ws_vendasintra
 	private cUserRest := cUsuario
 	private cMsg := ''
 
-	
+
 
 
 
@@ -164,7 +164,7 @@ static function incpedido(cNumero)
         SELECT *
         FROM PEDIDOS
         where CODIGO = %exp:cNumero%
-		
+
 	ENdSql
 
 	if (caliasCabec)->(eof())
@@ -232,9 +232,9 @@ static function incpedido(cNumero)
 	cAlias2 := getNextAlias()
 
 	BeginSQL alias cAlias2
-			SELECT *			
-            FROM PEDIDO_ITENS 
-			WHERE CODIGO = %EXP:cNumero% 
+			SELECT *
+            FROM PEDIDO_ITENS
+			WHERE CODIGO = %EXP:cNumero%
 			AND DELETED_AT is null
 	ENdSql
 	aItens:={}
@@ -335,7 +335,7 @@ static function incpedido(cNumero)
 
 /*
 ,; // Loja do Cliente
- 
+
 ,; // item pEDIDO CLIENTE
 		{"C6_CLASFIS",'500'                    ,Nil}
 {"C6_OPER"   ,cTpOper                                                                                                                                                                                     ,Nil},; // TP. OPERACAO
@@ -414,11 +414,11 @@ static function CRIASB1(cGrupo, nLARGCR)
 
 	ENDIF
 
-	conout(cB1_COD)
+	conout('Codigo estruturado: '+cB1_COD)
 	dbSelectArea('SB1')
 	SB1->(DbSetOrder(1))
-	SB1->(DBSEEK(XFILIAL('SB1')+cB1_COD  ), .t.)
-	IF SB1->(FOUND())
+	SB1->(DBSEEK(XFILIAL('SB1')+cB1_COD, .F.))
+	IF SB1->( !EOF() )
 		conout('Achou: '+SB1->B1_COD)
 		return cB1_COD
 	ENDIF
