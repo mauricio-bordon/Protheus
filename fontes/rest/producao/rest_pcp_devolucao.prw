@@ -118,7 +118,7 @@ wsmethod post ws2 wsservice ws_pcp_op_devolucao
 
 	// lOk := vlddev(::cOP,oJson)
 	lOk := .T.
-	if Lok 
+	if Lok
 		lOk := devolvelote(::cOP, oJson)
 	endif
 
@@ -154,11 +154,11 @@ static function vlddev(COP, oJson)
 	BeginSQL alias cAlias
     SELECT COALESCE(SUM (CASE WHEN D3_CF LIKE 'D%' THEN D3_QUANT ELSE 0 END), 0) AS QUANT_DEV,
 		COALESCE(SUM (CASE WHEN D3_CF LIKE 'R%' THEN D3_QUANT ELSE 0 END), 0) AS QUANT_REQ
-    FROM %TABLE:SD3% 
+    FROM %TABLE:SD3%
     WHERE D_E_L_E_T_<>'*' AND D3_FILIAL=%XFILIAL:SD3%
         AND D3_OP like  %Exp:cOpLike%
 		AND D3_CF <> 'PR0'
-		AND D3_ESTORNO <> 'S'    
+		AND D3_ESTORNO <> 'S'
 		AND D3_COD = %EXP:cProduto% and D3_LOTECTL like %EXP:CLOTE%
 	EndSQL
 	u_dbg_qry()
@@ -189,33 +189,34 @@ static function vlddev(COP, oJson)
 			FROM %TABLE:SD3%
 			WHERE D_E_L_E_T_<>'*' AND D3_FILIAL=%XFILIAL:SD3%
 				AND D3_OP like  %Exp:cOpLike%
-				AND D3_ESTORNO <> 'S'    				
+				AND D3_ESTORNO <> 'S'
 		EndSQL
 		u_dbg_qry()
 
 		nQtdCsm := (calias)->QUANT_REQ
 		nQtdDev := nQtdSol + (calias)->QUANT_DEV //ADICIONAR A QUANTIDADE JA DEVOLVIDA A DEVOLUCAO ATUAL
 		nQtdProd := (calias)->QUANT_PROD //ADICIONAR A QUANTIDADE JA DEVOLVIDA A DEVOLUCAO ATUAL
-		
+
 		(cAlias)->(DbClosearea())
 
 
 	conout("nQtddev = "+CVALTOCHAR(nQtdDev) )
 	conout("nQtdCSM = "+CVALTOCHAR(nQtdCSM) )
 	conout("nQtdProd = "+CVALTOCHAR(nQtdProd) )
-	
+
 		cAlias := getNextAlias()
 
 		//Pega consumo do Produto, lote
 		BeginSQL alias cAlias
 			SELECT B1_QB, G1_QUANT
-			FROM %TABLE:SC2% C2 INNER JOIN %TABLE:SG1% G1 ON (C2_PRODUTO = G1_COD) 
+			FROM %TABLE:SC2% C2 INNER JOIN %TABLE:SG1% G1 ON C2_PRODUTO = G1_COD
+			AND G1_REVINI <= C2_REVISAO AND G1_REVFIM >= C2_REVISAO
 				INNER JOIN %TABLE:SB1% B1 ON (B1_COD = G1_COD)
 			WHERE C2.%NOTDEL% AND C2_FILIAL=%XFILIAL:SD3%
 				AND G1.%NOTDEL% AND G1_FILIAL=%XFILIAL:SD3%
 				AND B1.%NOTDEL% AND B1_FILIAL=%XFILIAL:SD3%
 				AND C2_NUM = %exp:cC2NUM% AND C2_ITEM = %exp:cC2ITEM% AND C2_SEQUEN = %exp:cC2SEQUEN%
-				AND G1_COMP = %EXP:CPRODUTO%  				
+				AND G1_COMP = %EXP:CPRODUTO%
 		EndSQL
 		u_dbg_qry()
 		conout("B1_QB = "+CVALTOCHAR((calias)->B1_QB) )
@@ -231,7 +232,7 @@ static function vlddev(COP, oJson)
 		conout("nPrevMargem = "+CVALTOCHAR(nPrevMargem) )
 		conout("nQtdPrMin = "+CVALTOCHAR(nQtdPrMin) )
 		conout("nQtdPrMax = "+CVALTOCHAR(nQtdPrMax) )
-		
+
 		IF nQtdCSM-NQTDDEV < nQtdPrMin
 			LOK := .F.
 			cMsgErro := "Quantidade a ser devolvida é maior que a calculada baseada na estrutura"
@@ -239,7 +240,7 @@ static function vlddev(COP, oJson)
 			LOK := .F.
 			cMsgErro := "Quantidade a ser devolvida é menor que a calculada baseada na estrutura"
 		ENDIF
-		
+
 	ENDIF
 
 return lOk
@@ -364,11 +365,11 @@ static function retListCsm(cop)
 
 	BeginSQL alias cAlias
     SELECT D3_COD, D3_LOTECTL, D3_QUANT, D3_NUMSEQ, D3_CF, D3_DTSIST, D3_HRSIST
-    FROM %table:SD3% 
+    FROM %table:SD3%
     WHERE D_E_L_E_T_<>'*' AND D3_FILIAL=%XFILIAL:SD3%
         AND D3_OP like  %Exp:cOpLike%
 		AND D3_CF <> 'PR0'
-		AND D3_ESTORNO <> 'S'    
+		AND D3_ESTORNO <> 'S'
 	ORDER BY D3_NUMSEQ DESC
 	EndSQL
 	u_dbg_qry()
@@ -457,7 +458,7 @@ static function cnslote(cOp, cLote)
 
 	BeginSQl alias cAlias
 		SELECT TOP 1 *
-		FROM %table:SD3% D3 
+		FROM %table:SD3% D3
 		WHERE D3_FILIAL = %XFILIAL:SD3% AND D3.%NOTDEL%
 		AND D3_LOTECTL = %EXP:CLOTE%
 		AND D3_OP = %EXP:COP%

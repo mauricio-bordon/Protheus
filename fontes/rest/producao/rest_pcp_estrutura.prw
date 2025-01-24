@@ -34,20 +34,25 @@ Return lGet
 static function getEstrutura(COP)
 	local aDados := {}
 	Local cAlias := getNextalias()
+	Local cProduto := ''
+	Local nQuant := 0
+	Local cRevisao := ''
 
 	cProduto:=alltrim(POSICIONE('SC2',1,XFILIAL('SC2')+COP,"C2_PRODUTO"))
 	nQuant:=POSICIONE('SC2',1,XFILIAL('SC2')+COP,"C2_QUANT")
+	cRevisao:=POSICIONE('SC2',1,XFILIAL('SC2')+COP,"C2_REVISAO")
 
 	conout("Quantidade da OP: "+str(nQuant));
 		BeginSql alias CALIAS
 
-		SELECT G1_COMP,B1.B1_DESC,B1.B1_UM,B12.B1_QB,G1_QUANT,(%EXP:nQuant% / B12.B1_QB)*G1_QUANT NECESSARIO 
+		SELECT G1_COMP,B1.B1_DESC,B1.B1_UM,B12.B1_QB,G1_QUANT,(%EXP:nQuant% / B12.B1_QB)*G1_QUANT NECESSARIO
 		FROM SG1010 G1
 		INNER JOIN SB1010 B1
 		ON B1.B1_COD=G1_COMP
 		INNER JOIN SB1010 B12
 		ON B12.B1_COD=G1_COD
 		WHERE G1_COD=%EXP:cProduto%
+		AND G1_REVINI <= %EXP:cRevisao% AND G1_REVFIM >= %EXP:cRevisao%
 		AND G1.D_E_L_E_T_<>'*'
 		AND B1.D_E_L_E_T_<>'*'
 		AND B12.D_E_L_E_T_<>'*'

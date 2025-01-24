@@ -152,7 +152,7 @@ static function proxap(cop)
         SELECT TOP 1 *
         FROM %table:SH6% H6
         where H6_FILIAL = %XFILIAL:SH6% AND H6.D_E_L_E_T_<>'*'
-            AND H6_OP=%Exp:cOP% 
+            AND H6_OP=%Exp:cOP%
 			order BY H6_DATAFIN desc, H6_HORAFIN desc
 	EndSQL
 	u_dbg_qry()
@@ -170,7 +170,7 @@ static function proxap(cop)
 			where D3_FILIAL = %XFILIAL:SD3% AND D3.D_E_L_E_T_<>'*'
 				AND D3_OP=%Exp:cOP%
 				AND D3_ESTORNO <> 'S'
-				AND D3_CF LIKE 'RE%' 
+				AND D3_CF LIKE 'RE%'
 				order BY D3_NUMSEQ
 		EndSQL
 		u_dbg_qry()
@@ -223,6 +223,7 @@ static function validaOp(cOp, nQuant)
 			FROM %TABLE:SG1%
 			WHERE G1_FILIAL = %XFILIAL:SG1% AND %NOTDEL%
 			AND G1_COD = %EXP:SC2->C2_PRODUTO%
+			AND G1_REVINI <= %EXP:SC2->C2_REVISAO% AND G1_REVFIM >= %EXP:SC2->C2_REVISAO%
 			ORDER BY G1_COMP
 		EndSQL
 		u_dbg_qry('QUERY ESTRUTURA')
@@ -248,7 +249,7 @@ static function validaOp(cOp, nQuant)
 		cAliasSD3 := getNextAlias()
 		BeginSQL alias cAliasSD3
 				SELECT D3_COD, sum( CASE WHEN D3_CF = 'DE0' THEN - D3_QUANT ELSE D3_QUANT END  ) as D3_QUANT
-				FROM  %TABLE:SD3% D3 
+				FROM  %TABLE:SD3% D3
 				WHERE D3_FILIAL = %XFILIAL:SD3% AND D3.D_E_L_E_T_ <> '*'
 				AND D3_OP = %EXP:cOP%
 				AND D3_COD NOT LIKE 'MOD%' AND D3_COD NOT LIKE 'MOI%' AND D3_COD NOT LIKE 'GGF%'
@@ -318,9 +319,9 @@ wsmethod post ws3 wsservice ws_pcp_producao2
 	conout(cBody)
 
 
-	
+
 	lOk := .T. // validaOp(cOp, nQuje)
-	
+
 	if !lOk
 		::SetResponse('{ "message": "Erro ao encerrar ordem.","detailedMessage": "'+cMsg+'"}')
 
@@ -347,19 +348,19 @@ wsmethod get ws4 wsservice ws_pcp_producao2
 	Local lOk := .T.
 	Local cLote := ::LOTE
 	private cMsg := ''
-	
+
 
 	lOk := U_etqpim2(cLote) // validaOp(cOp, nQuje)
-	
 
-		
+
+
 	if !lOk
 		::SetResponse('{ "message": "Erro ao tentar imprimir, verifique a impressora.","detailedMessage": "'+cMsg+'"}')
 
 		self:setStatus(400)
 	else
-		
-		
+
+
 			self:setStatus(200)
 
 			endif
@@ -382,7 +383,7 @@ static Function rEnc681(cOp)
 	SC2->(DBSEEK(XFILIAL('SC2')+COP))
 
 	BeginSQL alias calias
-	SELECT TOP 1 * 
+	SELECT TOP 1 *
 	FROM %TABLE:SH6%
 	WHERE H6_FILIAL = %XFILIAL:SH6% AND %NOTDEL%
 	AND H6_OP = %EXP:COP%

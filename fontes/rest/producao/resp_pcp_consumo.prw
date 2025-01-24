@@ -39,7 +39,7 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 	local nL
 	local cLote, cProdEmp
 	Local aJson := {}
-	
+
 
 	self:SetContentType("application/json")
 	aDados := u_bcreader(::codBar)
@@ -75,7 +75,7 @@ wsmethod get ws1 wsservice ws_pcp_op_consumo
 
 	if cLote<>alltrim(aDados[1])
 		::SetResponse('{"message": "Lote fora do FIFO","detailedMessage": "Lote fora do FIFO lote esperado '+cLote+'"}')
-		
+
 		self:setStatus(400)
 		Return lGet
 
@@ -258,11 +258,11 @@ static function retListCsm(cop)
 	BeginSQL alias cAlias
     SELECT D3_COD, D3_LOTECTL, '' as D3_DTSIST, '' as D3_HRSIST,
 	 SUM(CASE WHEN D3_CF LIKE 'RE%' THEN D3_QUANT WHEN D3_CF LIKE 'DE%' THEN -D3_QUANT ELSE 0 END ) AS D3_QUANT
-    FROM %TABLE:SD3% 
+    FROM %TABLE:SD3%
     WHERE D_E_L_E_T_<>'*' AND D3_FILIAL=%XFILIAL:SD3%
         AND D3_OP like  %Exp:cOpLike%
 		AND D3_CF <> 'PR0'
-		AND D3_ESTORNO <> 'S'    
+		AND D3_ESTORNO <> 'S'
 		AND LEFT(D3_COD,3) NOT IN ('MOD')
 	GROUP BY D3_COD, D3_LOTECTL
 	ORDER BY D3_COD, D3_LOTECTL DESC
@@ -329,13 +329,13 @@ static Function checafifo(cLocal, cProd)
 	cAlias := getNextAlias()
 	BeginSQL alias cAlias
 
-   SELECT TOP 1 BF_LOTECTL FROM %TABLE:SBF% BF 
+   SELECT TOP 1 BF_LOTECTL FROM %TABLE:SBF% BF
 		   INNER JOIN %TABLE:SB8% B8
 		   ON B8_LOCAL=BF_LOCAL
    		   AND BF_PRODUTO=B8_PRODUTO
    		   AND BF_LOTECTL=B8_LOTECTL
 	    WHERE BF.D_E_L_E_T_<>'*'
-		AND B8.D_E_L_E_T_<>'*' 
+		AND B8.D_E_L_E_T_<>'*'
 		AND	BF_FILIAL = %XFILIAL:SBF%
         AND BF_QUANT - BF_EMPENHO > 0
 		AND BF_LOCAL = %Exp:cLocal%
@@ -370,14 +370,15 @@ static Function checaestrutura(codBar, cOP, cProdEmp)
 SELECT C2_NUM FROM %TABLE:SC2% C2
 INNER JOIN %TABLE:SG1% G1
 ON G1_COD=C2_PRODUTO
+AND G1_REVINI <= C2_REVISAO AND G1_REVFIM >= C2_REVISAO
 WHERE C2.D_E_L_E_T_<>'*'
 AND C2_FILIAL=%XFILIAL:SC2%
 AND G1.D_E_L_E_T_<>'*'
 AND G1_FILIAL=%XFILIAL:SG1%
 AND C2_NUM=%Exp:cOrdem% and C2_ITEM = %EXP:CitemOp%
 AND G1_COMP=(
-	SELECT top 1 BF_PRODUTO FROM %TABLE:SBF% BF 
-	WHERE BF.D_E_L_E_T_<>'*' AND BF_FILIAL=%XFILIAL:SBF% 
+	SELECT top 1 BF_PRODUTO FROM %TABLE:SBF% BF
+	WHERE BF.D_E_L_E_T_<>'*' AND BF_FILIAL=%XFILIAL:SBF%
 	AND BF_LOTECTL=%Exp:codBar%
 	AND BF_PRODUTO=%EXP:cProdEmp%)
 
@@ -405,9 +406,9 @@ static function retlote(codBar,cLocal, cProd,cLocaliz)
 
 	BeginSQL alias cAlias
     SELECT BF_LOCALIZ,BF_EMPENHO,BF_LOTECTL,BF_QUANT,BF_LOCAL,BF_PRODUTO,
-		(SELECT B1_DESC FROM %TABLE:SB1% B1 
-		WHERE B1.D_E_L_E_T_<>'*' AND B1_FILIAL=%XFILIAL:SB1% AND B1_COD=BF_PRODUTO) DESCRICAO 
-		FROM 
+		(SELECT B1_DESC FROM %TABLE:SB1% B1
+		WHERE B1.D_E_L_E_T_<>'*' AND B1_FILIAL=%XFILIAL:SB1% AND B1_COD=BF_PRODUTO) DESCRICAO
+		FROM
 		%TABLE:SBF% BF
 		WHERE BF.D_E_L_E_T_<>'*'
 		AND BF_FILIAL=%XFILIAL:SBF%
@@ -448,9 +449,10 @@ static function prodemp(cOp, cLote, cLocal,cLocaliz)
 
 	BeginSQl alias cAlias
 		SELECT TOP 1 G1_COMP
-		FROM %TABLE:SG1% G1 INNER JOIN %TABLE:SC2% C2 ON (C2_PRODUTO = G1_COD) 
+		FROM %TABLE:SG1% G1 INNER JOIN %TABLE:SC2% C2 ON C2_PRODUTO = G1_COD
 		INNER JOIN %table:SBF% BF ON (BF_PRODUTO = G1_COMP)
 		WHERE G1_FILIAL = %xfilial:SG1% AND G1.D_E_L_E_T_ <> '*'
+		AND G1_REVINI <= C2_REVISAO AND G1_REVFIM >= C2_REVISAO
 		AND C2_FILIAL = %xfilial:SC2% AND C2.D_E_L_E_T_ <> '*'
 		AND BF_FILIAL = %xfilial:SBF% AND BF.D_E_L_E_T_ <> '*'
 		AND BF_LOTECTL = %EXP:CLOTE%
@@ -466,4 +468,3 @@ static function prodemp(cOp, cLote, cLocal,cLocaliz)
 	(calias)->(dbclosearea())
 
 return cProd
-
