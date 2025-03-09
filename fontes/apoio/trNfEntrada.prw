@@ -126,9 +126,9 @@ static function transferir(cBody)
 		for nI := 2 to nLinhas //Pula a primeira linha que é o cabeçalho da planilha
 			oJsonCols := oJsonPlan[aRowsPlan[nI]]
 
-			cD3_COD := AllTrim(cValToChar(oJsonCols['J']))
+			cD3_COD := AllTrim(cValToChar(oJsonCols['A']))
 			cLoteForn := AllTrim(cValToChar(oJsonCols['B']))
-			nD3_QUANT := oJsonCols['H']
+			nD3_QUANT := oJsonCols['C']
 			cItem := prxItem(cItem)
 
 			nPosFld := aScan(aHeadNF, "B1_COD")
