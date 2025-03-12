@@ -3,13 +3,20 @@
 #include 'rwmake.ch'
 #Include "tbiconn.ch"
 
-
 wsrestful ws_pcp_producao2 description "WS para incluir producao"
 	wsdata NUMERO as char OPTIONAL
 	wsdata ITEM as char OPTIONAL
 	wsdata SEQUENCIA as char OPTIONAL
 	wsdata CPARCTOT as char OPTIONAL
 	wsdata LOTE as char OPTIONAL
+	wsdata NVIAS as char OPTIONAL
+	wsdata NROLODE as char OPTIONAL
+	wsdata NROLOATE as char OPTIONAL
+
+	wsmethod get ws1;
+		description "Imprime etq identificação";
+		wssyntax "/ws_pcp_producao2/printetqident/{NUMERO}/{ITEM}/{SEQUENCIA}/{NVIAS}/{NROLODE}/{NROLOATE}";
+		path "/ws_pcp_producao2/printetqident/{NUMERO}/{ITEM}/{SEQUENCIA}/{NVIAS}/{NROLODE}/{NROLOATE}";
 
 	wsmethod post ws2;
 		description "OP inclui producao post";
@@ -27,6 +34,32 @@ wsrestful ws_pcp_producao2 description "WS para incluir producao"
 		path "/ws_pcp_producao2/print/{LOTE}"
 
 end wsrestful
+
+wsmethod get ws1 wsservice ws_pcp_producao2
+	Local lOk := .T.
+	Local cNumero := ::NUMERO
+	Local cItem := ::ITEM
+	Local cSequencia := ::SEQUENCIA
+	Local nVias := val(::NVIAS)
+	Local nRoloDe := val(::NROLODE)
+	Local nRoloAte := val(::NROLOATE)
+
+	//{NUMERO}/{ITEM}/{SEQUENCIA}/{NVIAS}/{NROLODE}"
+
+	private cMsg := ''
+
+	lOk := U_etqident(cNumero, cItem, cSequencia, nVias, nRoloDe, nRoloAte)
+
+	if !lOk
+		::SetResponse('{ "message": "Erro ao tentar imprimir a etiqueta de identificação; verifique a impressora!","detailedMessage": "'+cMsg+'"}')
+
+		self:setStatus(400)
+	else
+			self:setStatus(200)
+
+			endif
+	conout('-------------')
+Return lok
 
 wsmethod post ws2 wsservice ws_pcp_producao2
 	Local lPost := .T.
@@ -81,12 +114,9 @@ wsmethod post ws2 wsservice ws_pcp_producao2
 	conout('-------------')
 Return lPost
 
-
-
 static Function incproducao(cOp, oJson, _cParcTot)
 	Local lRet:=.T.
 	Local aMata680 := {}
-
 
 	Local cProd := POSICIONE('SC2', 1, xfilial('SC2')+cOp, "C2_PRODUTO")
 	Local cMaq := POSICIONE('SC2', 1, xfilial('SC2')+cOp, "C2_MAQUINA")
@@ -99,7 +129,6 @@ static Function incproducao(cOp, oJson, _cParcTot)
 	Local _nQtdPerd:= 0
 	Local cObs := oJson['OBS']
 	Local cLotectl := oJson['LOTE']
-
 
 	conout(oJson:toJson())
 
@@ -190,7 +219,6 @@ static function proxap(cop)
 
 	endif
 return aDtHr
-
 
 static function validaOp(cOp, nQuant)
 	Local lOk := .T.
@@ -302,7 +330,6 @@ static function validaOp(cOp, nQuant)
 	CONOUT(cmsg)
 	conout(' --- FIM ws_pcp_producao2 VALIDA ---')
 
-
 return lOk
 
 wsmethod post ws3 wsservice ws_pcp_producao2
@@ -317,8 +344,6 @@ wsmethod post ws3 wsservice ws_pcp_producao2
 	oJson := JsonObject():new()
 	oJson:fromJSON(cBody)
 	conout(cBody)
-
-
 
 	lOk := .T. // validaOp(cOp, nQuje)
 
@@ -343,16 +368,12 @@ wsmethod post ws3 wsservice ws_pcp_producao2
 	conout('-------------')
 Return lPost
 
-
 wsmethod get ws4 wsservice ws_pcp_producao2
 	Local lOk := .T.
 	Local cLote := ::LOTE
 	private cMsg := ''
 
-
 	lOk := U_etqpim2(cLote) // validaOp(cOp, nQuje)
-
-
 
 	if !lOk
 		::SetResponse('{ "message": "Erro ao tentar imprimir, verifique a impressora.","detailedMessage": "'+cMsg+'"}')
@@ -360,13 +381,11 @@ wsmethod get ws4 wsservice ws_pcp_producao2
 		self:setStatus(400)
 	else
 
-
 			self:setStatus(200)
 
 			endif
 	conout('-------------')
 Return lok
-
 
 static Function rEnc681(cOp)
 
