@@ -56,7 +56,7 @@ user function etqident(cNumero, cItem, cSequencia, nVias, nRoloDe, nRoloAte)
 			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%VIAS%", cvaltochar(nVias))
 			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%B1_COD%", SB1->B1_COD)
 			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%B1_DESC%", SB1->B1_DESC)
-			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%DATA_PROD%", StrZero(Day(dDtSrv), 2) + "/" + StrZero(Month(dDtSrv), 2) + "/" + StrZero(Year(dDtSrv), 4))
+			//cStrEtqTmp := STRTRAN(cStrEtqTmp, "%DATA_PROD%", StrZero(Day(dDtSrv), 2) + "/" + StrZero(Month(dDtSrv), 2) + "/" + StrZero(Year(dDtSrv), 4))
 			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%OP%", cNumero + cItem + cSequencia)
 			IF lNrolo
 				cStrEtqTmp := STRTRAN(cStrEtqTmp, "%ROLO%", 'Rolo: ' + cvaltochar(nRolo))
