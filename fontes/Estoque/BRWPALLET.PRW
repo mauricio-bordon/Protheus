@@ -145,7 +145,7 @@ STATIC FUNCTION PRINTETQ(cOP, cPallet)
 			+ " Total MT "+TRANSFORM((CALIAS)->totalMt,"@E 999,999.999") ;
 			+ " Rolos: "+((CALIAS)->ROLOS,"@E 999,999.999") + CHR(13) + CHR(10)
 
-		aAdd(aItens, TRANSFORM((CALIAS)->ROLOS,"@E 99") + ' Rolos de '+TRANSFORM((CALIAS)->METROS,"@E 9,999.999") + " metros. " )
+		aAdd(aItens, TRANSFORM((CALIAS)->ROLOS,"@E 999") + ' Rolos de '+TRANSFORM((CALIAS)->METROS,"@E 9,999.999") + " metros. " )
 		nTotalMT += (CALIAS)->totalmt
 		nRolos   += (CALIAS)->ROLOS
 		(calias)->(DBSKIP())
