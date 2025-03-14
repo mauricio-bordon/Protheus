@@ -9,6 +9,8 @@ User Function MT100TOK()
 
 	//conout("---------- PE MT100TOK ----------")
 
+	Return lGrava //TODO: P.E. DESATIVADO
+
 	for nLinha := 1 to len(aCols)
 		If Acols[nLinha][len(aHeader)+1]  //linha deletada
 			loop
