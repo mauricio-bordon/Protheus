@@ -5,7 +5,7 @@ user function etqrolom2()
 	//IF SH6->H6_PRODUTO$"PI_PA"
 
 	CURDIR( 'etq' )
-	cStrEtq := MemoRead( "etq_rolo_pi2.txt" )
+	cStrEtq := MemoRead( "etq_rolo_pi.txt" )
 
 	dbSelectArea("SB1")
 	dbSeek(xFilial("SB1")+SH6->H6_PRODUTO)
@@ -69,7 +69,7 @@ user function etqpim2(cLote)
 	If dbseek(xfilial("SH6")+cLote)
 
 		CURDIR( 'etq' )
-		cStrEtq := MemoRead( "etq_rolo_pi2.txt" )
+		cStrEtq := MemoRead( "etq_rolo_pi.txt" )
 
 		dbSelectArea("SB1")
 		dbSeek(xFilial("SB1")+SH6->H6_PRODUTO)
