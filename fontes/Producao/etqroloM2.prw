@@ -45,10 +45,10 @@ user function etqpim2(cLote)
 	Local bObject := {|| JsonObject():New()}
 	Local oJson   := Eval(bObject)
 	local cJson
-	Local cServer   := "187.49.39.130"                               // URL (IP) DO SERVIDOR
+	Local cServer   := u_ipPrimario()                       // URL (IP) DO SERVIDOR
 	Local cServerBKP   := "starlinkinducoat.myddns.me"                               // URL DO SERVIDOR WAN2
 
-	Local cPort     := "3001"                                        // PORTA DO SERVIÇO REST
+	Local cPort     := u_portaPrn()                               // PORTA DO SERVIÇO REST
 	Local cURI      := "http://" + cServer + ":" +cPort // URI DO SERVIÇO REST
 	Local cURIBKP  := "http://" + cServerBKP + ":" +cPort // URI DO SERVIÇO REST
 	Local cResource := "/enviar"                  // RECURSO A SER CONSUMIDO

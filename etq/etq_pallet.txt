@@ -1,4 +1,4 @@
-﻿CT~~CD,~CC^~CT~
+﻿~CT~~CD,~CC^
 ^XA
 ~TA000
 ~JSN
@@ -15,8 +15,6 @@
 ^LRN
 ^CI27
 ^PA0,1,1,0
-^XZ
-^XA
 ^MMT
 ^PW807
 ^LL2046

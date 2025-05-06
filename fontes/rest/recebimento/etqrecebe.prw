@@ -3,20 +3,20 @@
 user function etqrecebe(cnota,cfornece,cproduto,citem,clotefor)
 	local cAlias
 	local lOk:=.T.
-	 Local bObject := {|| JsonObject():New()}
-    Local oJson   := Eval(bObject)
+	Local bObject := {|| JsonObject():New()}
+	Local oJson   := Eval(bObject)
 	local cJson
-  Local cServer   := "187.49.39.130"                               // URL (IP) DO SERVIDOR
-    Local cPort     := "3001"                                        // PORTA DO SERVIÇO REST
-    Local cURI      := "http://" + cServer + ":" +cPort // URI DO SERVIÇO REST
-    Local cResource := "/enviar"                  // RECURSO A SER CONSUMIDO
-    Local oRest     := FwRest():New(cURI)                            // CLIENTE PARA CONSUMO REST
-    Local aHeader   := {}                                            // CABEÇALHO DA REQUISIÇÃO
+	Local cServer   := u_ipPrimario()                                     // URL (IP) DO SERVIDOR
+	Local cPort 	:= u_portaPrn()                                         // PORTA DO SERVIÇO REST
+	Local cURI      := "http://" + cServer + ":" +cPort // URI DO SERVIÇO REST
+	Local cResource := "/enviar"                  // RECURSO A SER CONSUMIDO
+	Local oRest     := FwRest():New(cURI)                            // CLIENTE PARA CONSUMO REST
+	Local aHeader   := {}                                            // CABEÇALHO DA REQUISIÇÃO
 
-    // PREENCHE CABEÇALHO DA REQUISIÇÃO
-    AAdd(aHeader, "Content-Type: application/json; charset=UTF-8")
-    AAdd(aHeader, "Accept: application/json")
-    AAdd(aHeader, "User-Agent: Chrome/65.0 (compatible; Protheus " + GetBuild() + ")")
+	// PREENCHE CABEÇALHO DA REQUISIÇÃO
+	AAdd(aHeader, "Content-Type: application/json; charset=UTF-8")
+	AAdd(aHeader, "Accept: application/json")
+	AAdd(aHeader, "User-Agent: Chrome/65.0 (compatible; Protheus " + GetBuild() + ")")
 
 	cSaida := ''
 	cAlias := getNextalias()
@@ -25,14 +25,14 @@ user function etqrecebe(cnota,cfornece,cproduto,citem,clotefor)
 	dbSelectArea("SB1")
 	if dbSeek(xFilial("SB1")+cproduto)
 
-	lok:=.T.
-else
-	lok:=.F.
+		lok:=.T.
+	else
+		lok:=.F.
 	ENDIF
 
 	BeginSql alias cAlias
-		
-        SELECT * 
+
+        SELECT *
 FROM SD1010 SD1
 INNER JOIN ZS1010 ZS1
 ON D1_DOC=ZS1_DOC
@@ -50,11 +50,9 @@ AND ZS1_FORNEC=%EXP:cfornece%
 AND ZS2_PRODUT=%EXP:cproduto%
 AND ZS2_ITEM=%EXP:citem%
 AND ZS2_LOTEFO=%EXP:clotefor%
-        
-        
-        
+
 	EndSQL
-		u_dbg_qry()
+	u_dbg_qry()
 
 	WHILE (cAlias)->(!EOF())
 		cStr:=cStrEtq
@@ -69,7 +67,6 @@ AND ZS2_LOTEFO=%EXP:clotefor%
 
 		cSaida += cStr+chr(10)+chr(13)
 
-
 		(cAlias)->(DBSKIP())
 	ENDDO
 	(cAlias)->(DBCLOSEAREA())
@@ -83,25 +80,25 @@ AND ZS2_LOTEFO=%EXP:clotefor%
 
 */
 
-conout("Print saida")
+	conout("Print saida")
 //CONOUT(cSaida)
 
-oJson["chave"]:= "CoatIndu"
-oJson["impressao"]:= cSaida
-oJson["ip"]:= "192.168.2.229"
+	oJson["chave"]:= "CoatIndu"
+	oJson["impressao"]:= cSaida
+	oJson["ip"]:= "192.168.2.229"
 
-cJson:=oJson:ToJson()
+	cJson:=oJson:ToJson()
 
-    oRest:SetPath(cResource)
+	oRest:SetPath(cResource)
 
-    oRest:SetPostParams(cJson)
+	oRest:SetPostParams(cJson)
 
-    // REALIZA O MÉTODO POST E VALIDA O RETORNO
-    If (oRest:Post(aHeader))
-        ConOut("POST: " + oRest:GetResult())
-    Else
-        ConOut("POST: " + oRest:GetLastError())
+	// REALIZA O MÉTODO POST E VALIDA O RETORNO
+	If (oRest:Post(aHeader))
+		ConOut("POST: " + oRest:GetResult())
+	Else
+		ConOut("POST: " + oRest:GetLastError())
 		lOk:=.F.
-    EndIf
+	EndIf
 
 return lOk

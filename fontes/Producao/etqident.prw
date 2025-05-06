@@ -1,14 +1,15 @@
 user function etqident(cNumero, cItem, cSequencia, nVias, nRoloDe, nRoloAte)
 	local cStrEtqNew := '', cStrEtq := '', cStrEtqTmp := ''
+	local cBlockStart, cBlockEnd, nBlockStart, nBlockEnd
 	local lNrolo, nRolo
 	local lOk :=.T.
 	Local bObject := {|| JsonObject():New()}
 	Local oJson := Eval(bObject)
 	local cJson
-	Local cServer := "187.49.39.130"                              // IP FIXO INDUCOAT
+	Local cServer := u_ipPrimario()                               // IP FIXO INDUCOAT
 	Local cServerBKP := "starlinkinducoat.myddns.me"              // URL DO SERVIDOR WAN2
-    Local dDtSrv := Date() 										  //data do servidor
-	Local cPort := "3001"                                      	  // PORTA DO SERVIÇO REST - PORT FORWARD NO ROTEADOR PARA O IP DO RASPBERRY
+    //Local dDtSrv := Date() 										  //data do servidor
+	Local cPort := u_portaPrn()                                	  // PORTA DO SERVIÇO REST - PORT FORWARD NO ROTEADOR PARA O IP DO RASPBERRY
 	Local cURI := "http://" + cServer + ":" +cPort 			      // URI DO SERVIÇO REST (NODE NO RASPBERRY)
 	Local cURIBKP := "http://" + cServerBKP + ":" +cPort 		  // URI DO SERVIÇO REST
 	Local cResource := "/enviar"                  				  // RECURSO A SER CONSUMIDO
@@ -27,6 +28,7 @@ user function etqident(cNumero, cItem, cSequencia, nVias, nRoloDe, nRoloAte)
 		conout('etqident - achou OP ' + cNumero + cItem + cSequencia)
 
 		CURDIR( 'etq' )
+		//cStrEtqNew := MemoRead( "C:\Dev\Protheus\etq\etq_rolo_ident.txt" )
 		cStrEtqNew := MemoRead( "etq_rolo_ident.txt" )
 
 		dbSelectArea("SB1")
@@ -54,16 +56,21 @@ user function etqident(cNumero, cItem, cSequencia, nVias, nRoloDe, nRoloAte)
 		for nRolo := nRoloDe to nRoloAte
 			cStrEtqTmp := cStrEtqNew
 			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%VIAS%", cvaltochar(nVias))
-			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%B1_COD%", SB1->B1_COD)
-			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%B1_DESC%", SB1->B1_DESC)
+			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%B1_COD%", rtrim(SB1->B1_COD))
+			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%B1_DESC%", rtrim(SB1->B1_DESC))
 			//cStrEtqTmp := STRTRAN(cStrEtqTmp, "%DATA_PROD%", StrZero(Day(dDtSrv), 2) + "/" + StrZero(Month(dDtSrv), 2) + "/" + StrZero(Year(dDtSrv), 4))
 			cStrEtqTmp := STRTRAN(cStrEtqTmp, "%OP%", cNumero + cItem + cSequencia)
 			IF lNrolo
+				cStrEtqTmp := STRTRAN(cStrEtqTmp, "%BARRAS%", cNumero + cItem + cSequencia + StrZero(nRolo, 3) + ';' + rtrim(SB1->B1_COD))
 				cStrEtqTmp := STRTRAN(cStrEtqTmp, "%ROLO%", 'Rolo: ' + cvaltochar(nRolo))
 			else
-				cStrEtqTmp := STRTRAN(cStrEtqTmp, "%ROLO%", ' ')
+				//remover o bloco
+				cBlockStart := '^FX{BEGIN_ROLO}^FS'
+				cBlockEnd := '^FX{END_ROLO}^FS'
+				nBlockStart := AT(cBlockStart, cStrEtqTmp, 1)
+				nBlockEnd := AT(cBlockEnd, cStrEtqTmp,  1) + LEN(cBlockEnd)
+				cStrEtqTmp := left(cStrEtqTmp, nBlockStart - 1) + substr(cStrEtqTmp, nBlockEnd + 1)
 			endif
-
 			cStrEtq+= cStrEtqTmp
 		next nRolo
 
@@ -100,3 +107,8 @@ user function etqident(cNumero, cItem, cSequencia, nVias, nRoloDe, nRoloAte)
 	ENDIF
 
 return lOk
+
+// User Function CHKEXEC()
+// 	u_etqident('001065', '01', '001', 1, 0, 0)
+
+// 	return .T.
