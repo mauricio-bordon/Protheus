@@ -18,47 +18,60 @@ wsmethod get ws1 wsservice ws_pcp_estrutura
 	Local lGet := .T.
 	Local aJson := {}
 
-
 	self:SetContentType("application/json")
 	aDados := getEstrutura(::cOp)
 
 	self:setStatus(200)
 	::SetResponse(aDados)
 
-
 	FreeObj(aJson)
-
 
 Return lGet
 
-static function getEstrutura(COP)
+static function getEstrutura(cOP)
 	local aDados := {}
 	Local cAlias := getNextalias()
 	Local cProduto := ''
 	Local nQuant := 0
 	Local cRevisao := ''
 
-	cProduto:=alltrim(POSICIONE('SC2',1,XFILIAL('SC2')+COP,"C2_PRODUTO"))
-	nQuant:=POSICIONE('SC2',1,XFILIAL('SC2')+COP,"C2_QUANT")
-	cRevisao:=POSICIONE('SC2',1,XFILIAL('SC2')+COP,"C2_REVISAO")
+	cProduto:=alltrim(POSICIONE('SC2',1,xFilial('SC2')+cOP,"C2_PRODUTO"))
+	nQuant:=POSICIONE('SC2',1,xFilial('SC2')+cOP,"C2_QUANT")
+	cRevisao:=POSICIONE('SC2',1,xFilial('SC2')+cOP,"C2_REVISAO")
 
 	conout("Quantidade da OP: "+str(nQuant));
-		BeginSql alias CALIAS
 
-		SELECT G1_COMP,B1.B1_DESC,B1.B1_UM,B12.B1_QB,G1_QUANT,(%EXP:nQuant% / B12.B1_QB)*G1_QUANT NECESSARIO
-		FROM SG1010 G1
-		INNER JOIN SB1010 B1
-		ON B1.B1_COD=G1_COMP
-		INNER JOIN SB1010 B12
-		ON B12.B1_COD=G1_COD
-		WHERE G1_COD=%EXP:cProduto%
-		AND G1_REVINI <= %EXP:cRevisao% AND G1_REVFIM >= %EXP:cRevisao%
-		AND G1.D_E_L_E_T_<>'*'
-		AND B1.D_E_L_E_T_<>'*'
-		AND B12.D_E_L_E_T_<>'*'
+	BeginSql alias CALIAS
+
+SELECT G1_COMP,
+    SB1_COMP.B1_DESC,
+    SB1_COMP.B1_UM,
+    SB1_PROD.B1_QB,
+    G1_QUANT,
+(%EXP:nQuant% / SB1_PROD.B1_QB) * G1_QUANT NECESSARIO
+FROM SG1010 SG1
+    INNER JOIN SB1010 SB1_COMP ON SB1_COMP.B1_FILIAL = %xFilial:SB1%
+    AND SB1_COMP.B1_COD = G1_COMP
+    AND SB1_COMP.D_E_L_E_T_ = ' '
+    INNER JOIN SB1010 SB1_PROD ON SB1_PROD.B1_FILIAL = %xFilial:SB1%
+    AND SB1_PROD.B1_COD = G1_COD
+    AND SB1_PROD.D_E_L_E_T_ = ' '
+    INNER JOIN
+	(
+		SELECT D4_COD
+		FROM SD4010
+		WHERE D4_FILIAL = %xFilial:SD4%
+		    AND D4_OP = %EXP:cOP%
+			AND D_E_L_E_T_ = ' '
+		GROUP BY D4_COD
+	) AS SD4_SUB ON SD4_SUB.D4_COD = G1_COMP
+WHERE G1_COD = %EXP:cProduto%
+    AND G1_REVINI <= %EXP:cRevisao%
+    AND G1_REVFIM >= %EXP:cRevisao%
+    AND SG1.D_E_L_E_T_ = ' '
+
 	EndSQL
 	u_dbg_qry()
-
 
 	WHILE !(cAlias)->(Eof())
 
@@ -74,8 +87,5 @@ static function getEstrutura(COP)
 	enddo
 
 	(cAlias)->(DbClosearea())
-
-
-
 
 return aDados
